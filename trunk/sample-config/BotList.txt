@@ -1,0 +1,2 @@
+NewsBot@25|morsecode.dyndns.org|7890|2345|25|25
+NewsBot@15|morsecode.dyndns.org|7890|2346|15|15
