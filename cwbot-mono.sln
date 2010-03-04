@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cwcom-mono", "cwcom\cwcom-mono.csproj", "{3EAF7290-9086-4519-ABA7-8184FB3E92F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cwrss-mono", "cwrss\cwrss-mono.csproj", "{53583151-029E-4FA8-9EEA-9CF0366D5DC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "morse-mono", "morse\morse-mono.csproj", "{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ionosphere-mono", "ionosphere\ionosphere-mono.csproj", "{49C57342-76E4-43DC-BBC4-A150EB2D0D57}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53583151-029E-4FA8-9EEA-9CF0366D5DC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53583151-029E-4FA8-9EEA-9CF0366D5DC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53583151-029E-4FA8-9EEA-9CF0366D5DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53583151-029E-4FA8-9EEA-9CF0366D5DC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = ionosphere\ionosphere-mono.csproj
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

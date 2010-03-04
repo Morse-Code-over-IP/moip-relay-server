@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ionosphere")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Ionosphere server for CWCom")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("DC-3 Dreams, SP")]
-[assembly: AssemblyProduct("ionosphere")]
-[assembly: AssemblyCopyright("Copyright © DC-3 Dreams, SP 2010")]
+[assembly: AssemblyCompany("Robert B. Denny, Mesa, AZ <rdenny@dc3.com>")]
+[assembly: AssemblyProduct("Ionosphere")]
+[assembly: AssemblyCopyright("Creative Commons Attribution Non-Commercial Share Alike")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyFileVersion("1.0.2.0")]
