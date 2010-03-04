@@ -1,4 +1,4 @@
-﻿//tabs=4
+//tabs=4
 //-----------------------------------------------------------------------------
 // TITLE:		cwcom.cs
 //
@@ -10,6 +10,7 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -104,7 +105,7 @@ namespace com.dc3.cwcom
 					if (!_udpConn)
 					{
 						_logger("Opening UDP");
-						_udp.Connect(Host, Port);
+						_udp.Connect(_remHost, _remPort);
 						_udpConn = true;
 						justCon = true;
 					}

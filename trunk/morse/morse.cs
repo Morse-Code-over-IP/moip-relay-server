@@ -1,4 +1,4 @@
-﻿//tabs=4
+//tabs=4
 //-----------------------------------------------------------------------------
 // TITLE:		morse.cs
 //
@@ -8,6 +8,7 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -19,6 +20,8 @@
 // 04-Feb-10	rbd		0.5.1
 // 05-Feb-10	rbd		0.5.3
 // 10-Feb-10	rbd		0.6.1
+// ??-Feb-10	rbd		0.6.2-0.6.4
+// 03-Mar-10	rbd		0.6.5 - MonoDevelop notation above
 //-----------------------------------------------------------------------------
 //
 using System;

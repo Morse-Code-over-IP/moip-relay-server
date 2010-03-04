@@ -1,6 +1,30 @@
-﻿// 10-Feb-10	rbd		1.0.1 - Match stations by both IP and port so can have multiple
-//						stations on a single IP (like the news bot(s)). WHen broadcasting
+//tabs=4
+//-----------------------------------------------------------------------------
+// TITLE:		Program.cs
+//
+// FACILITY:	Ionosphere server for CW Communicator
+//
+// ABSTRACT:	Main programn for Ionosphere server. Has console and (for Windows)
+//			a Windows Service entry point and support for service installation
+//			using the InstallUtil tool.
+//
+// ENVIRONMENT:	Microsoft.NET 2.0/3.5
+//				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
+// AUTHOR:		Bob Denny, <rdenny@dc3.com>
+//
+// Edit Log:
+//
+// When			Who		What
+//----------	---		-------------------------------------------------------
+// xx-Jan-10	rbd		Initial edits
+// 10-Feb-10	rbd		1.0.1 - Match stations by both IP and port so can have multiple
+//						stations on a single IP (like the news bot(s)). When broadcasting
 //						check IP, Port -and- Channel.
+// 03-Mar-10	rbd		1.0.2 - FOr Mono, hide Windows Service stuff.
+//-----------------------------------------------------------------------------
+//
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +37,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Text.RegularExpressions;
+#if !MONO_BUILD
 using System.ServiceProcess;
+#endif
 
 namespace com.dc3.cwcom
 {
@@ -43,7 +69,7 @@ namespace com.dc3.cwcom
 		private static List<Station> s_stationList = new List<Station>();
 		private static UdpClient s_udp = new UdpClient(7890);
 		private static bool s_serviceMode = false;
-		private static DateTime s_startTime = DateTime.Now;
+		//private static DateTime s_startTime = DateTime.Now;
 		private static byte[] s_recvBuf;
 		private static WebServer s_webServer;
 
@@ -234,7 +260,7 @@ namespace com.dc3.cwcom
 
 			LogMessage("Ionosphere starting...");
 
-			s_webServer = new WebServer(7890);
+			s_webServer = new WebServer(7891);
 			s_webServer.Start();
 
 			// --------------
@@ -310,19 +336,24 @@ namespace com.dc3.cwcom
 		//
 		public static void Main(string[] args)
 		{
+#if !MONO_BUILD
 			if (!Environment.UserInteractive)
 			{
 				ServiceBase.Run(new WindowsService.WindowsService());
 			}
 			else
 			{
+#endif
 				s_serviceMode = false;
 				try { Run(args); }
 				catch (ThreadInterruptedException) { }
 				LogMessage("Main thread exited...");
+#if !MONO_BUILD
 			}
+#endif
 		}
 
+#if !MONO_BUILD
 		//
 		// ===================
 		// SERVICE ENTRY POINT
@@ -345,9 +376,10 @@ namespace com.dc3.cwcom
 			CleanShutdown();
 		}
 	}
-
+#endif
 }
 
+#if !MONO_BUILD
 //
 // SUPPORT FOR USE AS WINDOWS SERVICE
 //
@@ -456,5 +488,5 @@ namespace WindowsService
 			this.Installers.Add(serviceInstaller);
 		}
 	}
-
+#endif
 }

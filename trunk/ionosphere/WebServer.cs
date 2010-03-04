@@ -1,4 +1,27 @@
-﻿using System;
+//tabs=4
+//-----------------------------------------------------------------------------
+// TITLE:		WebServer.cs
+//
+// FACILITY:	Ionosphere server for CW Communicator
+//
+// ABSTRACT:	Provides a web service which shows who is connected, their status
+//			and when they connected.
+//
+// ENVIRONMENT:	Microsoft.NET 2.0/3.5
+//				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
+// AUTHOR:		Bob Denny, <rdenny@dc3.com>
+//
+// Edit Log:
+//
+// When			Who		What
+//----------	---		-------------------------------------------------------
+// xx-Jan-10	rbd		Initial edits
+// 03-Mar-10	rbd		1.0.2 - For Mono, need path separator
+//-----------------------------------------------------------------------------
+//
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -93,7 +116,7 @@ namespace com.dc3.cwcom
 			if (webPath == "/")
 				webPath = "/index.html";
 			webPath = HttpUtility.UrlDecode(webPath);
-			string filePath = _webRoot + webPath.Replace("/", "\\");
+			string filePath = _webRoot + webPath.Replace("/", Path.DirectorySeparatorChar.ToString());
 			if (!File.Exists(filePath))
 			{
 				SendError("404 Not Found", "Can't find " + reqLine[1].Trim());
@@ -148,7 +171,8 @@ namespace com.dc3.cwcom
 		public WebServer(int Port)
 		{
 			_port = Port;
-			_webRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Web";
+			_webRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + 
+						Path.DirectorySeparatorChar + "Web";
 		}
 
 		~WebServer()

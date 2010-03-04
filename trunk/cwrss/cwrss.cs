@@ -1,4 +1,4 @@
-﻿//tabs=4
+//tabs=4
 //-----------------------------------------------------------------------------
 // TITLE:		cwrss.cs
 //
@@ -9,6 +9,7 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -48,6 +49,11 @@
 //						already sent within the last 2 hours (increased cache
 //						time to 2 hours). Fix message ordering so they are sent
 //						oldest to newest. Was reversing the wrong list!
+// 03-Mar-10	rbd		0.6.5 - Mono compatibility. OS-independent path seps and 
+//						hide Windows Service stuff from Mono. Using MonoDevelop,
+//						get rid of some now-unused variables (fossils from new
+//						news selection logic). Re-enable periodic messages,
+//						make interval a manifest constant.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -55,17 +61,19 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.ServiceProcess;
 using System.Threading;
 using System.Xml;
 using System.Web;
+#if !MONO_BUILD
+using System.ServiceProcess;
+#endif
 
 using com.dc3.morse;
-using System.Diagnostics;
 
 namespace com.dc3.cwcom
 {
@@ -74,7 +82,8 @@ namespace com.dc3.cwcom
 		private const int _reconnSeconds = 30;
 		private const int _titleAge = 120;										// Keep titles in cache for two hours
 		private const int _wordsPerStory = 40;
-		private const int _cycleMinutes = 10;										// Send 10 min of stories in each cycle
+		private const int _cycleMinutes = 10;									// Send 10 min of stories in each cycle
+		private const int _perMsgIntMinutes = 60;
 
 		//
 		// Config items from constructor
@@ -91,8 +100,7 @@ namespace com.dc3.cwcom
 		//
 		private CwCom _cw;
 		private Morse _morse;
-		private DateTime _lastNewsDate = DateTime.MinValue;						// On startup always get the most recent story
-		private DateTime _nextIdentTime = DateTime.MinValue;
+		private DateTime _nextPerMsgTime = DateTime.MinValue;
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _botThread = null;
 		private Thread _titleExpireThread = null;
@@ -100,7 +108,7 @@ namespace com.dc3.cwcom
 		private List<string> _periodicMessages = new List<string>();
 		private int _nextPeriodicMessage = -1;
 		private Dictionary<string, string> _rssFeeds = new Dictionary<string, string>();
-		private int _storiesPerCycle = 5;	// _wordWpm * _cycleMinutes / _wordsPerStory;
+		private int _storiesPerCycle = 5;										// _wordWpm * _cycleMinutes / _wordsPerStory;
 
 		//
 		// Represents an RSS item with a correct pubDate
@@ -222,10 +230,10 @@ namespace com.dc3.cwcom
 				// Probably an RFC 822 time with text time zone other than 'GMT"
 				// Try FeedBurner's EST
 				//
-				string buf = dateStr.Replace(" EST", "-0500");						// FeedBurner sends EST times :-(
+				string buf = dateStr.Replace(" EST", "-0500");					// FeedBurner sends EST times :-(
 				if (DateTime.TryParse(buf, out corrDate))
 				{
-					if (corrDate > DateTime.Now)									// If in future (e.g. Science News!)
+					if (corrDate > DateTime.Now)								// If in future (e.g. Science News!)
 					{
 						LogMessage("pubDate in future, skipped");
 						return DateTime.MinValue;
@@ -236,10 +244,10 @@ namespace com.dc3.cwcom
 				else
 				{
 					LogMessage("Can't parse date: " + dateStr);
-					return DateTime.MinValue;										// [sentinel]
+					return DateTime.MinValue;									// [sentinel]
 				}
 			}
-			else																	// Converted successfully!
+			else																// Converted successfully!
 				return corrDate;
 		}
 
@@ -264,7 +272,7 @@ namespace com.dc3.cwcom
 				LogMessage("Checking " + feedName + "...");
 				try
 				{
-					feedXml.Load(FeedList[feedName]);								// Read right from the RSS feed server
+					feedXml.Load(FeedList[feedName]);							// Read right from the RSS feed server
 				}
 				catch (Exception ex)
 				{
@@ -275,9 +283,9 @@ namespace com.dc3.cwcom
 				XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
 				foreach (XmlNode item in items)
 				{
-					DateTime pubUtc = GetPubDateUtc(item);							// See comments above, sick hack
+					DateTime pubUtc = GetPubDateUtc(item);						// See comments above, sick hack
 					if (pubUtc == DateTime.MinValue)
-						continue;													// Bad pubDate, skip this story
+						continue;												// Bad pubDate, skip this story
 					//
 					// OK we have a story we can use, as we were able to parse the date.
 					//
@@ -307,7 +315,7 @@ namespace com.dc3.cwcom
 			// delegate (and thus lambda expression). Love this language!!
 			//
 			if(stories.Count > 1)
-				stories.Sort((x, y) => DateTime.Compare(y.pubDate, x.pubDate));		// x <-> y for sort decreasing
+				stories.Sort((x, y) => DateTime.Compare(y.pubDate, x.pubDate));	// x <-> y for sort decreasing
 
 			List<string> messages = new List<string>();
 			int nMsg = 1;
@@ -322,7 +330,7 @@ namespace com.dc3.cwcom
 					if (_titleCache.ContainsKey(title))
 					{
 						LogMessage("Recently sent: " + title + " -- skipped");
-						continue;													// Recently sent, skip
+						continue;												// Recently sent, skip
 					}
 				}
 				//
@@ -353,8 +361,7 @@ namespace com.dc3.cwcom
 			}
 			if (messages.Count > 0)
 			{
-				_lastNewsDate = stories[0].pubDate;									// Most recent story
-				messages.Reverse();													// Sort back to oldest -> newest
+				messages.Reverse();												// Sort back to oldest -> newest
 				return messages;
 			}
 			else
@@ -405,7 +412,7 @@ namespace com.dc3.cwcom
 				// RssFeeds.txt has format name|url, for example:
 				//          Top News|http://rss.news.yahoo.com/rss/topstories
 				//
-				string[] lines = File.ReadAllLines(s_appPath + "\\" + _botName + "-RssFeeds.txt");
+				string[] lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + _botName + "-RssFeeds.txt");
 				for (int i = 0; i < lines.Length; i++)
 				{
 					if (lines[i].Trim() != "")
@@ -415,7 +422,7 @@ namespace com.dc3.cwcom
 					}
 				}
 
-				lines = File.ReadAllLines(s_appPath + "\\" + _botName + "-PeriodicMessages.txt");
+				lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + _botName + "-PeriodicMessages.txt");
 				for (int i = 0; i < lines.Length; i++)
 				{
 					if (lines[i].Trim() != "")
@@ -423,7 +430,7 @@ namespace com.dc3.cwcom
 				}
 				_nextPeriodicMessage = 0;
 
-				_cw = new CwCom(LogMessage);										// Tell CwCom class to use our logger
+				_cw = new CwCom(LogMessage);									// Tell CwCom class to use our logger
 				_morse = new Morse();
 				_morse.CharacterWpm = _characterWpm;
 				_morse.WordWpm = _wordWpm;
@@ -440,23 +447,23 @@ namespace com.dc3.cwcom
 				bool sentSome = false;
 				while (true)
 				{
-					//if (false)//DateTime.Now > _nextIdentTime)
-					//{
-					//    LogMessage("Sending periodic robot message");
-					//    _cw.Identify("QRA : Message from robot");
-					//    Thread.Sleep(5000);
-					//    _morse.CwCom(_periodicMessages[_nextPeriodicMessage++], Send);
-					//    if (_nextPeriodicMessage >= _periodicMessages.Count) _nextPeriodicMessage = 0;
-					//    _nextIdentTime = DateTime.Now.AddMinutes(30);
-					//    sentSome = true;
-					//}
+					if (DateTime.Now > _nextPerMsgTime)
+					{
+						LogMessage("Sending periodic robot message");
+						_cw.Identify("QRA : Message from robot");
+					 	Thread.Sleep(5000);
+						_morse.CwCom(_periodicMessages[_nextPeriodicMessage++], Send);
+						if (_nextPeriodicMessage >= _periodicMessages.Count) _nextPeriodicMessage = 0;
+						_nextPerMsgTime = DateTime.Now.AddMinutes(_perMsgIntMinutes);
+						sentSome = true;
+					}
 
 					_cw.Identify("QRL : Checking news feeds");
 					List<string> messages = GetLatestNews(_rssFeeds);
 					Thread.Sleep(5000);
 					if (messages != null)
 					{
-						if (sentSome)												// Have been sending, last story of prev batch 0r ID above needs AS
+						if (sentSome)											// Have been sending, last story of prev batch 0r ID above needs AS
 							_morse.CwCom("\\AS\\", Send);
 						_cw.Identify("QRV : Stand by for news");
 						Thread.Sleep(5000);
@@ -489,18 +496,18 @@ namespace com.dc3.cwcom
 							Thread.Sleep(5000);
 							_morse.CwCom(_periodicMessages[_nextPeriodicMessage++], Send);
 							if (_nextPeriodicMessage >= _periodicMessages.Count) _nextPeriodicMessage = 0;
-							_nextIdentTime = DateTime.Now.AddHours(1);
+							_nextPerMsgTime = DateTime.Now.AddMinutes(_perMsgIntMinutes);
 							sentSome = false;
-							continue;												// Try for more news now
+							continue;											// Try for more news now
 						}
 						LogMessage("End of transmission");
 						_morse.CwCom("\\SK\\", Send);
 						_cw.Identify("QRT : End of transmission");
 						Thread.Sleep(5000);
 						LogMessage("Sleeping for 2 minutes...");
-						for (int i = 120; i > 0; i--)								// Ident every sec for 2 min.
+						for (int i = 120; i > 0; i--)							// Ident every sec for 2 min.
 						{
-							if (DateTime.Now > _nextConnect)						// Keep up the 30 sec reconnect here
+							if (DateTime.Now > _nextConnect)					// Keep up the 30 sec reconnect here
 							{
 								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
 								_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
@@ -545,7 +552,7 @@ namespace com.dc3.cwcom
 		private static void LogMessageS(string msg)
 		{
 			if (s_serviceMode)
-				Trace.WriteLine("[Main] " + msg);					// For DebugView when running as service
+				Trace.WriteLine("[Main] " + msg);								// For DebugView when running as service
 			else
 				Console.WriteLine("[Main] " + msg);
 		}
@@ -567,7 +574,7 @@ namespace com.dc3.cwcom
 			//
 			// Ident|ServerAddr|ServerPort|Channel|CharWPM|WordWPM
 			//
-			string[] lines = File.ReadAllLines(s_appPath + "\\BotList.txt");
+			string[] lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + "BotList.txt");
 			for (int i = 0; i < lines.Length; i++)
 			{
 				string buf = lines[i].Trim();
@@ -602,12 +609,14 @@ namespace com.dc3.cwcom
 		//
 		public static void Main(string[] args)
 		{
+#if !MONO_BUILD
 			if (!Environment.UserInteractive)
 			{
 				ServiceBase.Run(new WindowsService.WindowsService());
 			}
 			else
 			{
+#endif
 				s_mainThread = Thread.CurrentThread;
 				s_serviceMode = false;
 				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
@@ -619,9 +628,12 @@ namespace com.dc3.cwcom
 //                Console.WriteLine("Press return to exit...");
 //                Console.ReadLine();
 //#endif
+#if !MONO_BUILD
 			}
+#endif
 		}
 
+#if !MONO_BUILD
 		//
 		// -------------------
 		// SERVICE ENTRY POINT
@@ -644,12 +656,13 @@ namespace com.dc3.cwcom
 		{
 			s_exitFlag.Set();
 			s_mainThread.Join();
-		}
-
+		}	
+#endif
 	}
-
+		
 }
 
+#if !MONO_BUILD
 //
 // SUPPORT FOR USE AS WINDOWS SERVICE
 //
@@ -762,3 +775,4 @@ namespace WindowsService
 	}
 
 }
+#endif
