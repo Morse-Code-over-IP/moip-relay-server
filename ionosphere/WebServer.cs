@@ -19,6 +19,8 @@
 //----------	---		-------------------------------------------------------
 // xx-Jan-10	rbd		Initial edits
 // 03-Mar-10	rbd		1.0.2 - For Mono, need path separator
+// 04-Mar-09	rbd		1.0.3 - SF Artifact 2963796: Make domain and port dynamic, 
+//						from server config
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -131,6 +133,8 @@ namespace com.dc3.cwcom
 				// Perform ##TABLE## substitution then send the text
 				//
 				string text = File.ReadAllText(filePath);
+				text = text.Replace("##DOMAIN##", Ionosphere.DomainName);
+				text = text.Replace("##PORT##", Ionosphere.UdpPort.ToString());
 				text = text.Replace("##TABLE##", Ionosphere.GenerateTableRows());
 				SendResponseHtml("200 OK", text);
 			}
