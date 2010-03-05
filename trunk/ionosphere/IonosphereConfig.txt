@@ -1,0 +1,7 @@
+# Ionosphere server preferences
+
+CwPort = 7890
+
+WebPort = 80
+
+Domain = your.domain.here

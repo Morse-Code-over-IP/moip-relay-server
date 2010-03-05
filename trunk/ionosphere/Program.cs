@@ -22,7 +22,12 @@
 // 10-Feb-10	rbd		1.0.1 - Match stations by both IP and port so can have multiple
 //						stations on a single IP (like the news bot(s)). When broadcasting
 //						check IP, Port -and- Channel.
-// 03-Mar-10	rbd		1.0.2 - FOr Mono, hide Windows Service stuff.
+// 03-Mar-10	rbd		1.0.2 - For Mono, hide Windows Service stuff.
+// 04-Mar-10	rbd		1.0.3 - SF Artifact 2963796: Fix port for web server. Add config
+//						options for Ionosphere and Web Server ports, default Web to
+//						port 80 (standard HTTP), as well as domain name for web server
+//						display. SF Artifact 2963796: Make domain and port on web page 
+//						dynamic. SF artifact 2963832: Allow # comments in config.
 //-----------------------------------------------------------------------------
 //
 
@@ -32,11 +37,13 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Configuration.Install;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Reflection;
 #if !MONO_BUILD
 using System.ServiceProcess;
 #endif
@@ -64,14 +71,24 @@ namespace com.dc3.cwcom
 
 	static class Ionosphere
 	{
+		private static string s_appPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 		private static Thread s_mainThread;
 		private static Thread s_deadStationThread;
 		private static List<Station> s_stationList = new List<Station>();
-		private static UdpClient s_udp = new UdpClient(7890);
+		private static UdpClient s_udp = null;
+		private static string s_udpDomain = "your.domain.here";
+		private static int s_udpPort = 7890;
 		private static bool s_serviceMode = false;
 		//private static DateTime s_startTime = DateTime.Now;
 		private static byte[] s_recvBuf;
 		private static WebServer s_webServer;
+		private static int s_webServerPort = 80;
+
+		//
+		// Used by web server for substitution
+		//
+		public static int UdpPort { get { return s_udpPort; } }
+		public static string DomainName { get { return s_udpDomain; } }
 
 		//
 		// Control-C handler, allows clean exit. 
@@ -245,6 +262,53 @@ namespace com.dc3.cwcom
 		}
 
 		//
+		// .NET settings are just so over the top. We have Linux/Max audience
+		// Simple name=value syntax, with # comments
+		//
+		private static void ReadConfig()
+		{
+			string cfgPath = s_appPath + Path.DirectorySeparatorChar + "IonosphereConfig.txt";
+			if (!File.Exists(cfgPath))	return;									// Accept internal defaults
+			string[] cfgLines = File.ReadAllLines(cfgPath);
+			for (int i = 0; i < cfgLines.Length; i++)
+			{
+				if (cfgLines[i].Trim() == "") continue;							// Skip blank lines
+				if (cfgLines[i].Trim().StartsWith("#")) continue;				// Skip comment lines
+				string[] bits = cfgLines[i].Split(new char[] { '=' });
+				if (bits.Length != 2)
+				{
+					LogMessage("Bad config line: " + cfgLines[i]);
+					continue;
+				}
+				switch (bits[0].Trim().ToLower())
+				{
+					case "cwport":
+						try { s_udpPort = Convert.ToInt32(bits[1].Trim()); }
+						catch (Exception)
+						{
+							LogMessage("Bad config line: " + cfgLines[i]);
+							continue;
+						}
+						break;
+					case "webport":
+						try { s_webServerPort = Convert.ToInt32(bits[1].Trim()); }
+						catch (Exception)
+						{
+							LogMessage("Bad config line: " + cfgLines[i]);
+							continue;
+						}
+						break;
+					case "domain":
+						s_udpDomain = bits[1].Trim();
+						break;
+					default:
+						LogMessage("Bad config line: " + cfgLines[i]);
+						break ;
+				}
+			}
+		}
+
+		//
 		// ==================
 		// COMMON ENTRY POINT
 		// ==================
@@ -260,7 +324,10 @@ namespace com.dc3.cwcom
 
 			LogMessage("Ionosphere starting...");
 
-			s_webServer = new WebServer(7891);
+			ReadConfig();
+
+			s_udp = new UdpClient(s_udpPort);
+			s_webServer = new WebServer(s_webServerPort);
 			s_webServer.Start();
 
 			// --------------
