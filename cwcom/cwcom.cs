@@ -27,6 +27,8 @@
 // 10-Feb-10	rbd		0.6.1 - Log connect only if not a reconnect.
 // 01-Mar-10	rbd		0.6.4 - Split delay for word space befor and after
 //						sending code group that starts with a space.
+// 22-Mar-10	rbd		0.6.6 - Add receive timeout to Connect() to prevent 
+//						missing an ack from hanging this forever!
 //-----------------------------------------------------------------------------
 //
 
@@ -119,6 +121,7 @@ namespace com.dc3.cwcom
 					try
 					{
 						// TODO More robust way of telling ACK from junk (and other stations)
+						_udp.Client.ReceiveTimeout = 5000;
 						byte[] ack = _udp.Receive(ref _remIP);
 						if (justCon) _logger("Connected to " + _remIP.Address.ToString());
 						break;

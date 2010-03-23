@@ -54,6 +54,13 @@
 //						get rid of some now-unused variables (fossils from new
 //						news selection logic). Re-enable periodic messages,
 //						make interval a manifest constant.
+// 22-Mar-10	rbd		0.6.6 - Don't reconnect while sending news story. This
+//						could cause a long pause if the UDP "ack" packet is 
+//						lost, causing a 5 sec receive timeout, another connect
+//						attempt etc. Reconnect (if interval elapsed) after every
+//						story, even the last one in a block. Lengthen "Sending
+//						Story..." log message to 60. Re-enable periodic robot
+//						message.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -384,11 +391,11 @@ namespace com.dc3.cwcom
 			//}
 			//LogMessage(tr);
 			_cw.SendCode(code, text, "Sending News");
-			if (DateTime.Now > _nextConnect)
-			{
-				_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
-				_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
-			}
+			//if (DateTime.Now > _nextConnect)
+			//{
+			//    _cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
+			//    _nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
+			//}
 		}
 
 		//
@@ -470,7 +477,7 @@ namespace com.dc3.cwcom
 						int nStories = messages.Count;
 						foreach (string message in messages)
 						{
-							LogMessage("Sending story " + message.Substring(0, 40) + (message.Length > 40 ? "..." : ""));
+							LogMessage("Sending story " + message.Substring(0, 60) + (message.Length > 60 ? "..." : ""));
 							_morse.CwCom(message, Send);
 							if (--nStories > 0)
 							{
@@ -483,6 +490,12 @@ namespace com.dc3.cwcom
 								_cw.Identify("QRL : Stand by for news");
 								Thread.Sleep(5000);
 							}
+							else if (DateTime.Now > _nextConnect)
+							{
+								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
+								_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
+							}
+
 						}
 						sentSome = true;
 					}
