@@ -61,6 +61,8 @@
 //						story, even the last one in a block. Lengthen "Sending
 //						Story..." log message to 60. Re-enable periodic robot
 //						message.
+// 24-Mar-10	rbd		0.6.7 - Replace unicode apostrophe '’' with ascii 
+//						apostrophe/single-quote (which is in Morse table).
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -215,6 +217,7 @@ namespace com.dc3.cwcom
 			string buf = HttpUtility.HtmlDecode(stuff);
 			buf = Regex.Replace(buf, "<[^>]*>", " ");
 			buf = Regex.Replace(buf, "[\\~\\`\\^\\%\\=\\|\\{\\}\\[\\]\\<\\>]", " ");
+			buf = Regex.Replace(buf, "’", "'");									// Unicode/real apostrophe -> ASCII one
 			buf = Regex.Replace(buf, "\\s\\s+", " ").Trim().ToUpper();
 
 			return buf;
