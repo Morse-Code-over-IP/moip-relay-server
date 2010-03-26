@@ -63,6 +63,10 @@
 //						message.
 // 24-Mar-10	rbd		0.6.7 - Replace unicode apostrophe '’' with ascii 
 //						apostrophe/single-quote (which is in Morse table).
+// 25-Mar-10	rbd		0.6.8 - More Unicode replacements, now convert braces
+//						and brackets to parens, backtick to apostrophe. This 
+//						should make for fewer '........' outputs and help
+//						readability. See GetMorseInputText().
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -212,13 +216,16 @@ namespace com.dc3.cwcom
 		// and finally removes runs of more than one whitespace character,
 		// replacing with a single space and uppercases it.
 		//
-		private string GetPlainText(string stuff)
+		private string GetMorseInputText(string stuff)
 		{
-			string buf = HttpUtility.HtmlDecode(stuff);
-			buf = Regex.Replace(buf, "<[^>]*>", " ");
-			buf = Regex.Replace(buf, "[\\~\\`\\^\\%\\=\\|\\{\\}\\[\\]\\<\\>]", " ");
-			buf = Regex.Replace(buf, "’", "'");									// Unicode/real apostrophe -> ASCII one
-			buf = Regex.Replace(buf, "\\s\\s+", " ").Trim().ToUpper();
+			string buf = HttpUtility.HtmlDecode(stuff);							// Decode HTML entities, etc.
+			buf = Regex.Replace(buf, "<[^>]*>", " ");							// Remove HTML tags completely
+			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\<\\>]", " ");				// Some characters we don't have translations for => space
+			buf = Regex.Replace(buf, "[\\‘\\’\\`]", "'");						// Unicode left/right single quote, backtick -> ASCII single quote
+			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
+			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
+			buf = Regex.Replace(buf, "[—–]", "-");								// Unicode emdash/endash -> hyphen
+			buf = Regex.Replace(buf, "\\s\\s+", " ").Trim().ToUpper();			// Compress running whitespace, fold all to upper case
 
 			return buf;
 		}
@@ -331,7 +338,7 @@ namespace com.dc3.cwcom
 			int nMsg = 1;
 			foreach (datedRssItem story in stories)
 			{
-				string title = GetPlainText(story.rssItem.SelectSingleNode("title").InnerText);
+				string title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
 				//
 				// Here we skip stories with titles that we've seen in the last _titleAge minutes.
 				//
@@ -347,7 +354,7 @@ namespace com.dc3.cwcom
 				// May be headline-only article
 				//
 				string time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
-				string detail = GetPlainText(story.rssItem.SelectSingleNode("description").InnerText);
+				string detail = GetMorseInputText(story.rssItem.SelectSingleNode("description").InnerText);
 				LogMessage("New story [" + time + "]: " + title);
 				string msg = "DE " + story.feedName + " " + time + " \\BT\\" + title;
 				if (detail != "")
