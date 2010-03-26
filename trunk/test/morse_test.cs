@@ -19,6 +19,7 @@
 //----------	---		-------------------------------------------------------
 // Jan-Feb 10	rbd		Initial edits
 // 04-Feb-10	rbd		0.5.1
+// 25-Mar-10	rbd		0.6.8 - Error is 8 dots not 6
 //-----------------------------------------------------------------------------
 //
 
@@ -46,7 +47,7 @@ namespace test.morse
 			Assert.AreEqual(".-.-.- --..-- ---... -.-.-. ..--.. -....- .-.-. -..-. -...-", M.DotDash(".,:;?-+/="));
 			Assert.AreEqual(".--.-. -.-.-- .----. -.--. -.--.- ...-..- .-... .-..-. ..--.-", M.DotDash("@!'()$&\"_"));
 			Assert.AreEqual(".-  .-.-.  -... ...-.-", M.DotDash("A \\AR\\ B\\SK\\"));
-			Assert.AreEqual("......", M.DotDash("~"));
+			Assert.AreEqual("........", M.DotDash("~"));
 			Assert.Throws<ArgumentNullException>(delegate { M.DotDash(null); });
 			Assert.Throws<ArgumentNullException>(delegate { M.DotDash(""); });
 		}
@@ -92,7 +93,7 @@ namespace test.morse
 		}
 
 		//
-		// The stuff below is for the CWCOm tests
+		// The stuff below is for the CWCom tests
 		//
 		private int[] corrCount = { 1, 2, 6, 2, 10, 10, 10, 2, 4, 6, 10 };
 		private string[] corrText = { "T", "E", "S", "T", " 1", " 2", " 3", " E", "N", "D", " AR\r\n" };

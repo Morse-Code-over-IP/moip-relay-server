@@ -22,6 +22,7 @@
 // 10-Feb-10	rbd		0.6.1
 // ??-Feb-10	rbd		0.6.2-0.6.4
 // 03-Mar-10	rbd		0.6.5 - MonoDevelop notation above
+// 25-Mar-10	rbd		0.6.8 - Error is 8 dits not 6
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -53,7 +54,7 @@ namespace com.dc3.morse
 	/// The Morse Code generated is so-called "modern" International Morse Code, conforming to the 
 	/// <a href="http://www.godfreydykes.info/international%20morse%20code.pdf" target="_blank">ITU Recommendation
 	/// ITU-R M.1677</a>, and described on the WikiPedia <a href="http://en.wikipedia.org/wiki/Morse_code" 
-	/// target="_blank">Morse Code</a>.
+	/// target="_blank">Morse Code</a>. 
 	/// <para>Sending of <em>prosigns</em> is supported. A prosign is the concatenation of two Morse characters
 	/// which have a special meaning. See the WikiPedia article <a href="http://en.wikipedia.org/wiki/Prosigns_for_Morse_code" 
 	/// target="_blank">Prosigns for Morse Code</a>. 
@@ -377,7 +378,7 @@ namespace com.dc3.morse
 				if (_morse.ContainsKey(c))
 					buf += _morse[c];
 				else
-					buf += "......";
+					buf += "........";
 				if (c != ' ' && !inProsign)
 					buf += " ";
 			}
