@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ionosphere", "ionosphere.csproj", "{49C57342-76E4-43DC-BBC4-A150EB2D0D57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cwcom", "..\cwbot\cwcom\cwcom.csproj", "{3EAF7290-9086-4519-ABA7-8184FB3E92F0}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reference", "Reference", "{54EE0CF3-F2DD-473E-9D49-925482B997FF}"
 	ProjectSection(SolutionItems) = preProject
 		..\cwbot\cwcom\Reference\CWCom Pascal Structs & Defs.txt = ..\cwbot\cwcom\Reference\CWCom Pascal Structs & Defs.txt
@@ -12,20 +10,32 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reference", "Reference", "{
 		reference\KOBServer.vb = reference\KOBServer.vb
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cwcom", "..\cwcom\cwcom.csproj", "{3EAF7290-9086-4519-ABA7-8184FB3E92F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug-Mono|Any CPU = Debug-Mono|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Release-Mono|Any CPU = Release-Mono|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Debug-Mono|Any CPU.ActiveCfg = Debug-Mono|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Debug-Mono|Any CPU.Build.0 = Debug-Mono|Any CPU
 		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Release-Mono|Any CPU.ActiveCfg = Release-Mono|Any CPU
+		{49C57342-76E4-43DC-BBC4-A150EB2D0D57}.Release-Mono|Any CPU.Build.0 = Release-Mono|Any CPU
 		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Debug-Mono|Any CPU.ActiveCfg = Debug-Mono|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Debug-Mono|Any CPU.Build.0 = Debug-Mono|Any CPU
 		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Release-Mono|Any CPU.ActiveCfg = Release-Mono|Any CPU
+		{3EAF7290-9086-4519-ABA7-8184FB3E92F0}.Release-Mono|Any CPU.Build.0 = Release-Mono|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
