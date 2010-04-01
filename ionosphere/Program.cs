@@ -28,6 +28,8 @@
 //						port 80 (standard HTTP), as well as domain name for web server
 //						display. SF Artifact 2963796: Make domain and port on web page 
 //						dynamic. SF artifact 2963832: Allow # comments in config.
+// 01-Apr-10	rbd		1.0.4 - SF 2980581 Re-up the last-heard-from time on all
+//						received messages instead of just ID ones.
 //-----------------------------------------------------------------------------
 //
 
@@ -368,6 +370,7 @@ namespace com.dc3.cwcom
 						LogMessage("Unknown station at " + recvEp.Address.ToString() + ":" + recvEp.Port + " sent data message");
 						continue;												// Ignore message
 					}
+					Sender.LastRecvTime = DateTime.Now;
 					switch(rcvdMsg.Type)
 					{
 						case ReceivedMessage.MessageTypes.Unknown:

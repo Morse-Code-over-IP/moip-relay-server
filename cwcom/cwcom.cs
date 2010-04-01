@@ -29,6 +29,8 @@
 //						sending code group that starts with a space.
 // 22-Mar-10	rbd		0.6.6 - Add receive timeout to Connect() to prevent 
 //						missing an ack from hanging this forever!
+// 01-Apr-10	rbd		0.6.9 - SF artifact 2980615 Create new UdpClient before 
+//						reconnect.
 //-----------------------------------------------------------------------------
 //
 
@@ -47,10 +49,9 @@ namespace com.dc3.cwcom
 	//
 	public class CwCom
 	{
-		private UdpClient _udp;
+		private UdpClient _udp = null;
 		private object _objLock;
 		private IPEndPoint _remIP;
-		private bool _udpConn;
 		private string _remHost;
 		private int _remPort;
 		private short _channel;
@@ -68,9 +69,7 @@ namespace com.dc3.cwcom
 		public CwCom(MessageLogger logger)
 		{
 			_logger = logger;
-			_udp = new UdpClient();
 			_objLock = new object();
-			_udpConn = false;
 			_remHost = "localhost";
 			_remPort = 7860;
 			_channel = 1000;
@@ -104,11 +103,11 @@ namespace com.dc3.cwcom
 					// jumping us to the new address. Oh, and the initial connect is
 					// done here too!
 					//
-					if (!_udpConn)
+					if (_udp == null)
 					{
 						_logger("Opening UDP");
+						_udp = new UdpClient();
 						_udp.Connect(_remHost, _remPort);
-						_udpConn = true;
 						justCon = true;
 					}
 					else
@@ -131,7 +130,7 @@ namespace com.dc3.cwcom
 						_logger("No ACK from server: " + ex.Message);
 						_logger("Close and reopen...");
 						_udp.Close();
-						_udpConn = false;
+						_udp = null;
 						Thread.Sleep(60000);									// Wait an extra minute in this case
 					}
 					Thread.Sleep(5000);
@@ -143,13 +142,13 @@ namespace com.dc3.cwcom
 		{
 			lock (_objLock)
 			{
-				if (!_udpConn) return;
+				if (_udp == null) return;
 				_udp.Send(new CtrlMessage(CtrlMessage.MessageTypes.Disconnect, _channel).Packet, CtrlMessage.Length);
 				Thread.Sleep(100);
 				_udp.Send(new CtrlMessage(CtrlMessage.MessageTypes.Disconnect, _channel).Packet, CtrlMessage.Length);
 				Thread.Sleep(200);
 				_udp.Close();
-				_udpConn = false;
+				_udp = null;
 			}
 		}
 
@@ -157,7 +156,7 @@ namespace com.dc3.cwcom
 		{
 			lock (_objLock)
 			{
-				if (!_udpConn) return;
+				if (_udp == null) return;
 				_idMsg.SequenceNo = _seqNo++;
 				_idMsg.Text = Text;
 				_udp.Send(_idMsg.Packet, IdentMessage.Length);
@@ -169,7 +168,7 @@ namespace com.dc3.cwcom
 		{
 			lock (_objLock)
 			{
-				if (!_udpConn) return;
+				if (_udp == null) return;
 				if (DateTime.Now >= _nextTxIdent)							// Don't water tx down with needless idents!
 				{
 					Identify(_TxStatus);

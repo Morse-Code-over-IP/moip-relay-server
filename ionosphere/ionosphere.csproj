@@ -65,13 +65,13 @@
     <Compile Include="WebServer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\cwcom\cwcom.csproj">
       <Project>{3EAF7290-9086-4519-ABA7-8184FB3E92F0}</Project>
       <Name>cwcom</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
