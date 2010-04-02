@@ -23,6 +23,7 @@
 // ??-Feb-10	rbd		0.6.2-0.6.4
 // 03-Mar-10	rbd		0.6.5 - MonoDevelop notation above
 // 25-Mar-10	rbd		0.6.8 - Error is 8 dits not 6
+// 01-Apr-10	rbd		0.7.1 - International Morse Code, new Mode property.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -88,6 +89,21 @@ namespace com.dc3.morse
 	public class Morse
 	{
 		/// <summary>
+		/// The type of Morse Code to be used.
+		/// </summary>
+		public enum CodeMode
+		{
+			/// <summary>
+			/// International Morse Code
+			/// </summary>
+			International,
+			/// <summary>
+			/// American Morse Code
+			/// </summary>
+			American
+		}
+
+		/// <summary>
 		/// Used by the <see cref="CwCom"/> encoder to return the Int32[] array of mark/space timings and the corresponding
 		/// text for each character or prosign in the input text. The <see cref="CwCom"/> encoder calls the user provided
 		/// delegate for each character.
@@ -106,11 +122,11 @@ namespace com.dc3.morse
 		public delegate void SendCode(Int32[] code, string text);
 
 		//
-		// Encoding dictionary - taken from:
+		// International Morse encoding dictionary - taken from:
 		//    http://en.wikipedia.org/wiki/Morse_code
 		//    ITU Recommendation ITU-R M.1677
 		//
-		private Dictionary<char, string> _morse = new Dictionary<char, string>()
+		private Dictionary<char, string> _iMorse = new Dictionary<char, string>()
 		{
 			{ 'A', ".-" },
 			{ 'B', "-..." },
@@ -172,6 +188,66 @@ namespace com.dc3.morse
 			{ ' ', " " }
 		};
 
+		//
+		// American Morse encoding dictionary - taken from:
+		//    http://en.wikipedia.org/wiki/American_Morse_code
+		//
+		// Underscore '_' is single unit space
+		// Equal sign '=' is four unit mark ('L')
+		// Sharp sign '#' is five unit mark ('0')
+		//
+		// It is amazing that I chose = and # the same as MorseKOB without first looking!
+		//
+		private Dictionary<char, string> _aMorse = new Dictionary<char, string>()
+		{
+			{ 'A', ".-" },
+			{ 'B', "-..." },
+			{ 'C', ".._." },
+			{ 'D', "-.." },
+			{ 'E', "." },
+			{ 'F', ".-." },
+			{ 'G', "--." },
+			{ 'H', "...." },
+			{ 'I', ".." },
+			{ 'J', "-.-." },
+			{ 'K', "-.-" },
+			{ 'L', "=" },
+			{ 'M', "--" },
+			{ 'N', "-." },
+			{ 'O', "._." },
+			{ 'P', "....." },
+			{ 'Q', "..-." },
+			{ 'R', "._.." },
+			{ 'S', "..." },
+			{ 'T', "-" },
+			{ 'U', "..-" },
+			{ 'V', "...-" },
+			{ 'W', ".--" },
+			{ 'X', ".-.." },
+			{ 'Y', ".._.." },
+			{ 'Z', "..._." },
+			{ '1', ".--." },
+			{ '2', "..-.." },
+			{ '3', "...-." },
+			{ '4', "....-" },
+			{ '5', "---" },
+			{ '6', "......" },
+			{ '7', "--.." },
+			{ '8', "-...." },
+			{ '9', "-..-" },
+			{ '0', "#" },
+			{ '.', "..--.." },
+			{ ',', ".-.-" },
+			{ '?', "-..-." },
+			{ '!', "---." },
+			{ '&', "._..." },
+			{ '\r', " " },
+			{ '\n', " " },
+			{ '\t', " " },
+			{ ' ', " " }
+		};
+
+		private CodeMode _mode;
 		private int _tbase;					// Time base for millisecond timings. A standard 1WPM dit = 1200 ms mark, 1200 ms space
 		private int _cwpm;					// Character WPM
 		private int _wwpm;					// Word WPM
@@ -189,6 +265,7 @@ namespace com.dc3.morse
 		/// </summary>
 		public Morse()
 		{
+			_mode = CodeMode.International;
 			_tbase = 1200;
 			_cwpm = 15;
 			_wwpm = _cwpm;
@@ -266,6 +343,16 @@ namespace com.dc3.morse
 		// -----------------
 		// Public Properties
 		// -----------------
+
+		/// <summary>
+		/// The type of Morse code (default International). For details, see the remarks
+		/// for <see cref="Morse" />.
+		/// </summary>
+		public CodeMode Mode
+		{
+			get { return _mode; }
+			set { _mode = value; }
+		}
 
 		/// <summary>
 		/// (advanced) The time base for mark/space timings.
@@ -364,6 +451,7 @@ namespace com.dc3.morse
 			if (Text == null || Text == "")
 				throw new ArgumentNullException("Text", "empty or null input string");
 
+			Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
 			string buf = "";
 			bool inProsign = false;
 
@@ -375,8 +463,8 @@ namespace com.dc3.morse
 					if (!inProsign) buf += " ";
 					continue;
 				}
-				if (_morse.ContainsKey(c))
-					buf += _morse[c];
+				if (dict.ContainsKey(c))
+					buf += dict[c];
 				else
 					buf += "........";
 				if (c != ' ' && !inProsign)
@@ -443,6 +531,7 @@ namespace com.dc3.morse
 
 			string mm = "";
 			bool inProsign = false;
+			Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
 
 			foreach (char c in Text.ToUpper())
 			{
@@ -455,24 +544,46 @@ namespace com.dc3.morse
 					continue;
 				}
 
-				if (_morse.ContainsKey(c))
-					dotscii = _morse[c];
+				if (dict.ContainsKey(c))
+					dotscii = dict[c];
 				else
 					dotscii = "......";
-				foreach (char s in dotscii)
+
+				for (int i = 0; i < dotscii.Length; i++)
 				{
+					char s = dotscii[i];
+					char s1 = (i == dotscii.Length - 1 ? '|' : dotscii[i + 1]);
 					switch (s)
 					{
 						case '.':											// Dit
 							mm += mark_mm(_ctime);
 							space(_ctime);
 							break;
-						case '-':											// Dah = 3 dits
-							mm += mark_mm(_ctime * 3);
+						case '-':											// International: Dah = 3 dits
+							if (_mode == CodeMode.International)
+							{
+								mm += mark_mm(_ctime * 3);
+								space(_ctime);
+							}
+							else											// American is more complicated
+							{
+								mm += mark_mm((int)(s1 == '-' ? 2.7 * _ctime : 3.3 * _ctime));
+								space((int)(s1 == '-' ? 1.6 * _ctime : _ctime));
+							}
+							break;
+						case '_':											// Embedded space (American only)
+							mm += ((int)(-2.7 * _ctime)).ToString("+#;-#;#");
+							break;
+						case '=':											// Four unit mark (American 'L')
+							mm += mark_mm((int)(5.6 * _ctime));
+							space(_ctime);
+							break;
+						case '#':											// Five unit mark (American zero)
+							mm += mark_mm((int)(8.9 * _ctime));
 							space(_ctime);
 							break;
 						case ' ':											// Word break
-							space(_wstime - _cstime);						// Preceding char has trailing character space
+							space(_mode == CodeMode.International ? _wstime - _cstime : 6 * _ctime);	// Preceding char has trailing character space
 							break;
 					}
 				}
@@ -593,6 +704,7 @@ namespace com.dc3.morse
 			if (Text == null || Text == "")
 				throw new ArgumentNullException("Text", "empty or null input string");
 
+			Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
 			string prosign = "";
 			bool inProsign = false;
 			bool sendProsign = false;
@@ -619,8 +731,8 @@ namespace com.dc3.morse
 					}
 				}
 
-				if (_morse.ContainsKey(c2))
-					dotscii = _morse[c2];
+				if (dict.ContainsKey(c2))
+					dotscii = dict[c2];
 				else
 					dotscii = "......";
 
@@ -633,7 +745,18 @@ namespace com.dc3.morse
 							space(_ctime);
 							break;
 						case '-':											// Dah = 3 dits
-							mark_cw(_ctime * 3);
+							mark_cw(_ctime * 3);//(_mode == CodeMode.International ? 3 : 2));
+							space(_ctime);
+							break;
+						case '_':											// Single unit space (American only)
+							space(_ctime);
+							break;
+						case '=':											// Four unit mark (American 'L')
+							mark_cw(_ctime * 4);
+							space(_ctime);
+							break;
+						case '#':											// Five unit mark (American zero)
+							mark_cw(_ctime * 5);
 							space(_ctime);
 							break;
 						case ' ':											// Word break
