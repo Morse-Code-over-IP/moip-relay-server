@@ -55,7 +55,7 @@ namespace test.morse
 			Assert.AreEqual(".- -... .._. -.. . .-. --. .... .. -.-. -.- = --", M.DotDash("ABCDEFGHIJKLM"));
 			Assert.AreEqual("-. ._. ..... ..-. ._.. ... - ..- ...- .-- .-.. .._.. ..._.", M.DotDash("NOPQRSTUVWXYZ"));
 			Assert.AreEqual("# .--. ..-.. ...-. ....- --- ...... --.. -.... -..-", M.DotDash("0123456789"));
-			Assert.AreEqual("..--.. .-.- -..-. ---. ._...", M.DotDash(".,?!&"));
+			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- ..--", M.DotDash(".,?!&=/"));
 		}
 
 		[Test, Category("Pre-Requisite"), Description("Tests the WPM properties")]
@@ -63,7 +63,7 @@ namespace test.morse
 		{
 			Morse M = new Morse();
 			Assert.AreEqual(1200, M.TimeBase);									// Default value
-			M.TimeBase = 1234;
+			M.TimeBase = 1234;													// MorseMail's time base for comparison
 			Assert.AreEqual(1234, M.TimeBase);
 			M.CharacterWpm = 20;
 			Assert.AreEqual(20, M.CharacterWpm);
@@ -80,9 +80,7 @@ namespace test.morse
 		public void Test_MorseMail()
 		{
 			Morse M = new Morse();
-			M.TimeBase = 1200;													// MorseMail's time base
 			M.CharacterWpm = 15;
-			M.WordWpm = 15;
 			Assert.AreEqual("+80-80+80-80+80-80+80-240+80-240+80-80+240-80+80-80+80-240+80-80+240-80+80-80+80-240+240-80+240-80+240",
 							M.MorseMail("hello"));
 			Assert.AreEqual("-240+240-240+80-240+80-80+80-80+80-240+240-560+80-80+240-80+240-80+240-80+240-560+80-80+80-80+240-80+240-80+240"
@@ -97,21 +95,26 @@ namespace test.morse
 			M.WordWpm = 5;
 			Assert.AreEqual("-240+80-80+240-1382+240-80+80-80+80-80+80-3986+80-1382+80-80+80-80+240-80+80", M.MorseMail("ab ef"));
 
-			// TODO - Fails miserably, way off. These timings came from MorseKOB.
-
-			//string amTest = "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789";
-			//string amMm = "-565+266-301+80-80+80-80+80-80+80-299+82-565+80-80+80-84+264-84+80-297+82-82+80-80+265-299+82-80+80" + 
-			//    "-299+82-80+80-217+82-297+268-82+80-80+268-566+264-84+80-80+80-82+80-297+82-217+82-82+80-299+82-216+82" +
-			//    "-299+80-80+219-131+264-299+269-80+80-569+78-80+265-82+81-298+82-217+82-297+84-80+266-82+80-82+80-564+264-82" +
-			//    "+80-82+266-80+80-297+82-80+80-80+266-297+218-129+266-297+80-82+80-80+80-80+80-82+80-297+80-299+264-82+80-80+80" +
-			//    "-563+80-217+82-298+80-83+80-80+80-82+263-297+80-297+82-217+82-80+80-565+263-297+82-80+80-81+82-80+80-297" +
-			//    "+80-564+447-338+80-80+266-297+80-80+80-82+80-217+82-297+80-82+78-219+80-80+80-565+263-82+80-81+80-296+81-216" +
-			//    "+82-297+217-131+264-80+80-297+82-80+80-80+80-566+264-80+80-80+80-80+81-296+82-81+265-297+80-82+80-217+82-295" + 
-			//    "+266-82+80-80+265-563+713-338+80-80+217-129+265-80+80-336+82-80+80-81+265-80+80-80+80-338+80-82+81-80+80-80" +
-			//    "+263-81+80-337+81-82+80-80+80-80+80-80+266-336+218-129+217-129+266-337+81-82+80-80+80-80+80-80+80-80+80-336" +
-			//    "+219-131+264-80+80-80+80-338+264-82+80-81+80-80+80-80+80-338+265-81+80-82+78-80+265";
-			//M.Mode = Morse.CodeMode.American;
-			//Assert.AreEqual(amMm, M.MorseMail(amTest));
+			//
+			// These timings came from MorseKOB, but had to be slightly edited (in the last digit)
+			// due to (apparently) randome rounding/truncation in MorseKOB. For example the values
+			// of 80 were frequently 81, 82, etc.
+			//
+			string amTest = "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789";
+			string amMm = "+264-300+80-80+80-80+80-80+80-300+80-560+80-80+80-80+264-80+80-300+80-80+80-80+264-300+80-80+80" +
+				"-300+80-80+80-216+80-300+264-80+80-80+264-560+264-80+80-80+80-80+80-300+80-216+80-80+80-300+80-216+80" +
+				"-300+80-80+216-128+264-300+264-80+80-560+80-80+264-80+80-300+80-216+80-300+80-80+264-80+80-80+80-560+264-80" +
+				"+80-80+264-80+80-300+80-80+80-80+264-300+216-128+264-300+80-80+80-80+80-80+80-80+80-300+80-300+264-80+80-80+80" +
+				"-560+80-216+80-300+80-80+80-80+80-80+264-300+80-300+80-216+80-80+80-560+264-300+80-80+80-80+80-80+80-300" +
+				"+80-560+448-340+80-80+264-300+80-80+80-80+80-216+80-300+80-80+80-216+80-80+80-560+264-80+80-80+80-300+80-216" +
+				"+80-300+216-128+264-80+80-300+80-80+80-80+80-560+264-80+80-80+80-80+80-300+80-80+264-300+80-80+80-216+80-300" +
+				"+264-80+80-80+264-560+712-340+80-80+216-128+264-80+80-340+80-80+80-80+264-80+80-80+80-340+80-80+80-80+80-80" +
+				"+264-80+80-340+80-80+80-80+80-80+80-80+264-340+216-128+216-128+264-340+80-80+80-80+80-80+80-80+80-80+80-340" +
+				"+216-128+264-80+80-80+80-340+264-80+80-80+80-80+80-80+80-340+264-80+80-80+80-80+264";
+			M = new Morse();
+			M.Mode = Morse.CodeMode.American;
+			M.CharacterWpm = 15;
+			Assert.AreEqual(amMm, M.MorseMail(amTest));
 
 
 		}
@@ -119,9 +122,11 @@ namespace test.morse
 		//
 		// The stuff below is for the CWCom tests
 		//
-		private int[] corrCount = { 1, 2, 6, 2, 10, 10, 10, 2, 4, 6, 10 };
 		private string[] corrText = { "T", "E", "S", "T", " 1", " 2", " 3", " E", "N", "D", " AR\r\n" };
-		private Int32[][] corrCode = new Int32[11][]
+		private int index;
+
+		private int[] corrCountIntl = { 1, 2, 6, 2, 10, 10, 10, 2, 4, 6, 10 };
+		private Int32[][] corrCodeIntl = new Int32[11][]
 			{
 				new Int32[1]  { +240 },											// T
 				new Int32[2]  { -240,+80 },										// E
@@ -135,15 +140,40 @@ namespace test.morse
 				new Int32[6]  { -240,+240,-80,+80,-80,+80 },					// D
 				new Int32[10] { -240,+80,-80,+240,-80,+80,-80,+240,-80,+80 }	// \AR\
 			};
-		private int index;
 
-		public void CwComSend(Int32[] code, string text)
+		private int[] corrCountAmer = { 1, 2, 6, 2, 8, 10, 10, 2, 4, 6, 10 };
+		private Int32[][] corrCodeAmer = new Int32[11][]
+			{
+				new Int32[1]  { +264 },											// T
+				new Int32[2]  { -300,+80 },										// E
+				new Int32[6]  { -300,+80,-80,+80,-80,+80 },						// S
+				new Int32[2]  { -300,+264 },									// T
+				new Int32[8]  { -560,+80,-80,+216,-128,+264,-80,+80 },			//  1
+				new Int32[10] { -600,+80,-80,+80,-80,+264,-80,+80,-80,+80 },	//  2
+				new Int32[10] { -600,+80,-80,+80,-80,+80,-80,+264,-80,+80 },	//  3
+				new Int32[2]  { -600,+80 },										// <LF>E
+				new Int32[4]  { -300,+264,-80,+80 },							// N
+				new Int32[6]  { -300,+264,-80,+80,-80,+80 },					// D
+				new Int32[10] { -300,+80,-80,+264,-80,+80,-216,+80,-80,+80 }	// \AR\
+			};
+
+		public void CwComSendIntl(Int32[] code, string text)
 		{
 			//Console.WriteLine("send '" + ch + "' idx=" + index + "cnt=" + count);
-			Assert.AreEqual(corrCount[index], code.Length);
+			Assert.AreEqual(corrCountIntl[index], code.Length);
 			Assert.AreEqual(corrText[index], text);
 			for (int i = 0; i < code.Length; i++)
-				Assert.AreEqual(corrCode[index][i], code[i]);
+				Assert.AreEqual(corrCodeIntl[index][i], code[i]);
+			index += 1;
+		}
+
+		public void CwComSendAmer(Int32[] code, string text)
+		{
+			//Console.WriteLine("send '" + ch + "' idx=" + index + "cnt=" + count);
+			Assert.AreEqual(corrCountAmer[index], code.Length);
+			Assert.AreEqual(corrText[index], text);
+			for (int i = 0; i < code.Length; i++)
+				Assert.AreEqual(corrCodeAmer[index][i], code[i]);
 			index += 1;
 		}
 
@@ -151,16 +181,21 @@ namespace test.morse
 		public void Test_CwCom()
 		{
 			Morse M = new Morse();
-			M.TimeBase = 1200;															// MorseMail's time base
 			M.CharacterWpm = 15;
-			M.WordWpm = 15;
 
 			index = 0;
-			M.CwCom("test 1 2 3\nend\\AR\\", CwComSend);
+			M.CwCom("test 1 2 3\nend\\AR\\", CwComSendIntl);
 
 			index = 0;
-			Assert.Throws<ArgumentNullException>(delegate { M.CwCom("", CwComSend); });
-			Assert.Throws<ArgumentNullException>(delegate { M.CwCom(null, CwComSend); });
+			Assert.Throws<ArgumentNullException>(delegate { M.CwCom("", CwComSendIntl); });
+			Assert.Throws<ArgumentNullException>(delegate { M.CwCom(null, CwComSendIntl); });
+
+			M = new Morse();
+			M.Mode = Morse.CodeMode.American;
+			M.CharacterWpm = 15;
+
+			index = 0;
+			M.CwCom("test 1 2 3\nend\\AR\\", CwComSendAmer);
 		}
 	}
 }
