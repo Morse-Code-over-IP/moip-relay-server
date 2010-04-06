@@ -29,6 +29,10 @@
 //						Add separate error code for American mode. Refactor.
 //						Add 1 second space before first packet sent, needed by
 //						MorseKOB's decoder but harmless in any case. 
+//						Add plain double quote to American, use Open/Left 
+//						encoding. Correct punctuation per Les Kerr and the 
+//						book The Telegraph Instructor by Dodge (Google Books),
+//						they have Morse spaces in them, like a prosign.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -65,8 +69,8 @@ namespace com.dc3.morse
 	/// to <b>American</b>. There is no accepted international standard for American Morse Code. The encodings used herein are
 	/// taken from the WikiPedia <a href="http://en.wikipedia.org/wiki/American_Morse_code" target="_blank">American 
 	/// Morse Code</a> page, as well as the document
-	/// <a href="http://www.morsetelegraphclub.org/files/TelegraphCodes.pdf" target="_blank">Telegraph and
-	/// Radiotelegraph Codes - An Introduction</a> by K. Miller (K6CTW). The latter document contains punctuation encodings
+	/// <a href="http://www.morsetelegraphclub.org/library/files/html/dodge/index.htm" target="_blank">The Telegraph 
+	/// Instructor</a> by G. M. Dodge (also available on Google Books as PDF). The latter document contains punctuation encodings
 	/// that do not appear in the WikiPedia article. In addition, commonly accepted encodings for the equal 
 	/// sign '=' and forward slash '/' are included in preference to their meanings as described by Miller (ibid.)
 	/// which are the paragraph mark and shilling mark, respectively.
@@ -282,21 +286,22 @@ namespace com.dc3.morse
 			{ ',', ".-.-" },
 			{ '?', "-..-." },
 			{ '!', "---." },
-			{ '&', "._..." },
+			{ '&', "._..." },		// (mind the Morse spaces in these, typ.)
 			{ '=', "----" },		// Also paragraph mark
 			{ '/', "..--" },		// Also shilling mark
-			{ ':', "-.-.." },
-			{ '$', "....-.." },
-			{ '(', ".....-." },
-			{ ')', "........." },
-			{ '\'', "..-..-.." },
-			{ '“', "..-.-." },		// Open/Left double quote
-			{ '”', "..-.-.-." },	// Close/Right double quote
-			{ '[', "-....-.." },	// Same for L/R bracket
-			{ ']', "-....-.." },
-			{ '-', ".....-.." },
-			{ '%', "......." },
-			{ '@', ".--.-." },		// Not really AMerican, but need this, use International
+			{ ':', "-.-_._." },
+			{ '$', "..._.-.." },
+			{ '(', "....._-." },
+			{ ')', "....._.._.." },
+			{ '\'', "..-._.-.." },
+			{ '“', "..-._-." },		// Open/Left double quote
+			{ '”', "..-._-.-." },	// Close/Right double quote
+			{ '"', "..-._-." },		// Plain quote -> Open/Left double quote
+			{ '[', "-..._.-.." },	// Same for L/R bracket
+			{ ']', "-..._.-.." },
+			{ '-', "...._.-.." },
+			{ '%', "....._.." },	// ?? 'PI' ??
+			{ '@', ".-_.-.." },		// Not really American, but need this, 'AX'
 			{ '\r', " " },
 			{ '\n', " " },
 			{ '\t', " " },
@@ -359,6 +364,7 @@ namespace com.dc3.morse
 			{ '\'', true },
 			{ '“', true },
 			{ '”', true },
+			{ '"', true },
 			{ '[', true },
 			{ ']', true },
 			{ '-', true },
@@ -706,7 +712,7 @@ namespace com.dc3.morse
 
 			foreach (char c in Text.ToUpper())
 			{
-				char c2 = c;
+				char c2 = c;												// Allow modifying char
 				string dotscii;
 
 				if (c2 == '\\')												// Prosign delimiter
@@ -770,7 +776,7 @@ namespace com.dc3.morse
 				if (!inProsign)												// Unless doing prosign
 				{
 					space(_cstime);											// Character space
-					if (_mode == CodeMode.American && _aSpaceEmph[c])
+					if (_mode == CodeMode.American && _aSpaceEmph[c2])
 						space(_ctime / 2);
 				}
 			}
@@ -896,14 +902,14 @@ namespace com.dc3.morse
 			foreach (char c in Text.ToUpper())
 			{
 				string dotscii;
-				char c2 = c;
+				char c2 = c;												// Allow modifying char
 
 				if (!inProsign)
 					start_cw();												// Not in prosign, start fresh
-				else if (c != '\\')											// In prosign (and not ending delim)
-					prosign += c;											// Accumulate it for CwCode text
+				else if (c2 != '\\')										// In prosign (and not ending delim)
+					prosign += c2;											// Accumulate it for CwCode text
 
-				if (c == '\\')												// Prosign delimiter
+				if (c2 == '\\')												// Prosign delimiter
 				{
 					if (_mode == CodeMode.International)					// True prosign processing
 					{

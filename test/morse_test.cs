@@ -56,9 +56,9 @@ namespace test.morse
 			Assert.AreEqual(".- -... .._. -.. . .-. --. .... .. -.-. -.- = --", M.DotDash("ABCDEFGHIJKLM"));
 			Assert.AreEqual("-. ._. ..... ..-. ._.. ... - ..- ...- .-- .-.. .._.. ..._.", M.DotDash("NOPQRSTUVWXYZ"));
 			Assert.AreEqual("# .--. ..-.. ...-. ....- --- ...... --.. -.... -..-", M.DotDash("0123456789"));
-			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- ..-- -.-.. ....-..", M.DotDash(".,?!&=/:$"));
-			Assert.AreEqual(".....-. ......... ..-..-.. ..-.-. ..-.-.-. -....-.. -....-..", M.DotDash("()'“”[]"));
-			Assert.AreEqual(".....-.. .......", M.DotDash("-%"));
+			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- ..-- -.-_._. ..._.-..", M.DotDash(".,?!&=/:$"));
+			Assert.AreEqual("....._-. ....._.._.. ..-._.-.. ..-._-. ..-._-.-. ..-._-. -..._.-.. -..._.-..", M.DotDash("()'“”\"[]"));
+			Assert.AreEqual("...._.-.. ....._..", M.DotDash("-%"));
 		}
 
 		[Test, Category("Pre-Requisite"), Description("Tests the WPM properties")]

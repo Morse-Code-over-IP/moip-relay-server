@@ -69,7 +69,9 @@
 //						readability. See GetMorseInputText().
 // 05-Apr-10	rbd		0.7.2 - Add support for new American mode of Morse
 //						class, and additional MorseKOB support (open key at
-//						initial connect).
+//						initial connect). Using new "blind" mode for cw.Connect()
+//						re-enable periodic connect while sending. This avoids
+//						the possible delay mentioned in the 22-Mar-10 notes.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -361,9 +363,9 @@ namespace com.dc3.cwcom
 				string time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
 				string detail = GetMorseInputText(story.rssItem.SelectSingleNode("description").InnerText);
 				LogMessage("New story [" + time + "]: " + title);
-				string msg = "DE " + story.feedName + " " + time + " \\BT\\" + title;
+				string msg = "DE " + story.feedName + " " + time + " \\BT\\ " + title;
 				if (detail != "")
-					msg += " \\BT\\" + detail;
+					msg += " \\BT\\ " + detail;
 				msg += " \\AR\\";
 				messages.Add(msg);
 
@@ -406,11 +408,14 @@ namespace com.dc3.cwcom
 			//}
 			//LogMessage(tr);
 			_cw.SendCode(code, text, "Sending News");
-			//if (DateTime.Now > _nextConnect)
-			//{
-			//    _cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
-			//    _nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
-			//}
+			if (DateTime.Now > _nextConnect)
+			{
+				//
+				// Avoid possible delay on missed ACK by using "blind" connect
+				//
+				_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, true);	// Blind connect
+				_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
+			}
 		}
 
 		//
@@ -428,7 +433,7 @@ namespace com.dc3.cwcom
 				// news. Also, Yahoo! uses GMT times in their RSS <PubDate> tags, so
 				// the time can be understood by .NET's DateTime.Parse() method.
 				//
-				// Use caution and test thorougly on news feeds from any other RSS
+				// Use caution and test thoroughly on news feeds from any other RSS
 				// source.
 				//
 				// RssFeeds.txt has format name|url, for example:
@@ -457,7 +462,7 @@ namespace com.dc3.cwcom
 				_morse.CharacterWpm = _characterWpm;
 				_morse.WordWpm = _wordWpm;
 				_morse.Mode = _codeMode;
-				_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
+				_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 				_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 				_cw.Identify("QRV : Starting...");
 
@@ -503,7 +508,7 @@ namespace com.dc3.cwcom
 								_morse.CwCom("\\AS\\", Send);
 								if (DateTime.Now > _nextConnect)
 								{
-									_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
+									_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 									_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 								}
 								_cw.Identify("QRL : Stand by for news");
@@ -511,7 +516,7 @@ namespace com.dc3.cwcom
 							}
 							else if (DateTime.Now > _nextConnect)
 							{
-								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
+								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 								_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 							}
 
@@ -541,7 +546,7 @@ namespace com.dc3.cwcom
 						{
 							if (DateTime.Now > _nextConnect)					// Keep up the 30 sec reconnect here
 							{
-								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
+								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 								_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 							}
 							//
