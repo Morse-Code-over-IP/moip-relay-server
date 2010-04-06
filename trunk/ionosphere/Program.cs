@@ -30,6 +30,8 @@
 //						dynamic. SF artifact 2963832: Allow # comments in config.
 // 01-Apr-10	rbd		1.0.4 - SF 2980581 Re-up the last-heard-from time on all
 //						received messages instead of just ID ones.
+// 06-Apr-10	rbd		1.0.5 - Oops, that broke the throttling of broadcast ID
+//						messages. Add new LastIdMsg for that.
 //-----------------------------------------------------------------------------
 //
 
@@ -59,6 +61,7 @@ namespace com.dc3.cwcom
 		public Int16 Channel { get; set; }										// Ionosphere channel number
 		public string Status { get; set; }										// Last status from station
 		public DateTime LastRecvTime { get; set; }								// Last time station heard from
+		public DateTime LastIdentTime { get; set; }								// Last time station sent an Ident
 		public DateTime ConnectTime { get; set; }								// Time at which station first connected
 
 		#region ICloneable Members
@@ -382,10 +385,11 @@ namespace com.dc3.cwcom
 							//
 							// This throttles the scads of TXing ID messages sent at every space-to-mark transition.
 							// Yes, this may result in clients missing some ID messages, but one will go out
-							// every 2 seconds anyway...
+							// every 5 seconds anyway...
 							//
-							if (Sender.ID != prevState.ID || Sender.Status != prevState.Status || Sender.LastRecvTime.AddSeconds(2) < DateTime.Now)
-							BroadcastMessage(rcvdMsg, Sender);
+							if (Sender.ID != prevState.ID || Sender.Status != prevState.Status || Sender.LastIdentTime.AddSeconds(5) < DateTime.Now)
+								BroadcastMessage(rcvdMsg, Sender);
+							Sender.LastIdentTime = DateTime.Now;
 							break;
 						case ReceivedMessage.MessageTypes.Data:
 							BroadcastMessage(rcvdMsg, Sender);

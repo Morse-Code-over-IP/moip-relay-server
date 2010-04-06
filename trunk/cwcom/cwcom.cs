@@ -31,6 +31,9 @@
 //						missing an ack from hanging this forever!
 // 01-Apr-10	rbd		0.6.9 - SF artifact 2980615 Create new UdpClient before 
 //						reconnect.
+// 05-Apr-10	rbd		0.7.2 - Add "blind" parameter to Connect() for periodic
+//						reconnect during transmissions, to avoid delay if ACK
+//						not received.
 //-----------------------------------------------------------------------------
 //
 
@@ -81,7 +84,7 @@ namespace com.dc3.cwcom
 			_dataMsg = new DataMessage();
 		}
 
-		public void Connect(string Host, int Port, short Channel, string Ident)
+		public void Connect(string Host, int Port, short Channel, string Ident, bool Blind)
 		{
 			bool justCon;
 
@@ -117,6 +120,7 @@ namespace com.dc3.cwcom
 					//
 					if (justCon) _logger("Sending connect message...");
 					_udp.Send(new CtrlMessage(CtrlMessage.MessageTypes.Connect, _channel).Packet, CtrlMessage.Length);
+					if (Blind) break;											// Blind connect, bail out now.
 					try
 					{
 						// TODO More robust way of telling ACK from junk (and other stations)
