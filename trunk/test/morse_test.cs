@@ -21,6 +21,7 @@
 // 04-Feb-10	rbd		0.5.1
 // 25-Mar-10	rbd		0.6.8 - Error is 8 dots not 6
 // 01-Apr-10	rbd		0.7.1 - Tests for American Morse Code
+// 05-Apr-10	rbd		0.7.2 - Additional punctuation for American Morse
 //-----------------------------------------------------------------------------
 //
 
@@ -55,7 +56,9 @@ namespace test.morse
 			Assert.AreEqual(".- -... .._. -.. . .-. --. .... .. -.-. -.- = --", M.DotDash("ABCDEFGHIJKLM"));
 			Assert.AreEqual("-. ._. ..... ..-. ._.. ... - ..- ...- .-- .-.. .._.. ..._.", M.DotDash("NOPQRSTUVWXYZ"));
 			Assert.AreEqual("# .--. ..-.. ...-. ....- --- ...... --.. -.... -..-", M.DotDash("0123456789"));
-			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- ..--", M.DotDash(".,?!&=/"));
+			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- ..-- -.-.. ....-..", M.DotDash(".,?!&=/:$"));
+			Assert.AreEqual(".....-. ......... ..-..-.. ..-.-. ..-.-.-. -....-.. -....-..", M.DotDash("()'“”[]"));
+			Assert.AreEqual(".....-.. .......", M.DotDash("-%"));
 		}
 
 		[Test, Category("Pre-Requisite"), Description("Tests the WPM properties")]
@@ -81,7 +84,7 @@ namespace test.morse
 		{
 			Morse M = new Morse();
 			M.CharacterWpm = 15;
-			Assert.AreEqual("+80-80+80-80+80-80+80-240+80-240+80-80+240-80+80-80+80-240+80-80+240-80+80-80+80-240+240-80+240-80+240",
+			Assert.AreEqual("-1000+80-80+80-80+80-80+80-240+80-240+80-80+240-80+80-80+80-240+80-80+240-80+80-80+80-240+240-80+240-80+240",
 							M.MorseMail("hello"));
 			Assert.AreEqual("-240+240-240+80-240+80-80+80-80+80-240+240-560+80-80+240-80+240-80+240-80+240-560+80-80+80-80+240-80+240-80+240"
 							+ "-560+80-80+80-80+80-80+240-80+240-560+80-80+240-80+80-80+240-80+80-560+80-240+240-80+80-240+240-80+80-80+80",
@@ -101,7 +104,7 @@ namespace test.morse
 			// of 80 were frequently 81, 82, etc.
 			//
 			string amTest = "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789";
-			string amMm = "+264-300+80-80+80-80+80-80+80-300+80-560+80-80+80-80+264-80+80-300+80-80+80-80+264-300+80-80+80" +
+			string amMm = "-1000+264-300+80-80+80-80+80-80+80-300+80-560+80-80+80-80+264-80+80-300+80-80+80-80+264-300+80-80+80" +
 				"-300+80-80+80-216+80-300+264-80+80-80+264-560+264-80+80-80+80-80+80-300+80-216+80-80+80-300+80-216+80" +
 				"-300+80-80+216-128+264-300+264-80+80-560+80-80+264-80+80-300+80-216+80-300+80-80+264-80+80-80+80-560+264-80" +
 				"+80-80+264-80+80-300+80-80+80-80+264-300+216-128+264-300+80-80+80-80+80-80+80-80+80-300+80-300+264-80+80-80+80" +
@@ -122,13 +125,13 @@ namespace test.morse
 		//
 		// The stuff below is for the CWCom tests
 		//
-		private string[] corrText = { "T", "E", "S", "T", " 1", " 2", " 3", " E", "N", "D", " AR\r\n" };
 		private int index;
 
-		private int[] corrCountIntl = { 1, 2, 6, 2, 10, 10, 10, 2, 4, 6, 10 };
+		private string[] corrTextIntl = { "T", "E", "S", "T", " 1", " 2", " 3", " E", "N", "D", " AR\r\n" };
+		private int[] corrCountIntl = { 2, 2, 6, 2, 10, 10, 10, 2, 4, 6, 10 };
 		private Int32[][] corrCodeIntl = new Int32[11][]
 			{
-				new Int32[1]  { +240 },											// T
+				new Int32[2]  { -1000,+240 },									// T
 				new Int32[2]  { -240,+80 },										// E
 				new Int32[6]  { -240,+80,-80,+80,-80,+80 },						// S
 				new Int32[2]  { -240,+240 },									// T
@@ -141,10 +144,11 @@ namespace test.morse
 				new Int32[10] { -240,+80,-80,+240,-80,+80,-80,+240,-80,+80 }	// \AR\
 			};
 
-		private int[] corrCountAmer = { 1, 2, 6, 2, 8, 10, 10, 2, 4, 6, 10 };
-		private Int32[][] corrCodeAmer = new Int32[11][]
+		private string[] corrTextAmer = { "T", "E", "S", "T", " 1", " 2", " 3", " E", "N", "D", "/", "A", "R", "/" };
+		private int[] corrCountAmer = { 2, 2, 6, 2, 8, 10, 10, 2, 4, 6, 8, 4, 6, 8 };
+		private Int32[][] corrCodeAmer = new Int32[14][]
 			{
-				new Int32[1]  { +264 },											// T
+				new Int32[2]  { -1000,+264 },									// T
 				new Int32[2]  { -300,+80 },										// E
 				new Int32[6]  { -300,+80,-80,+80,-80,+80 },						// S
 				new Int32[2]  { -300,+264 },									// T
@@ -154,14 +158,17 @@ namespace test.morse
 				new Int32[2]  { -600,+80 },										// <LF>E
 				new Int32[4]  { -300,+264,-80,+80 },							// N
 				new Int32[6]  { -300,+264,-80,+80,-80,+80 },					// D
-				new Int32[10] { -300,+80,-80,+264,-80,+80,-216,+80,-80,+80 }	// \AR\
+				new Int32[8]  { -300,+80,-80,+80,-80,+216,-128,+264 },			// /
+				new Int32[4]  { -340,+80,-80,+264 },							// A
+				new Int32[6]  { -300,+80,-216,+80,-80,+80 },					// R
+				new Int32[8]  { -300,+80,-80,+80,-80,+216,-128,+264 }			// /
 			};
 
 		public void CwComSendIntl(Int32[] code, string text)
 		{
 			//Console.WriteLine("send '" + ch + "' idx=" + index + "cnt=" + count);
 			Assert.AreEqual(corrCountIntl[index], code.Length);
-			Assert.AreEqual(corrText[index], text);
+			Assert.AreEqual(corrTextIntl[index], text);
 			for (int i = 0; i < code.Length; i++)
 				Assert.AreEqual(corrCodeIntl[index][i], code[i]);
 			index += 1;
@@ -171,7 +178,7 @@ namespace test.morse
 		{
 			//Console.WriteLine("send '" + ch + "' idx=" + index + "cnt=" + count);
 			Assert.AreEqual(corrCountAmer[index], code.Length);
-			Assert.AreEqual(corrText[index], text);
+			Assert.AreEqual(corrTextAmer[index], text);
 			for (int i = 0; i < code.Length; i++)
 				Assert.AreEqual(corrCodeAmer[index][i], code[i]);
 			index += 1;

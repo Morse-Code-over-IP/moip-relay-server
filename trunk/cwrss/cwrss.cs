@@ -67,6 +67,9 @@
 //						and brackets to parens, backtick to apostrophe. This 
 //						should make for fewer '........' outputs and help
 //						readability. See GetMorseInputText().
+// 05-Apr-10	rbd		0.7.2 - Add support for new American mode of Morse
+//						class, and additional MorseKOB support (open key at
+//						initial connect).
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -105,6 +108,7 @@ namespace com.dc3.cwcom
 		private string _serverAddr = "";
 		private int _serverPort = 7890;
 		private short _botChannel = 1111;
+		private Morse.CodeMode _codeMode = Morse.CodeMode.International;
 		private int _characterWpm = 20;
 		private int _wordWpm = 20;
 
@@ -136,12 +140,13 @@ namespace com.dc3.cwcom
 		//
 		// Constructor
 		//
-		public CwNewsBot(string BotName, string ServerAddr, int ServerPort, short BotChannel, int CharWpm, int WordWpm)
+		public CwNewsBot(string BotName, string ServerAddr, int ServerPort, short BotChannel, int CharWpm, int WordWpm, Morse.CodeMode Mode)
 		{
 			_botName = BotName;
 			_serverAddr = ServerAddr;
 			_serverPort = ServerPort;
 			_botChannel = BotChannel;
+			_codeMode = Mode;
 			_characterWpm = CharWpm;
 			_wordWpm = WordWpm;
 			_storiesPerCycle = _wordWpm * _cycleMinutes / _wordsPerStory;
@@ -451,6 +456,7 @@ namespace com.dc3.cwcom
 				_morse = new Morse();
 				_morse.CharacterWpm = _characterWpm;
 				_morse.WordWpm = _wordWpm;
+				_morse.Mode = _codeMode;
 				_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName);
 				_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 				_cw.Identify("QRV : Starting...");
@@ -460,6 +466,9 @@ namespace com.dc3.cwcom
 				_titleExpireThread.Start();
 
 				Thread.Sleep(5000);
+
+				if (_codeMode == Morse.CodeMode.American)						// Open telegraph key for MorseKOB
+					_cw.SendCode(new int[] {-5000, 2}, "", "Opening key");
 
 				bool sentSome = false;
 				while (true)
@@ -603,14 +612,24 @@ namespace com.dc3.cwcom
 				string buf = lines[i].Trim();
 				if (buf == "") continue;
 				string[] bits = buf.Split(new char[] { '|' });
-				if (bits.Length != 6)
+				if (bits.Length < 6)
 				{
 					LogMessageS("Bad line in BotList.txt" + buf);
 					continue;
 				}
+				//
+				// American only if present in config line and "american"
+				// Nothing or anything else -> International
+				//
+				Morse.CodeMode mode;
+				if (bits.Length == 7 && bits[6].ToLower() == "american")
+					mode = Morse.CodeMode.American;
+				else
+					mode = Morse.CodeMode.International;
+					
 				CwNewsBot b = new CwNewsBot(bits[0], bits[1], Convert.ToInt32(bits[2]),
 						Convert.ToInt16(bits[3]), Convert.ToInt32(bits[4]),
-						Convert.ToInt32(bits[5]));
+						Convert.ToInt32(bits[5]), mode);
 				b.Start();
 				s_botList.Add(b);
 			}
