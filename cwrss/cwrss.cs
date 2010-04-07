@@ -72,6 +72,10 @@
 //						initial connect). Using new "blind" mode for cw.Connect()
 //						re-enable periodic connect while sending. This avoids
 //						the possible delay mentioned in the 22-Mar-10 notes.
+// 05-Apr-10	rbd		0.7.2 - Add listener so can avoid sending unless someone
+//						else is connected to the channel/line. Remove Q-signals
+//						from ident. Don't send both the leader and the body,
+//						just one or the other.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -95,6 +99,12 @@ using com.dc3.morse;
 
 namespace com.dc3.cwcom
 {
+	class Station
+	{
+		public string ID { get; set; }											// Callsign
+		public DateTime LastRecvTime { get; set; }								// Last time station heard from
+	}
+
 	class CwNewsBot
 	{
 		private const int _reconnSeconds = 30;
@@ -128,6 +138,11 @@ namespace com.dc3.cwcom
 		private int _nextPeriodicMessage = -1;
 		private Dictionary<string, string> _rssFeeds = new Dictionary<string, string>();
 		private int _storiesPerCycle = 5;										// _wordWpm * _cycleMinutes / _wordsPerStory;
+		private int _msgNr;														// For American/telegraph daily message number
+		private DateTime _msgNrDay;
+
+		private List<Station> _stationList = new List<Station>();
+		private Thread _deadStationThread = null;
 
 		//
 		// Represents an RSS item with a correct pubDate
@@ -152,6 +167,8 @@ namespace com.dc3.cwcom
 			_characterWpm = CharWpm;
 			_wordWpm = WordWpm;
 			_storiesPerCycle = _wordWpm * _cycleMinutes / _wordsPerStory;
+			_msgNr = 1;
+			_msgNrDay = DateTime.Now.Date;
 		}
 
 		//
@@ -165,12 +182,51 @@ namespace com.dc3.cwcom
 				_titleExpireThread.Interrupt();
 				_titleExpireThread.Join(1000);
 			}
+			if (_deadStationThread != null)
+			{
+				_deadStationThread.Interrupt();
+				_deadStationThread.Join(1000);
+			}
 			LogMessage("Disconnecting...");
 			_botThread.Interrupt();
 			_botThread.Join(1000);
 			_cw.Disconnect();
 			LogMessage("Shutdown complete...");
 		}
+
+		private void ReceiveMessage(byte[] rcvdMsg)
+		{
+			if (rcvdMsg.Length != ReceivedMessage.Length)
+				return;															// Ignore control messages
+			ReceivedMessage msg = new ReceivedMessage(rcvdMsg);
+			if (msg.Type != LargeMessage.MessageTypes.ID)						// Ignore all but ID messages
+				return;
+			Station thisStation = null;
+			//
+			// ID message, look for station and create one if not found
+			//
+			lock (_stationList)
+			{
+				foreach (Station S in _stationList)
+				{
+					if (S.ID == msg.ID)
+					{
+						thisStation = S;
+						break;
+					}
+				}
+				if (thisStation == null)
+				{
+					thisStation = new Station();
+					thisStation.ID = msg.ID;
+					_stationList.Add(thisStation);
+					LogMessage("New station " + thisStation.ID + " joined (" + _stationList.Count + " stns total)");
+				}
+				thisStation.LastRecvTime = DateTime.Now;
+			}
+		}
+
+
 		//
 		// Writes to shell if running interactive, else traces so can be seen in 
 		// (e.g.) the awesome DebugView tool if running as a service.
@@ -215,6 +271,31 @@ namespace com.dc3.cwcom
 			{
 				LogMessage("Stopping title expiry thread");
 			}
+		}
+
+		private void DeadStationThread()
+		{
+			try
+			{
+				while (true)
+				{
+					Thread.Sleep(120000);										// Every 2 minutes
+					lock (_stationList)
+					{
+						for (int i = _stationList.Count - 1; i >= 0; i--)		// Iterate backwards for removal safety
+						{
+							Station S = _stationList[i];
+							if (S.LastRecvTime.AddSeconds(120) < DateTime.Now)	// Not seen for 2 minutes = dead
+							{
+								_stationList.RemoveAt(i);
+								LogMessage("Station " + S.ID + " disappeared (" + _stationList.Count + " stns remaining)");
+							}
+						}
+					}
+				}
+			}
+			catch (ThreadInterruptedException) { }
+			LogMessage("Dead station thread exiting...");
 		}
 
 		//
@@ -326,12 +407,12 @@ namespace com.dc3.cwcom
 			LogMessage("Total of " + stories.Count + " stories");
 			//
 			// Now we have all of the pubDates along with the RSS items for each.
-			// Sort the list by date and take the 10 newest stories which are newer
-			// than lastNewsDate... Also implements a title cache, used to prevent
+			// Sort the list by date and take the _storiesPerCycle newest stories.
+			// Also implements a title cache, used to prevent
 			// sending multiple copies of the same story over a short time. Yahoo!
 			// seems top update the <pubDate> tags on their RSS stores quite often,
 			// without changing the story, presumably to force them to (re) appear 
-			// in prople's RSS readers. Here, in order to keep variety in the feed,
+			// in people's RSS readers. Here, in order to keep variety in the feed,
 			// I prohibit a story with the same title as one seen in the last 
 			// _titleAge (120) minutes from being fed again.
 			//
@@ -361,12 +442,30 @@ namespace com.dc3.cwcom
 				// May be headline-only article
 				//
 				string time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
-				string detail = GetMorseInputText(story.rssItem.SelectSingleNode("description").InnerText);
 				LogMessage("New story [" + time + "]: " + title);
-				string msg = "DE " + story.feedName + " " + time + " \\BT\\ " + title;
-				if (detail != "")
-					msg += " \\BT\\ " + detail;
-				msg += " \\AR\\";
+				string detail = GetMorseInputText(story.rssItem.SelectSingleNode("description").InnerText);
+				string msg;
+				if (_morse.Mode == Morse.CodeMode.International)				// Radiotelegraphy
+				{
+					msg = "DE " + story.feedName + " " + time + " \\BT\\ " + title;
+					if (detail == "")
+						msg += title;
+					else
+						msg +=  detail;
+					msg += " \\AR\\";
+				}
+				else															// American telegraph
+				{
+					// TODO - Make time zone name adapt to station TZ and DST
+					string date = story.pubDate.ToString("MMM d HHmm") + " MST";
+					// TODO - Make "DD" station ID a config
+					msg = "## DD DPR " + date + " = ";							// ## placeholder for number, No feed name
+					if (detail == "")
+						msg += title;
+					else
+						msg += detail;
+					msg += " END";
+				}
 				messages.Add(msg);
 
 				//
@@ -379,13 +478,28 @@ namespace com.dc3.cwcom
 				
 				//
 				// Only send stories for _cycleMinutes, then go look
-				// at news again. This keeps it fresh
+				// at news again. This keeps it fresh.
 				//
 				if (nMsg++ >= _storiesPerCycle) break;
 			}
 			if (messages.Count > 0)
 			{
 				messages.Reverse();												// Sort back to oldest -> newest
+				//
+				// For telegraph format, must number messages here, 
+				// in sent order!
+				//
+				if (_morse.Mode == Morse.CodeMode.American)
+				{
+					for (int i = 0; i < messages.Count; i++)
+					{
+						messages[i] = messages[i].Replace("##", _msgNr.ToString());
+						if (DateTime.Now.Date != _msgNrDay)						// New day, restart message #
+							_msgNr = 1;
+						else
+							_msgNr += 1;
+					}
+				}
 				return messages;
 			}
 			else
@@ -457,18 +571,22 @@ namespace com.dc3.cwcom
 				}
 				_nextPeriodicMessage = 0;
 
-				_cw = new CwCom(LogMessage);									// Tell CwCom class to use our logger
+				_cw = new CwCom(ReceiveMessage, LogMessage);
 				_morse = new Morse();
 				_morse.CharacterWpm = _characterWpm;
 				_morse.WordWpm = _wordWpm;
 				_morse.Mode = _codeMode;
 				_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 				_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
-				_cw.Identify("QRV : Starting...");
+				_cw.Identify("Starting...");
 
 				_titleExpireThread = new Thread(new ThreadStart(TitleExpire));
 				_titleExpireThread.Name = _botName + " title exp";
 				_titleExpireThread.Start();
+
+				_deadStationThread = new Thread(new ThreadStart(DeadStationThread));
+				_deadStationThread.Name = "Dead station harvester";
+				_deadStationThread.Start();
 
 				Thread.Sleep(5000);
 
@@ -478,10 +596,26 @@ namespace com.dc3.cwcom
 				bool sentSome = false;
 				while (true)
 				{
+					while (true)
+					{
+						lock (_stationList)
+						{
+							if (_stationList.Count > 0)
+								break;
+						}
+						if (DateTime.Now > _nextConnect)						// Keep up the 30 sec reconnect here
+						{
+							_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
+							_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
+						}
+						_cw.Identify("Idle, no listeners");
+						Thread.Sleep(1000);
+					}
+
 					if (DateTime.Now > _nextPerMsgTime)
 					{
 						LogMessage("Sending periodic robot message");
-						_cw.Identify("QRA : Message from robot");
+						_cw.Identify("Message from robot");
 					 	Thread.Sleep(5000);
 						_morse.CwCom(_periodicMessages[_nextPeriodicMessage++], Send);
 						if (_nextPeriodicMessage >= _periodicMessages.Count) _nextPeriodicMessage = 0;
@@ -489,29 +623,30 @@ namespace com.dc3.cwcom
 						sentSome = true;
 					}
 
-					_cw.Identify("QRL : Checking news feeds");
+					_cw.Identify("Checking news feeds...");
 					List<string> messages = GetLatestNews(_rssFeeds);
 					Thread.Sleep(5000);
 					if (messages != null)
 					{
 						if (sentSome)											// Have been sending, last story of prev batch 0r ID above needs AS
-							_morse.CwCom("\\AS\\", Send);
-						_cw.Identify("QRV : Stand by for news");
+							_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
+						_cw.Identify("Stand by for news...");
 						Thread.Sleep(5000);
 						int nStories = messages.Count;
 						foreach (string message in messages)
 						{
 							LogMessage("Sending story " + message.Substring(0, 60) + (message.Length > 60 ? "..." : ""));
+							_cw.Identify("Sending News");
 							_morse.CwCom(message, Send);
 							if (--nStories > 0)
 							{
-								_morse.CwCom("\\AS\\", Send);
+								_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
 								if (DateTime.Now > _nextConnect)
 								{
 									_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 									_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 								}
-								_cw.Identify("QRL : Stand by for news");
+								_cw.Identify("Stand by for news...");
 								Thread.Sleep(5000);
 							}
 							else if (DateTime.Now > _nextConnect)
@@ -519,7 +654,14 @@ namespace com.dc3.cwcom
 								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 								_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 							}
-
+							//
+							// Quit and loop back if no listeners
+							//
+							lock (_stationList)
+							{
+								if (_stationList.Count == 0)
+									break;
+							}
 						}
 						sentSome = true;
 					}
@@ -527,9 +669,9 @@ namespace com.dc3.cwcom
 					{
 						if (sentSome)
 						{
-							_morse.CwCom("\\AS\\", Send);
+							_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
 							LogMessage("End of news, sending periodic robot message");
-							_cw.Identify("QRA : Message from robot");
+							_cw.Identify("Message from robot");
 							Thread.Sleep(5000);
 							_morse.CwCom(_periodicMessages[_nextPeriodicMessage++], Send);
 							if (_nextPeriodicMessage >= _periodicMessages.Count) _nextPeriodicMessage = 0;
@@ -538,12 +680,21 @@ namespace com.dc3.cwcom
 							continue;											// Try for more news now
 						}
 						LogMessage("End of transmission");
-						_morse.CwCom("\\SK\\", Send);
-						_cw.Identify("QRT : End of transmission");
+						if (_morse.Mode == Morse.CodeMode.International) _morse.CwCom("\\SK\\", Send);
+						_cw.Identify("End of transmission");
 						Thread.Sleep(5000);
 						LogMessage("Sleeping for 2 minutes...");
 						for (int i = 120; i > 0; i--)							// Ident every sec for 2 min.
 						{
+							//
+							// Loop back if no listeners
+							//
+							lock (_stationList)
+							{
+								if (_stationList.Count == 0)
+									break;
+							}
+
 							if (DateTime.Now > _nextConnect)					// Keep up the 30 sec reconnect here
 							{
 								_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
@@ -553,7 +704,7 @@ namespace com.dc3.cwcom
 							// Wait for 2 minutes then check news again
 							//
 							string buf = TimeSpan.FromSeconds(i).ToString().Substring(3);
-							_cw.Identify("QRX : Check news in " + buf);
+							_cw.Identify("Check news in " + buf);
 							Thread.Sleep(1000);
 						}
 					}
