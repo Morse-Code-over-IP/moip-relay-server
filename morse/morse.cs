@@ -76,7 +76,9 @@ namespace com.dc3.morse
 	/// which are the paragraph mark and shilling mark, respectively.
 	/// <para>Sending of <em>prosigns</em> is supported. A prosign is the concatenation of two Morse characters
 	/// which have a special meaning. See the WikiPedia article <a href="http://en.wikipedia.org/wiki/Prosigns_for_Morse_code" 
-	/// target="_blank">Prosigns for Morse Code</a>.</para>
+	/// target="_blank">Prosigns for Morse Code</a>. In American Morse mode, prosigns are send as two letters enclosed in 
+	/// slash marks (e.g. "/AR/") with normal timing. Note that the trailing slash causes an extra half space time to be 
+	/// added to the end of the prosign.</para>
 	/// </para>
 	/// <para>The mark/space timings generated for <see cref="CwCom"/> and 
 	/// <see cref="MorseMail"/> are controlled by two properties,
