@@ -26,6 +26,7 @@
 //						setting the Packet property. Use type enums more.
 // 07-Feb-10	rbd		0.5.4 - For Ionosphere, add remote IP to received
 //						message.
+// 07-Apr-10	rbd		0.7.2 - Change "TXing" to "Sending"
 //-----------------------------------------------------------------------------
 //
 
@@ -190,7 +191,7 @@ namespace com.dc3.cwcom
 		{
 			Type = MessageTypes.Data;
 			Magic = 0xFFFFFF;
-			Text = "TXing";
+			Text = "Sending";
 		} 
 	}
 

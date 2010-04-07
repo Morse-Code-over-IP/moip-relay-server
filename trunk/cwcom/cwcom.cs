@@ -34,6 +34,8 @@
 // 05-Apr-10	rbd		0.7.2 - Add "blind" parameter to Connect() for periodic
 //						reconnect during transmissions, to avoid delay if ACK
 //						not received.
+// 05-Apr-10	rbd		0.7.2 - Add real receive loop, no more blind connect.
+// 07-Apr-10	rbd		0.7.2 - No more local TxStatus, client determines.
 //-----------------------------------------------------------------------------
 //
 
@@ -48,7 +50,6 @@ namespace com.dc3.cwcom
 {
 	//
 	// Implements a CWCom connection to a server or a CWCom
-	// For now, this is transmit only.
 	//
 	public class CwCom
 	{
@@ -59,18 +60,21 @@ namespace com.dc3.cwcom
 		private int _remPort;
 		private short _channel;
 		private string _ident;
+		private DateTime _lastAckTime;
 		private IdentMessage _idMsg;
 		private DataMessage _dataMsg;
 		private int _seqNo;
 		private DateTime _nextTxIdent = DateTime.MinValue;
+		private Thread _receiverThread = null;
+		private MessageReceiver _receiver; 
 		private MessageLogger _logger;
 
-		public string _TxStatus { get; set; }
-
+		public delegate void MessageReceiver(byte[] rcvMsg);
 		public delegate void MessageLogger(string msg);							// Cliant's logging function must be like this
 
-		public CwCom(MessageLogger logger)
+		public CwCom(MessageReceiver receiver, MessageLogger logger)
 		{
+			_receiver = receiver;
 			_logger = logger;
 			_objLock = new object();
 			_remHost = "localhost";
@@ -78,7 +82,6 @@ namespace com.dc3.cwcom
 			_channel = 1000;
 			_ident = "NoID";
 			_seqNo = 3;
-			_TxStatus = "TXing";
 
 			_idMsg = new IdentMessage();
 			_dataMsg = new DataMessage();
@@ -111,6 +114,9 @@ namespace com.dc3.cwcom
 						_logger("Opening UDP");
 						_udp = new UdpClient();
 						_udp.Connect(_remHost, _remPort);
+						_receiverThread = new Thread(new ThreadStart(ReceiverThread));
+						_receiverThread.Name = "Receiver thread";
+						_receiverThread.Start();
 						justCon = true;
 					}
 					else
@@ -121,23 +127,20 @@ namespace com.dc3.cwcom
 					if (justCon) _logger("Sending connect message...");
 					_udp.Send(new CtrlMessage(CtrlMessage.MessageTypes.Connect, _channel).Packet, CtrlMessage.Length);
 					if (Blind) break;											// Blind connect, bail out now.
-					try
+					for (int i = 0; i < 50; i++)								// Up to 5 sec at 10Hz
 					{
-						// TODO More robust way of telling ACK from junk (and other stations)
-						_udp.Client.ReceiveTimeout = 5000;
-						byte[] ack = _udp.Receive(ref _remIP);
-						if (justCon) _logger("Connected to " + _remIP.Address.ToString());
-						break;
+						if (_lastAckTime.AddSeconds(5) > DateTime.Now)			// If got a recent ack
+						{
+							if (justCon) _logger("Connected to " + _remIP.Address.ToString());
+							return;												// GOOD!
+						}
+						Thread.Sleep(100);										// Wait then try again
 					}
-					catch (Exception ex)
-					{
-						_logger("No ACK from server: " + ex.Message);
-						_logger("Close and reopen...");
-						_udp.Close();
-						_udp = null;
-						Thread.Sleep(60000);									// Wait an extra minute in this case
-					}
-					Thread.Sleep(5000);
+					_logger("No ACK from server. Close and reopen...");
+					_udp.Close();												// This will cause ReceiverThread to exit
+					_receiverThread.Join(1000);
+					_udp = null;
+					Thread.Sleep(60000);										// Wait a minute before reconnect
 				}
 			}
 		}
@@ -154,6 +157,23 @@ namespace com.dc3.cwcom
 				_udp.Close();
 				_udp = null;
 			}
+		}
+
+		private void ReceiverThread()
+		{
+			byte[] recvBuf;
+			_lastAckTime = DateTime.MinValue;
+			_logger("Receiver thread starting");
+			while (true)
+			{
+				try { recvBuf = _udp.Receive(ref _remIP); }
+				catch (SocketException) { break; }								// Break this on _udp.Close()
+				if (recvBuf.Length == CtrlMessage.Length - 2)					// This is an ack!
+					_lastAckTime = DateTime.Now;
+				else if (_receiver != null)
+					_receiver(recvBuf);
+			}
+			_logger("Receiver thread exited");
 		}
 
 		public void Identify(string Text)
@@ -175,7 +195,7 @@ namespace com.dc3.cwcom
 				if (_udp == null) return;
 				if (DateTime.Now >= _nextTxIdent)							// Don't water tx down with needless idents!
 				{
-					Identify(_TxStatus);
+					Identify(TxStatus);
 					_nextTxIdent = DateTime.Now.AddSeconds(10);
 				}
 

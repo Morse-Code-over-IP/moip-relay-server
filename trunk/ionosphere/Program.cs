@@ -31,7 +31,10 @@
 // 01-Apr-10	rbd		1.0.4 - SF 2980581 Re-up the last-heard-from time on all
 //						received messages instead of just ID ones.
 // 06-Apr-10	rbd		1.0.5 - Oops, that broke the throttling of broadcast ID
-//						messages. Add new LastIdMsg for that.
+//						messages. Add new LastIdMsg for that. Stop dead station
+//						thread during clean shutdown. Fix station count logging
+//						in dead station harvester.
+// 07-Apr-10	rbd		1.0.5 - Oops, forgot arming Ctrl-C handler for shutdown.
 //-----------------------------------------------------------------------------
 //
 
@@ -108,7 +111,10 @@ namespace com.dc3.cwcom
 		//
 		private static void CleanShutdown()
 		{
+			LogMessage("Shutdown signal received");
 			s_webServer.Dispose();
+			s_deadStationThread.Interrupt();
+			s_deadStationThread.Join(1000);
 			s_udp.Close();
 			s_mainThread.Interrupt();
 			s_mainThread.Join(1000);
@@ -254,9 +260,9 @@ namespace com.dc3.cwcom
 							Station S = s_stationList[i];
 							if (S.LastRecvTime.AddSeconds(120) < DateTime.Now)	// Not seen for 2 minutes = dead
 							{
+								s_stationList.RemoveAt(i);
 								LogMessage("Station at " + S.RemEP.Address.ToString() + ":" + S.RemEP.Port + 
 											" disappeared (" + s_stationList.Count + " stns remaining)");
-								s_stationList.RemoveAt(i);
 							}
 						}
 					}
@@ -344,7 +350,7 @@ namespace com.dc3.cwcom
 				IPEndPoint recvEp = epRecv;
 				try { s_recvBuf = s_udp.Receive(ref recvEp); }
 				catch (SocketException) { break; }
-				if (s_recvBuf.Length == 4)
+				if (s_recvBuf.Length == CtrlMessage.Length)
 				{
 					//
 					// Handle incoming Control packets
@@ -364,7 +370,7 @@ namespace com.dc3.cwcom
 							break;
 					}
 				}
-				else if (s_recvBuf.Length == 496)
+				else if (s_recvBuf.Length == ReceivedMessage.Length)
 				{
 					ReceivedMessage rcvdMsg = new ReceivedMessage(s_recvBuf);
 					Station Sender = FindStation(recvEp.Address, recvEp.Port);
@@ -419,6 +425,7 @@ namespace com.dc3.cwcom
 			{
 #endif
 				s_serviceMode = false;
+				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
 				try { Run(args); }
 				catch (ThreadInterruptedException) { }
 				LogMessage("Main thread exited...");
