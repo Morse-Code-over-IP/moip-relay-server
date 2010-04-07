@@ -118,6 +118,7 @@ namespace com.dc3.cwcom
 						_receiverThread.Name = "Receiver thread";
 						_receiverThread.Start();
 						justCon = true;
+						Thread.Sleep(1000);
 					}
 					else
 						justCon = false;
@@ -136,11 +137,11 @@ namespace com.dc3.cwcom
 						}
 						Thread.Sleep(100);										// Wait then try again
 					}
-					_logger("No ACK from server. Close and reopen...");
+					_logger("No ACK from server. Close, wait 10, then reopen...");
 					_udp.Close();												// This will cause ReceiverThread to exit
 					_receiverThread.Join(1000);
 					_udp = null;
-					Thread.Sleep(60000);										// Wait a minute before reconnect
+					Thread.Sleep(10000);										// Wait 10 sec before reconnect
 				}
 			}
 		}

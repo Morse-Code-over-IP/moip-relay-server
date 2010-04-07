@@ -457,7 +457,7 @@ namespace com.dc3.cwcom
 				else															// American telegraph
 				{
 					// TODO - Make time zone name adapt to station TZ and DST
-					string date = story.pubDate.ToString("MMM d HHmm") + " MST";
+					string date = story.pubDate.ToString("MMM d h mm tt") + " MST";
 					// TODO - Make "DD" station ID a config
 					msg = "## DD DPR " + date + " = ";							// ## placeholder for number, No feed name
 					if (detail == "")
