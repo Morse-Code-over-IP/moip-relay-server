@@ -35,6 +35,10 @@
 //						thread during clean shutdown. Fix station count logging
 //						in dead station harvester.
 // 07-Apr-10	rbd		1.0.5 - Oops, forgot arming Ctrl-C handler for shutdown.
+// 08-Apr-10	rbd		1.0.5 - Opops, DeadStation harvester, catch empty list
+//						Don't log re-connect and unknown messages (commented out
+//						for possible later debugging. Increase dead stn rate
+//						10 0.1Hz.
 //-----------------------------------------------------------------------------
 //
 
@@ -220,7 +224,7 @@ namespace com.dc3.cwcom
 			}
 			else
 			{
-				LogMessage("Station at " + Ep.Address.ToString() + ":" + Ep.Port + " [" + S.Channel + "] re-connected (" + s_stationList.Count + " stns total)");
+				//LogMessage("Station at " + Ep.Address.ToString() + ":" + Ep.Port + " [" + S.Channel + "] re-connected (" + s_stationList.Count + " stns total)");
 				S.LastRecvTime = DateTime.Now;
 				S.Channel = CtrlMsg.Channel;
 			}
@@ -235,7 +239,7 @@ namespace com.dc3.cwcom
 			Station S = FindStation(Ep.Address, Ep.Port);
 			if (S == null)
 			{
-				LogMessage("Unknown station at " + Ep.Address.ToString() + ":" + Ep.Port + " sent Disconnect");
+				//LogMessage("Unknown station at " + Ep.Address.ToString() + ":" + Ep.Port + " sent Disconnect");
 				return;
 			}
 			lock (s_stationList) s_stationList.Remove(S);
@@ -279,17 +283,20 @@ namespace com.dc3.cwcom
 			{
 				while (true)
 				{
-					Thread.Sleep(120000);										// Every 2 minutes
+					Thread.Sleep(10000);										// Every 10 sec
 					lock (s_stationList)
 					{
-						for (int i = s_stationList.Count - 1; i >= 0; i--)		// Iterate backwards for removal safety
+						if (s_stationList.Count > 0)
 						{
-							Station S = s_stationList[i];
-							if (S.LastRecvTime.AddSeconds(120) < DateTime.Now)	// Not seen for 2 minutes = dead
+							for (int i = s_stationList.Count - 1; i >= 0; i--)		// Iterate backwards for removal safety
 							{
-								s_stationList.RemoveAt(i);
-								LogMessage("Station at " + S.RemEP.Address.ToString() + ":" + S.RemEP.Port + 
-											" disappeared (" + s_stationList.Count + " stns remaining)");
+								Station S = s_stationList[i];
+								if (S.LastRecvTime.AddSeconds(120) < DateTime.Now)	// Not seen for 2 minutes = dead
+								{
+									s_stationList.RemoveAt(i);
+									LogMessage("Station at " + S.RemEP.Address.ToString() + ":" + S.RemEP.Port +
+												" disappeared (" + s_stationList.Count + " stns remaining)");
+								}
 							}
 						}
 					}
@@ -410,7 +417,7 @@ namespace com.dc3.cwcom
 					Station Sender = FindStation(recvEp.Address, recvEp.Port);
 					if (Sender == null)
 					{
-						LogMessage("Unknown station at " + recvEp.Address.ToString() + ":" + recvEp.Port + " sent data message");
+						//LogMessage("Unknown station at " + recvEp.Address.ToString() + ":" + recvEp.Port + " sent data message");
 						continue;												// Ignore message
 					}
 					Sender.LastRecvTime = DateTime.Now;

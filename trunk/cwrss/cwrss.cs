@@ -76,6 +76,9 @@
 //						else is connected to the channel/line. Remove Q-signals
 //						from ident. Don't send both the leader and the body,
 //						just one or the other.
+// 08-Apr-10	rbd		0.7.2 - Oops, DeadStation harvester, catch empty list.
+//						Add logging. Add last chance exception handling. Clean
+//						up some logged messages. Increase dead stn rate to 0.1 Hz.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -201,10 +204,10 @@ namespace com.dc3.cwcom
 			ReceivedMessage msg = new ReceivedMessage(rcvdMsg);
 			if (msg.Type != LargeMessage.MessageTypes.ID)						// Ignore all but ID messages
 				return;
-			Station thisStation = null;
 			//
 			// ID message, look for station and create one if not found
 			//
+			Station thisStation = null;
 			lock (_stationList)
 			{
 				foreach (Station S in _stationList)
@@ -237,6 +240,19 @@ namespace com.dc3.cwcom
 				Trace.WriteLine("[" + _botName + "] " + msg);					// For DebugView when running as service
 			else
 				Console.WriteLine("[" + _botName + "] " + msg);
+
+			string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " " + _botName + "] ";
+
+			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+			{
+				if (File.Exists(s_prevPath))
+					File.Delete(s_prevPath);
+				File.WriteAllText(s_logPath, prefix + "Log closed for rotation\r\n");
+				File.Move(s_logPath, s_prevPath);
+				File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
+			}
+
+			File.AppendAllText(s_logPath, prefix + msg + "\r\n");
 		}
 
 		//
@@ -279,16 +295,19 @@ namespace com.dc3.cwcom
 			{
 				while (true)
 				{
-					Thread.Sleep(120000);										// Every 2 minutes
+					Thread.Sleep(10000);										// Every 10 sec
 					lock (_stationList)
 					{
-						for (int i = _stationList.Count - 1; i >= 0; i--)		// Iterate backwards for removal safety
+						if (_stationList.Count > 0)
 						{
-							Station S = _stationList[i];
-							if (S.LastRecvTime.AddSeconds(120) < DateTime.Now)	// Not seen for 2 minutes = dead
+							for (int i = _stationList.Count - 1; i >= 0; i--)		// Iterate backwards for removal safety
 							{
-								_stationList.RemoveAt(i);
-								LogMessage("Station " + S.ID + " disappeared (" + _stationList.Count + " stns remaining)");
+								Station S = _stationList[i];
+								if (S.LastRecvTime.AddSeconds(120) < DateTime.Now)	// Not seen for 2 minutes = dead
+								{
+									_stationList.RemoveAt(i);
+									LogMessage("Station " + S.ID + " disappeared (" + _stationList.Count + " stns remaining)");
+								}
 							}
 						}
 					}
@@ -635,7 +654,12 @@ namespace com.dc3.cwcom
 						int nStories = messages.Count;
 						foreach (string message in messages)
 						{
-							LogMessage("Sending story " + message.Substring(0, 60) + (message.Length > 60 ? "..." : ""));
+							int z;
+							if (_morse.Mode == Morse.CodeMode.International)
+								z = message.IndexOf("\\BT\\") + 4;
+							else
+								z = message.IndexOf('=') + 1;
+							LogMessage("Sending story " + message.Substring(z, 60) + (message.Length > 60 ? "..." : ""));
 							_cw.Identify("Sending News");
 							_morse.CwCom(message, Send);
 							if (--nStories > 0)
@@ -733,6 +757,21 @@ namespace com.dc3.cwcom
 		private static string s_appPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 		private static AutoResetEvent s_exitFlag = new AutoResetEvent(false);
 		private static Thread s_mainThread;
+		private static string s_logPath = s_appPath + "\\log.txt";
+		private static string s_prevPath = s_appPath + "\\prevlog.txt";
+		private static DateTime s_curLogDate = DateTime.Now.Date;
+
+		//
+		// Last-chance exception handler
+		//
+		private static void LastChanceHandler(object sender, UnhandledExceptionEventArgs args)
+		{
+			Exception ex = ((Exception)(args.ExceptionObject));
+			LogMessageS("*** FATAL EXCEPTION ***");
+			LogMessageS(ex.ToString());
+			LogMessageS("***********************");
+			ShutdownBots();
+		}
 
 		//
 		// Logger for static code
@@ -743,6 +782,19 @@ namespace com.dc3.cwcom
 				Trace.WriteLine("[Main] " + msg);								// For DebugView when running as service
 			else
 				Console.WriteLine("[Main] " + msg);
+
+			string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " Main] ";
+
+			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+			{
+				if (File.Exists(s_prevPath))
+					File.Delete(s_prevPath);
+				File.WriteAllText(s_logPath, prefix + "Log closed for rotation\r\n");
+				File.Move(s_logPath, s_prevPath);
+				File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
+			}
+
+			File.AppendAllText(s_logPath, prefix + msg + "\r\n");
 		}
 
 		//
@@ -815,6 +867,7 @@ namespace com.dc3.cwcom
 			else
 			{
 #endif
+				AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 				s_mainThread = Thread.CurrentThread;
 				s_serviceMode = false;
 				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
@@ -839,6 +892,7 @@ namespace com.dc3.cwcom
 		//
 		public static void ServiceRun()
 		{
+			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 			s_mainThread = Thread.CurrentThread;
 			s_serviceMode = true;
 			CreateBots();
