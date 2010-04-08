@@ -129,13 +129,30 @@ namespace com.dc3.cwcom
 
 			if (contentType == "text/html")
 			{
+				string fileName = Path.GetFileName(filePath).ToLower();
 				//
-				// Perform ##TABLE## substitution then send the text
+				// Perform substitutions then send the text
 				//
 				string text = File.ReadAllText(filePath);
 				text = text.Replace("##DOMAIN##", Ionosphere.DomainName);
 				text = text.Replace("##PORT##", Ionosphere.UdpPort.ToString());
-				text = text.Replace("##TABLE##", Ionosphere.GenerateTableRows());
+				//
+				// Minimize needless processing
+				//
+				switch (fileName)
+				{
+					case "index.html":
+						text = text.Replace("##TABLE##", Ionosphere.GenerateTableRows());
+						break;
+					case "log.html":
+						try	{ text = text.Replace("##LOGTXT##", File.ReadAllText(filePath.Replace(".html", ".txt"))); }
+						catch (Exception) { text = text.Replace("##LOGTXT##", "No log available"); }
+						break;
+					case "prevlog.html":
+						try { text = text.Replace("##LOGTXT##", File.ReadAllText(filePath.Replace(".html", ".txt"))); }
+						catch (Exception) { text = text.Replace("##LOGTXT##", "No log available"); }
+						break;
+				}
 				SendResponseHtml("200 OK", text);
 			}
 			else

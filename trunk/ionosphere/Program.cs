@@ -94,7 +94,6 @@ namespace com.dc3.cwcom
 		private static string logPath = s_appPath + "\\Web\\log.txt";
 		private static string prevPath = s_appPath + "\\Web\\prevlog.txt";
 		private static DateTime s_curLogDate = DateTime.Now.Date;
-		private static TextWriter s_logStream = null;
 
 		//
 		// Used by web server for substitution
@@ -123,11 +122,6 @@ namespace com.dc3.cwcom
 			s_mainThread.Interrupt();
 			s_mainThread.Join(1000);
 			LogMessage("Shutdown complete.");
-			if (s_logStream != null)
-			{
-				s_logStream.Flush();
-				s_logStream.Close();
-			}
 		}
 
 		private static void LastChanceHandler(object sender, UnhandledExceptionEventArgs args)
@@ -156,27 +150,14 @@ namespace com.dc3.cwcom
 
 			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
 			{
-				if (s_logStream != null)
-				{
-					s_logStream.WriteLine(timestamp + "Log closed for rotation");
-					s_logStream.Flush();
-					s_logStream.Close();
-					s_logStream = null;
-				}
-			}
-
-			if (s_logStream == null)											// Starting or just closed at day change
-			{
 				if (File.Exists(prevPath))
 					File.Delete(prevPath);
-				if (File.Exists(logPath))
-					File.Move(logPath, prevPath);
-
-				s_logStream = new StreamWriter(logPath, false);
-				s_logStream.WriteLine(timestamp + "Log opened");
+				File.WriteAllText(logPath, timestamp + "Log closed for rotation\r\n");
+				File.Move(logPath, prevPath);
+				File.WriteAllText(logPath, timestamp + "Log opened - times in UTC\r\n");
 			}
-			s_logStream.WriteLine(timestamp + msg);
-			s_logStream.Flush();
+
+			File.AppendAllText(logPath, timestamp + msg + "\r\n");
 		}
 
 		//
@@ -373,6 +354,13 @@ namespace com.dc3.cwcom
 		private static void Run(string[] args)
 		{
 			s_mainThread = Thread.CurrentThread;
+
+			if (File.Exists(prevPath))
+				File.Delete(prevPath);
+			if (File.Exists(logPath))
+				File.Move(logPath, prevPath);
+			string timestamp = "[" + DateTime.Now.ToUniversalTime().ToString("s") + "] ";
+			File.WriteAllText(logPath, timestamp + "Log opened - times in UTC\r\n");
 
 			s_deadStationThread = new Thread(new ThreadStart(DeadStationThread));
 			s_deadStationThread.Start();
