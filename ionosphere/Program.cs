@@ -91,6 +91,10 @@ namespace com.dc3.cwcom
 		private static byte[] s_recvBuf;
 		private static WebServer s_webServer;
 		private static int s_webServerPort = 80;
+		private static string logPath = s_appPath + "\\Web\\log.txt";
+		private static string prevPath = s_appPath + "\\Web\\prevlog.txt";
+		private static DateTime s_curLogDate = DateTime.Now.Date;
+		private static TextWriter s_logStream = null;
 
 		//
 		// Used by web server for substitution
@@ -119,11 +123,27 @@ namespace com.dc3.cwcom
 			s_mainThread.Interrupt();
 			s_mainThread.Join(1000);
 			LogMessage("Shutdown complete.");
+			if (s_logStream != null)
+			{
+				s_logStream.Flush();
+				s_logStream.Close();
+			}
+		}
+
+		private static void LastChanceHandler(object sender, UnhandledExceptionEventArgs args)
+		{
+			Exception ex = ((Exception)(args.ExceptionObject));
+			LogMessage("*** FATAL EXCEPTION ***");
+			LogMessage(ex.ToString());
+			LogMessage("***********************");
+			CleanShutdown();
 		}
 
 		//
 		// Writes to shell if running interactive, else traces so can be seen in 
-		// (e.g.) the awesome DebugView tool if running as a service.
+		// (e.g.) the awesome DebugView tool if running as a service. Writes to
+		// log file in the Web subfolder (so can be seen on web), rotating at
+		// midnight and saving only the previous day's log.
 		//
 		public static void LogMessage(string msg)
 		{
@@ -131,6 +151,32 @@ namespace com.dc3.cwcom
 				Trace.WriteLine(msg);											// For DebugView when running as service
 			else
 				Console.WriteLine(msg);
+
+			string timestamp = "[" + DateTime.Now.ToUniversalTime().ToString("s") + "] ";
+
+			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+			{
+				if (s_logStream != null)
+				{
+					s_logStream.WriteLine(timestamp + "Log closed for rotation");
+					s_logStream.Flush();
+					s_logStream.Close();
+					s_logStream = null;
+				}
+			}
+
+			if (s_logStream == null)											// Starting or just closed at day change
+			{
+				if (File.Exists(prevPath))
+					File.Delete(prevPath);
+				if (File.Exists(logPath))
+					File.Move(logPath, prevPath);
+
+				s_logStream = new StreamWriter(logPath, false);
+				s_logStream.WriteLine(timestamp + "Log opened");
+			}
+			s_logStream.WriteLine(timestamp + msg);
+			s_logStream.Flush();
 		}
 
 		//
@@ -424,6 +470,7 @@ namespace com.dc3.cwcom
 			else
 			{
 #endif
+				AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 				s_serviceMode = false;
 				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
 				try { Run(args); }
@@ -442,6 +489,7 @@ namespace com.dc3.cwcom
 		//
 		public static void ServiceRun()
 		{
+			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 			string[] a = { };
 			s_serviceMode = true;
 			try { Run(a); }

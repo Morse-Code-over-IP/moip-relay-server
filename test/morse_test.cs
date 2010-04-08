@@ -39,7 +39,7 @@ namespace test.morse
 	public class morse_test
 	{
 		[Test, Category("Pre-Requisite"), Description("Verifies the Morse code itself as well as 'dotscii' output")]
-		public void Test_DotDash()
+		public void Test_1_DotDash()
 		{
 			Morse M = new Morse();
 			Assert.AreEqual("- .... .. ...  .. ...  .-  - . ... - .-.-.-", M.DotDash("This is a test."));
@@ -56,13 +56,13 @@ namespace test.morse
 			Assert.AreEqual(".- -... .._. -.. . .-. --. .... .. -.-. -.- = --", M.DotDash("ABCDEFGHIJKLM"));
 			Assert.AreEqual("-. ._. ..... ..-. ._.. ... - ..- ...- .-- .-.. .._.. ..._.", M.DotDash("NOPQRSTUVWXYZ"));
 			Assert.AreEqual("# .--. ..-.. ...-. ....- --- ...... --.. -.... -..-", M.DotDash("0123456789"));
-			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- ..-- -.-_._. ..._.-..", M.DotDash(".,?!&=/:$"));
+			Assert.AreEqual("..--.. .-.- -..-. ---. ._... ---- .._- -.-_._. ..._.-..", M.DotDash(".,?!&=/:$"));
 			Assert.AreEqual("....._-. ....._.._.. ..-._.-.. ..-._-. ..-._-.-. ..-._-. -..._.-.. -..._.-..", M.DotDash("()'“”\"[]"));
 			Assert.AreEqual("...._.-.. ....._..", M.DotDash("-%"));
 		}
 
 		[Test, Category("Pre-Requisite"), Description("Tests the WPM properties")]
-		public void Test_Wpm()
+		public void Test_2_Wpm()
 		{
 			Morse M = new Morse();
 			Assert.AreEqual(1200, M.TimeBase);									// Default value
@@ -80,7 +80,7 @@ namespace test.morse
 		}
 
 		[Test, Category("Final"), Description("Verifies the MorseMail encoding and split rate (Farnsworth) timing. Must pass Test_DotDash and Test_Wpm first.")]
-		public void Test_MorseMail()
+		public void Test_3_MorseMail()
 		{
 			Morse M = new Morse();
 			M.CharacterWpm = 15;
@@ -145,7 +145,7 @@ namespace test.morse
 			};
 
 		private string[] corrTextAmer = { "T", "E", "S", "T", " 1", " 2", " 3", " E", "N", "D", "/", "A", "R", "/" };
-		private int[] corrCountAmer = { 2, 2, 6, 2, 8, 10, 10, 2, 4, 6, 8, 4, 6, 8 };
+		private int[] corrCountAmer = { 2, 2, 6, 2, 8, 10, 10, 2, 4, 6, 6, 4, 6, 6 };
 		private Int32[][] corrCodeAmer = new Int32[14][]
 			{
 				new Int32[2]  { -1000,+264 },									// T
@@ -158,10 +158,10 @@ namespace test.morse
 				new Int32[2]  { -600,+80 },										// <LF>E
 				new Int32[4]  { -300,+264,-80,+80 },							// N
 				new Int32[6]  { -300,+264,-80,+80,-80,+80 },					// D
-				new Int32[8]  { -300,+80,-80,+80,-80,+216,-128,+264 },			// /
+				new Int32[6]  { -300,+80,-80,+80,-216,+264 },					// /
 				new Int32[4]  { -340,+80,-80,+264 },							// A
 				new Int32[6]  { -300,+80,-216,+80,-80,+80 },					// R
-				new Int32[8]  { -300,+80,-80,+80,-80,+216,-128,+264 }			// /
+				new Int32[6]  { -300,+80,-80,+80,-216,+264 },					// /
 			};
 
 		public void CwComSendIntl(Int32[] code, string text)
@@ -185,7 +185,7 @@ namespace test.morse
 		}
 
 		[Test, Category("Final"), Description("Verifies the CWCom encoding. Must pass Test_MorseMail first.")]
-		public void Test_CwCom()
+		public void Test_4_CwCom()
 		{
 			Morse M = new Morse();
 			M.CharacterWpm = 15;

@@ -33,6 +33,7 @@
 //						encoding. Correct punctuation per Les Kerr and the 
 //						book The Telegraph Instructor by Dodge (Google Books),
 //						they have Morse spaces in them, like a prosign.
+// 07-Apr-10	rbd		0.7.2 - Fix American Morse '/'
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -289,8 +290,8 @@ namespace com.dc3.morse
 			{ '?', "-..-." },
 			{ '!', "---." },
 			{ '&', "._..." },		// (mind the Morse spaces in these, typ.)
-			{ '=', "----" },		// Also paragraph mark
-			{ '/', "..--" },		// Also shilling mark
+			{ '=', "----" },		// Also paragraph mark, used as break too
+			{ '/', ".._-" },
 			{ ':', "-.-_._." },
 			{ '$', "..._.-.." },
 			{ '(', "....._-." },
