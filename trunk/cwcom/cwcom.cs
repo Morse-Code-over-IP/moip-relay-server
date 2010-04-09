@@ -36,6 +36,7 @@
 //						not received.
 // 05-Apr-10	rbd		0.7.2 - Add real receive loop, no more blind connect.
 // 07-Apr-10	rbd		0.7.2 - No more local TxStatus, client determines.
+// 09-Apr-10	rbd		0.7.2 - Fix 30 second delay on reconnect receiver.
 //-----------------------------------------------------------------------------
 //
 
@@ -145,9 +146,9 @@ namespace com.dc3.cwcom
 					_receiverThread.Join(1000);
 					_udp = null;
 					int ticks = 30;
-					while (!_disconnecting) 									// Wait 10 sec before reconnect
+					while (!_disconnecting && ticks > 0) 						// Wait 30 sec before reconnect
 					{
-						Thread.Sleep(100);
+						Thread.Sleep(1000);
 						ticks--;
 					}
 

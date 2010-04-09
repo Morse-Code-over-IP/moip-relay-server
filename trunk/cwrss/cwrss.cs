@@ -81,6 +81,11 @@
 //						up some logged messages. Increase dead stn rate to 0.1 Hz.
 //						Catch exceptions from malformed received packets - log
 //						and ignore them. Write them to a file for debugging.
+// 09-Apr-10	rbd		0.7.2 - Add per-feed title aging. Do not send title on
+//						International feeds any more, unless title-only. Prevent
+//						crash on feeds with no <detail> elements. Comment out
+//						verbose logging of story retrieval and aging. Reduce
+//						periodic message interval to 30 min.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -116,7 +121,7 @@ namespace com.dc3.cwcom
 		private const int _titleAge = 120;										// Keep titles in cache for two hours
 		private const int _wordsPerStory = 40;
 		private const int _cycleMinutes = 10;									// Send 10 min of stories in each cycle
-		private const int _perMsgIntMinutes = 60;
+		private const int _perMsgIntMinutes = 30;
 
 		//
 		// Config items from constructor
@@ -141,7 +146,7 @@ namespace com.dc3.cwcom
 		private DateTime _nextConnect = DateTime.MinValue;
 		private List<string> _periodicMessages = new List<string>();
 		private int _nextPeriodicMessage = -1;
-		private Dictionary<string, string> _rssFeeds = new Dictionary<string, string>();
+		private List<Feed> _rssFeeds = new List<Feed>();
 		private int _storiesPerCycle = 5;										// _wordWpm * _cycleMinutes / _wordsPerStory;
 		private int _msgNr;														// For American/telegraph daily message number
 		private DateTime _msgNrDay;
@@ -150,12 +155,23 @@ namespace com.dc3.cwcom
 		private Thread _deadStationThread = null;
 
 		//
+		// Represents an RSS feed for this bot
+		//
+		class Feed
+		{
+			public string Name { get; set; }
+			public string URL { get; set; }
+			public int TitleAge { get; set; }									// Seconds
+		}
+
+		//
 		// Represents an RSS item with a correct pubDate
 		//
 		private class datedRssItem
 		{
 			public string feedName { get; set; }
 			public DateTime pubDate { get; set; }
+			public int titleAge { get; set; }
 			public XmlNode rssItem { get; set; }
 		}
 
@@ -355,7 +371,7 @@ namespace com.dc3.cwcom
 						}
 						foreach (string title in oldTitles)
 						{
-							LogMessage("Expiring title: " + title);
+							//LogMessage("Expiring title: " + title);
 							_titleCache.Remove(title);
 						}
 					}
@@ -426,7 +442,12 @@ namespace com.dc3.cwcom
 		private DateTime GetPubDateUtc(XmlNode item)
 		{
 			DateTime corrDate;
-			string dateStr = item.SelectSingleNode("pubDate").InnerText;
+
+			XmlNode n = item.SelectSingleNode("pubDate");						// Some feeds don't have this, so use now()
+			if (n == null)
+				return DateTime.Now;
+
+			string dateStr = n.InnerText;
 			if (!DateTime.TryParse(dateStr, out corrDate))
 			{
 				//
@@ -457,7 +478,7 @@ namespace com.dc3.cwcom
 		//
 		// Returns a list of morse-ready news stories from the RSS feed(s).
 		//
-		private List<string> GetLatestNews(Dictionary<string, string> FeedList)
+		private List<string> GetLatestNews(List<Feed> FeedList)
 		{
 			//
 			// Collect stories from RSS and make a list of datedRssItem
@@ -469,17 +490,17 @@ namespace com.dc3.cwcom
 			//
 			// For each feed, add its stories to the list
 			//
-			foreach (string feedName in FeedList.Keys)
+			foreach (Feed feed in FeedList)
 			{
 				XmlDocument feedXml = new XmlDocument();
-				LogMessage("Checking " + feedName + "...");
+				LogMessage("Checking " + feed.Name + "...");
 				try
 				{
-					feedXml.Load(FeedList[feedName]);							// Read right from the RSS feed server
+					feedXml.Load(feed.URL);						// Read right from the RSS feed server
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Failed to get feed " + feedName + ": " + ex.Message);
+					LogMessage("Failed to get feed " + feed.Name + ": " + ex.Message);
 					continue;
 				}
 
@@ -493,7 +514,8 @@ namespace com.dc3.cwcom
 					// OK we have a story we can use, as we were able to parse the date.
 					//
 					datedRssItem n = new datedRssItem();
-					n.feedName = feedName;
+					n.feedName = feed.Name;
+					n.titleAge = feed.TitleAge;
 					n.pubDate = pubUtc;
 					n.rssItem = item;
 					stories.Add(n);
@@ -502,7 +524,9 @@ namespace com.dc3.cwcom
 
 			if (stories.Count == 0)
 				return null;
-			LogMessage("Total of " + stories.Count + " stories");
+			LogMessage("Total of " + stories.Count + " stories, will send up to " + 
+				(stories.Count > _storiesPerCycle ? _storiesPerCycle : stories.Count) + 
+				" before re-checking RSS");
 			//
 			// Now we have all of the pubDates along with the RSS items for each.
 			// Sort the list by date and take the _storiesPerCycle newest stories.
@@ -512,7 +536,7 @@ namespace com.dc3.cwcom
 			// without changing the story, presumably to force them to (re) appear 
 			// in people's RSS readers. Here, in order to keep variety in the feed,
 			// I prohibit a story with the same title as one seen in the last 
-			// _titleAge (120) minutes from being fed again.
+			// _titleAge (120 default) minutes from being fed again.
 			//
 			// This uses the overload of the List.Sort method that takes a Comparison<T> 
 			// delegate (and thus lambda expression). Love this language!!
@@ -532,24 +556,30 @@ namespace com.dc3.cwcom
 				{
 					if (_titleCache.ContainsKey(title))
 					{
-						LogMessage("Recently sent: " + title + " -- skipped");
+						//LogMessage("Recently sent: " + title + " -- skipped");
 						continue;												// Recently sent, skip
 					}
 				}
 				//
-				// May be headline-only article
+				// May be headline-only article, or a weird feed where the detail is much
+				// shorter than the title (Quote of the day, title is quote, detail is author)
 				//
 				string time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
-				LogMessage("New story [" + time + "]: " + title);
-				string detail = GetMorseInputText(story.rssItem.SelectSingleNode("description").InnerText);
+				//LogMessage("New story [" + time + "]: " + title);
+				XmlNode detNode = story.rssItem.SelectSingleNode("description");	// Try for description
+				string detail;
+				if (detNode != null)
+					detail = GetMorseInputText(detNode.InnerText);
+				else
+					detail = "";
 				string msg;
 				if (_morse.Mode == Morse.CodeMode.International)				// Radiotelegraphy
 				{
-					msg = "DE " + story.feedName + " " + time + " \\BT\\ " + title;
-					if (detail == "")
-						msg += title;
+					msg = "DE " + story.feedName + " " + time + " \\BT\\ ";
+					if (detail.Length < title.Length)
+						msg += title + " " + detail;
 					else
-						msg +=  detail;
+						msg += detail;
 					msg += " \\AR\\";
 				}
 				else															// American telegraph
@@ -557,9 +587,9 @@ namespace com.dc3.cwcom
 					// TODO - Make time zone name adapt to station TZ and DST
 					string date = story.pubDate.ToString("MMM d h mm tt") + " MST";
 					// TODO - Make "DD" station ID a config
-					msg = "## DD DPR " + date + " = ";							// ## placeholder for number, No feed name
-					if (detail == "")
-						msg += title;
+					msg = "## DD DPR " + date + " = ";							// ## placeholder for number, No title or feed name
+					if (detail.Length < title.Length)
+						msg += title + " " + detail;
 					else
 						msg += detail;
 					msg += " END";
@@ -567,11 +597,14 @@ namespace com.dc3.cwcom
 				messages.Add(msg);
 
 				//
-				// Cache titles of stories we send
+				// Cache titles of stories we send if feed has title aging implemented
 				//
-				lock (_titleCache)
+				if (story.titleAge > 0)
 				{
-					_titleCache.Add(title, DateTime.Now);
+					lock (_titleCache)
+					{
+						_titleCache.Add(title, DateTime.Now);
+					}
 				}
 				
 				//
@@ -657,7 +690,14 @@ namespace com.dc3.cwcom
 					if (lines[i].Trim() != "")
 					{
 						string[] bits = lines[i].Split(new char[] { '|' });
-						_rssFeeds.Add(bits[0], bits[1]);
+						Feed F = new Feed();
+						F.Name = bits[0];
+						F.URL = bits[1];
+						if (bits.Length > 2)
+							F.TitleAge = Convert.ToInt32(bits[2]);
+						else
+							F.TitleAge = _titleAge;
+						_rssFeeds.Add(F);
 					}
 				}
 
@@ -667,7 +707,10 @@ namespace com.dc3.cwcom
 					if (lines[i].Trim() != "")
 						_periodicMessages.Add(lines[i].Trim());
 				}
-				_nextPeriodicMessage = 0;
+				if (_periodicMessages.Count == 0)
+					_nextPeriodicMessage = -1;									// [sentinel] No periodic messages
+				else
+					_nextPeriodicMessage = 0;									// Start with 1st periodic message
 
 				_cw = new CwCom(ReceiveMessage, LogMessage);
 				_morse = new Morse();
@@ -710,7 +753,7 @@ namespace com.dc3.cwcom
 						Thread.Sleep(1000);
 					}
 
-					if (DateTime.Now > _nextPerMsgTime)
+					if (_nextPeriodicMessage >= 0 && DateTime.Now > _nextPerMsgTime)	// -1 -> no periodics
 					{
 						LogMessage("Sending periodic robot message");
 						_cw.Identify("Message from robot");
@@ -738,7 +781,10 @@ namespace com.dc3.cwcom
 								z = message.IndexOf("\\BT\\") + 4;
 							else
 								z = message.IndexOf('=') + 1;
-							LogMessage("Sending story " + message.Substring(z, 60) + (message.Length > 60 ? "..." : ""));
+							string logMsg = message.Substring(z).Trim();
+							if (logMsg.Length > 40)
+								logMsg = logMsg.Substring(0, 37) + "...";
+							LogMessage("Sending story " + logMsg);
 							_cw.Identify("Sending News");
 							_morse.CwCom(message, Send);
 							if (--nStories > 0)
@@ -770,7 +816,7 @@ namespace com.dc3.cwcom
 					}
 					else
 					{
-						if (sentSome)
+						if (sentSome && _nextPeriodicMessage >= 0)				// -1 -> no periodics
 						{
 							_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
 							LogMessage("End of news, sending periodic robot message");
