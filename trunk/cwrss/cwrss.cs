@@ -79,6 +79,8 @@
 // 08-Apr-10	rbd		0.7.2 - Oops, DeadStation harvester, catch empty list.
 //						Add logging. Add last chance exception handling. Clean
 //						up some logged messages. Increase dead stn rate to 0.1 Hz.
+//						Catch exceptions from malformed received packets - log
+//						and ignore them. Write them to a file for debugging.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -180,6 +182,7 @@ namespace com.dc3.cwcom
 		//
 		private void CleanShutdown()
 		{
+			LogMessage("Shutting down bot...");
 			if (_titleExpireThread != null)										// Could happen on shutdown during initial connect attempt
 			{
 				_titleExpireThread.Interrupt();
@@ -190,20 +193,92 @@ namespace com.dc3.cwcom
 				_deadStationThread.Interrupt();
 				_deadStationThread.Join(1000);
 			}
-			LogMessage("Disconnecting...");
+			_cw.Disconnect();
 			_botThread.Interrupt();
 			_botThread.Join(1000);
-			_cw.Disconnect();
-			LogMessage("Shutdown complete...");
+			LogMessage("Bot shutdown complete...");
+		}
+
+		//
+		// Next two provide hex dump for logging bad packets. This is "least
+		// common denominator" code, for both .NET and Mono.
+		//
+		// http://www.codeproject.com/KB/cs/HexDump.aspx plus corrections in
+		// first couple of comments.
+		//
+		private char HexChar(int value)
+		{
+			value &= 0xF;
+			if (value >= 0 && value <= 9) return (char)('0' + value);
+			else return (char)('A' + (value - 10));
+		}
+
+		public string HexDump(byte[] bytes)
+		{
+			if (bytes == null) return "<null>";
+			int len = bytes.Length;
+			StringBuilder result = new StringBuilder(((len + 15) / 16) * 78);
+			char[] chars = new char[78];
+			// fill all with blanks
+			for (int i = 0; i < 75; i++) chars[i] = ' ';
+			chars[76] = '\r';
+			chars[77] = '\n';
+
+			for (int i1 = 0; i1 < len; i1 += 16)
+			{
+				chars[0] = HexChar(i1 >> 28);
+				chars[1] = HexChar(i1 >> 24);
+				chars[2] = HexChar(i1 >> 20);
+				chars[3] = HexChar(i1 >> 16);
+				chars[4] = HexChar(i1 >> 12);
+				chars[5] = HexChar(i1 >> 8);
+				chars[6] = HexChar(i1 >> 4);
+				chars[7] = HexChar(i1 >> 0);
+
+				int offset1 = 11;
+				int offset2 = 60;
+
+				for (int i2 = 0; i2 < 16; i2++)
+				{
+					if (i1 + i2 >= len)
+					{
+						chars[offset1] = ' ';
+						chars[offset1 + 1] = ' ';
+						chars[offset2] = ' ';
+					}
+					else
+					{
+						byte b = bytes[i1 + i2];
+						chars[offset1] = HexChar(b >> 4);
+						chars[offset1 + 1] = HexChar(b);
+						chars[offset2] = (b < 32 ? '·' : (char)b);
+					}
+					offset1 += (i2 == 7 ? 4 : 3);
+					offset2++;
+				}
+				result.Append(chars);
+			}
+			return result.ToString();
 		}
 
 		private void ReceiveMessage(byte[] rcvdMsg)
 		{
+			ReceivedMessage msg;
 			if (rcvdMsg.Length != ReceivedMessage.Length)
 				return;															// Ignore control messages
-			ReceivedMessage msg = new ReceivedMessage(rcvdMsg);
+			try
+			{
+				msg = new ReceivedMessage(rcvdMsg); 							// Safe from malformed received packets
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Malformed large message: " + ex.Message + ", ignoring");
+				LogMessage("\r\n" + HexDump(rcvdMsg));							// Start dump on new line (no timestamp)
+				return;
+			}
 			if (msg.Type != LargeMessage.MessageTypes.ID)						// Ignore all but ID messages
 				return;
+
 			//
 			// ID message, look for station and create one if not found
 			//
@@ -243,16 +318,20 @@ namespace com.dc3.cwcom
 
 			string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " " + _botName + "] ";
 
-			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+			lock (s_logLock)
 			{
-				if (File.Exists(s_prevPath))
-					File.Delete(s_prevPath);
-				File.WriteAllText(s_logPath, prefix + "Log closed for rotation\r\n");
-				File.Move(s_logPath, s_prevPath);
-				File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
-			}
+				if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+				{
+					if (File.Exists(s_prevPath))
+						File.Delete(s_prevPath);
+					File.AppendAllText(s_logPath, prefix + "Log closed for rotation\r\n");
+					File.Move(s_logPath, s_prevPath);
+					File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
+					s_curLogDate = DateTime.Now.Date;
+				}
 
-			File.AppendAllText(s_logPath, prefix + msg + "\r\n");
+				File.AppendAllText(s_logPath, prefix + msg + "\r\n");
+			}
 		}
 
 		//
@@ -759,7 +838,8 @@ namespace com.dc3.cwcom
 		private static Thread s_mainThread;
 		private static string s_logPath = s_appPath + "\\log.txt";
 		private static string s_prevPath = s_appPath + "\\prevlog.txt";
-		private static DateTime s_curLogDate = DateTime.Now.Date;
+		private static Object s_logLock = new Object();
+		private static DateTime s_curLogDate = DateTime.Now.Date.AddDays(-1);	// Assure log rotation on startup
 
 		//
 		// Last-chance exception handler
@@ -784,17 +864,20 @@ namespace com.dc3.cwcom
 				Console.WriteLine("[Main] " + msg);
 
 			string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " Main] ";
-
-			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+			lock (s_logLock)
 			{
-				if (File.Exists(s_prevPath))
-					File.Delete(s_prevPath);
-				File.WriteAllText(s_logPath, prefix + "Log closed for rotation\r\n");
-				File.Move(s_logPath, s_prevPath);
-				File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
-			}
+				if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+				{
+					if (File.Exists(s_prevPath))
+						File.Delete(s_prevPath);
+					File.AppendAllText(s_logPath, prefix + "Log closed for rotation\r\n");
+					File.Move(s_logPath, s_prevPath);
+					File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
+					s_curLogDate = DateTime.Now.Date;
+				}
 
-			File.AppendAllText(s_logPath, prefix + msg + "\r\n");
+				File.AppendAllText(s_logPath, prefix + msg + "\r\n");
+			}
 		}
 
 		//
@@ -871,10 +954,11 @@ namespace com.dc3.cwcom
 				s_mainThread = Thread.CurrentThread;
 				s_serviceMode = false;
 				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
+				LogMessageS("News engine started via command line...");
 				CreateBots();
 				s_exitFlag.WaitOne();
 				ShutdownBots();
-				LogMessageS("Main exited...");
+				LogMessageS("Program (Main) exited...");
 //#if DEBUG
 //                Console.WriteLine("Press return to exit...");
 //                Console.ReadLine();
@@ -895,10 +979,11 @@ namespace com.dc3.cwcom
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 			s_mainThread = Thread.CurrentThread;
 			s_serviceMode = true;
+			LogMessageS("News engine started as system service...");
 			CreateBots();
 			s_exitFlag.WaitOne();
 			ShutdownBots();
-			LogMessageS("ServiceRun exited...");
+			LogMessageS("Service (ServiceRun) exited...");
 		}
 
 		//
