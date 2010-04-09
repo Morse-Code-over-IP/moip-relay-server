@@ -68,6 +68,7 @@ namespace com.dc3.cwcom
 		private Thread _receiverThread = null;
 		private MessageReceiver _receiver; 
 		private MessageLogger _logger;
+		private bool _disconnecting = false;
 
 		public delegate void MessageReceiver(byte[] rcvMsg);
 		public delegate void MessageLogger(string msg);							// Cliant's logging function must be like this
@@ -82,6 +83,7 @@ namespace com.dc3.cwcom
 			_channel = 1000;
 			_ident = "NoID";
 			_seqNo = 3;
+			_disconnecting = false;
 
 			_idMsg = new IdentMessage();
 			_dataMsg = new DataMessage();
@@ -100,7 +102,7 @@ namespace com.dc3.cwcom
 				_idMsg.ID = _ident;
 				_dataMsg.ID = _ident;
 
-				while (true)													// Loop forever, till server reappears
+				while (!_disconnecting)											// Loop forever, till server reappears
 				{
 					//
 					// This is in the loop to handle changes in the Ionosphere
@@ -118,7 +120,7 @@ namespace com.dc3.cwcom
 						_receiverThread.Name = "Receiver thread";
 						_receiverThread.Start();
 						justCon = true;
-						Thread.Sleep(1000);
+						Thread.Sleep(1000);										// Important for reliability
 					}
 					else
 						justCon = false;
@@ -128,8 +130,9 @@ namespace com.dc3.cwcom
 					if (justCon) _logger("Sending connect message...");
 					_udp.Send(new CtrlMessage(CtrlMessage.MessageTypes.Connect, _channel).Packet, CtrlMessage.Length);
 					if (Blind) break;											// Blind connect, bail out now.
-					for (int i = 0; i < 50; i++)								// Up to 5 sec at 10Hz
+					for (int i = 0; i < 20; i++)								// Up to 2 sec at 10Hz
 					{
+						if (_disconnecting) return;
 						if (_lastAckTime.AddSeconds(5) > DateTime.Now)			// If got a recent ack
 						{
 							if (justCon) _logger("Connected to " + _remIP.Address.ToString());
@@ -137,11 +140,17 @@ namespace com.dc3.cwcom
 						}
 						Thread.Sleep(100);										// Wait then try again
 					}
-					_logger("No ACK from server. Close, wait 10, then reopen...");
+					_logger("No ACK from server. Close, wait 30, then reopen...");
 					_udp.Close();												// This will cause ReceiverThread to exit
 					_receiverThread.Join(1000);
 					_udp = null;
-					Thread.Sleep(10000);										// Wait 10 sec before reconnect
+					int ticks = 30;
+					while (!_disconnecting) 									// Wait 10 sec before reconnect
+					{
+						Thread.Sleep(100);
+						ticks--;
+					}
+
 				}
 			}
 		}
@@ -155,8 +164,10 @@ namespace com.dc3.cwcom
 				Thread.Sleep(100);
 				_udp.Send(new CtrlMessage(CtrlMessage.MessageTypes.Disconnect, _channel).Packet, CtrlMessage.Length);
 				Thread.Sleep(200);
+				_disconnecting = true;
 				_udp.Close();
 				_udp = null;
+				_receiverThread.Join(1000);
 			}
 		}
 
