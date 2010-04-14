@@ -33,7 +33,9 @@
 //						encoding. Correct punctuation per Les Kerr and the 
 //						book The Telegraph Instructor by Dodge (Google Books),
 //						they have Morse spaces in them, like a prosign.
-// 07-Apr-10	rbd		0.7.2 - Fix American Morse '/'
+// 07-Apr-10	rbd		0.7.2 - Fix American Morse '/'. Put unknown characters
+//						into dotscii enclosed in [] instead of printing error
+//						code in dotscii. Add unknown character delegate.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -162,6 +164,13 @@ namespace com.dc3.morse
 		/// See the example program in the documentation for <see cref="CwCom" />.</remarks>
 		/// <seealso cref="CwCom" />
 		public delegate void SendCode(Int32[] code, string text);
+
+		/// <summary>
+		/// Called whenever the encoder encounters a character for which it has no corresponding Morse.
+		/// </summary>
+		/// <param name="ch">The unknown character</param>
+		/// <remarks>Defaults to null, must be set via <see cref="UnknownCharacter" />.</remarks>
+		public delegate void UnknownCharacterHandler(char ch);
 
 		//
 		// International Morse encoding dictionary - taken from:
@@ -396,6 +405,7 @@ namespace com.dc3.morse
 		private string _accWhite;			// Whitespace accumulator for sent characters
 		private Int32[] _cwCode;			// Array for generated CWCode 
 		private int _cwCount;
+		private UnknownCharacterHandler _unkChar;
 
 		/// <summary>
 		/// Constructor for the Morse class
@@ -415,6 +425,7 @@ namespace com.dc3.morse
 			_accWhite = "";
 			_cwCode = new Int32[51];					// Max size for CWCode 
 			_cwCount = 0;
+			_unkChar = null;
 		}
 
 		private void _calcSpaceTime()					// Calculate space times for Farnsworth (word rate < char rate)
@@ -588,6 +599,17 @@ namespace com.dc3.morse
 			}
 		}
 
+		/// <summary>
+		/// The unknown character handler delegate.
+		/// </summary>
+		/// <remarks>Setting this to an <see cref="UnknownCharacterHandler" /> delegate will cause the Morse encoder to call
+		/// the delegate for any input characters that are not in its encoding table. Use this for logging or diagnostics.</remarks>
+		public UnknownCharacterHandler UnknownCharacter
+		{
+			get { return _unkChar; }
+			set { _unkChar = value; }
+		}
+
 		// --------------
 		// Public Methods
 		// --------------
@@ -644,9 +666,14 @@ namespace com.dc3.morse
 					continue;
 				}
 				if (dict.ContainsKey(c))
+				{
 					buf += dict[c];
+				}
 				else
-					buf += _errCode;
+				{
+					buf += "[" + c + "]";									// Print unknown character
+					if (_unkChar != null) _unkChar(c);
+				}
 				if (c != ' ' && !inProsign)
 					buf += " ";
 			}
@@ -731,9 +758,14 @@ namespace com.dc3.morse
 				}
 
 				if (dict.ContainsKey(c2))
+				{
 					dotscii = dict[c2];
+				}
 				else
+				{
 					dotscii = _errCode;
+					if (_unkChar != null) _unkChar(c2);
+				}
 
 				for (int i = 0; i < dotscii.Length; i++)
 				{
@@ -930,9 +962,14 @@ namespace com.dc3.morse
 				}
 
 				if (dict.ContainsKey(c2))
+				{
 					dotscii = dict[c2];
+				}
 				else
+				{
 					dotscii = _errCode;
+					if (_unkChar != null) _unkChar(c2);
+				}
 
 				for (int i = 0; i < dotscii.Length; i++)
 				{
