@@ -92,6 +92,8 @@
 //						stamp to time only and use local time. Add logic to
 //						log unknown characters from the Morse encoder. Remove
 //						'#' from news stories.
+// 14-Apr-10	rbd		0.7.2 - Add Unicode "non-breaking space" to filter.
+//						Oops, make log path platform independent.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -450,7 +452,7 @@ namespace com.dc3.cwcom
 		{
 			string buf = HttpUtility.HtmlDecode(stuff);							// Decode HTML entities, etc.
 			buf = Regex.Replace(buf, "<[^>]*>", " ");							// Remove HTML tags completely
-			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>]", " ");			// Some characters we don't have translations for => space
+			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>\\u00A0]", " ");	// Some characters we don't have translations for => space
 			buf = Regex.Replace(buf, "[\\‘\\’\\`]", "'");						// Unicode left/right single quote, backtick -> ASCII single quote
 			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
 			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
@@ -911,8 +913,8 @@ namespace com.dc3.cwcom
 		private static string s_appPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 		private static AutoResetEvent s_exitFlag = new AutoResetEvent(false);
 		private static Thread s_mainThread;
-		private static string s_logPath = s_appPath + "\\log.txt";
-		private static string s_prevPath = s_appPath + "\\prevlog.txt";
+		private static string s_logPath = s_appPath + Path.DirectorySeparatorChar + "log.txt";
+		private static string s_prevPath = s_appPath + Path.DirectorySeparatorChar + "prevlog.txt";
 		private static Object s_logLock = new Object();
 		private static DateTime s_curLogDate = DateTime.Now.Date.AddDays(-1);	// Assure log rotation on startup
 
