@@ -390,7 +390,7 @@ namespace com.dc3.morse
 		};
 
 		private const string _errCodeIntl = "........";
-		private const string _errCodeAmer = "._._._.";
+		private const string _errCodeAmer = " ";	// Per Les Kerr - just ignore bad characters completely
 
 		private CodeMode _mode;
 		private string _errCode;			// Dotscii for error (Intl vs Amer)
