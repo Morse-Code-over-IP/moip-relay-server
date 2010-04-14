@@ -86,6 +86,12 @@
 //						crash on feeds with no <detail> elements. Comment out
 //						verbose logging of story retrieval and aging. Reduce
 //						periodic message interval to 30 min.
+// 13-Apr-10	rbd		0.7.2 - Make ID messages generic, "message" and "feeds"
+//						instead of "news". Remove logic for sending \\AS\\ 
+//						('=' for American) between messages. Shorten log time
+//						stamp to time only and use local time. Add logic to
+//						log unknown characters from the Morse encoder. Remove
+//						'#' from news stories.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -117,6 +123,14 @@ namespace com.dc3.cwcom
 
 	class CwNewsBot
 	{
+		private static readonly string[] s_lowNames =							// For unknown character logging
+		{
+			"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL", 
+			"BS", "HT", "LF", "VT", "FF", "CR", "SO", "SI",
+			"DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
+			"CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US"
+		};
+
 		private const int _reconnSeconds = 30;
 		private const int _titleAge = 120;										// Keep titles in cache for two hours
 		private const int _wordsPerStory = 40;
@@ -320,6 +334,19 @@ namespace com.dc3.cwcom
 			}
 		}
 
+		//
+		// Called by the Morse class for unknown charcaters
+		//
+		private void UnknownCharacter(char ch)
+		{
+			string msg = "Encountered unknown character ";
+			if (ch < 32)
+				msg += "<" + s_lowNames[ch] + ">";
+			else
+				msg += "'" + ch + "'";
+			msg +=  " U+" + ((int)ch).ToString("X4");
+			LogMessage(msg);
+		}
 
 		//
 		// Writes to shell if running interactive, else traces so can be seen in 
@@ -332,7 +359,8 @@ namespace com.dc3.cwcom
 			else
 				Console.WriteLine("[" + _botName + "] " + msg);
 
-			string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " " + _botName + "] ";
+			//string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " " + _botName + "] ";
+			string prefix = "[" + DateTime.Now.ToString("HH:mm:ss") + " " + _botName + "] ";
 
 			lock (s_logLock)
 			{
@@ -422,7 +450,7 @@ namespace com.dc3.cwcom
 		{
 			string buf = HttpUtility.HtmlDecode(stuff);							// Decode HTML entities, etc.
 			buf = Regex.Replace(buf, "<[^>]*>", " ");							// Remove HTML tags completely
-			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\<\\>]", " ");				// Some characters we don't have translations for => space
+			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>]", " ");			// Some characters we don't have translations for => space
 			buf = Regex.Replace(buf, "[\\‘\\’\\`]", "'");						// Unicode left/right single quote, backtick -> ASCII single quote
 			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
 			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
@@ -714,6 +742,7 @@ namespace com.dc3.cwcom
 
 				_cw = new CwCom(ReceiveMessage, LogMessage);
 				_morse = new Morse();
+				_morse.UnknownCharacter = this.UnknownCharacter;
 				_morse.CharacterWpm = _characterWpm;
 				_morse.WordWpm = _wordWpm;
 				_morse.Mode = _codeMode;
@@ -764,14 +793,14 @@ namespace com.dc3.cwcom
 						sentSome = true;
 					}
 
-					_cw.Identify("Checking news feeds...");
+					_cw.Identify("Checking feeds...");
 					List<string> messages = GetLatestNews(_rssFeeds);
 					Thread.Sleep(5000);
 					if (messages != null)
 					{
-						if (sentSome)											// Have been sending, last story of prev batch 0r ID above needs AS
-							_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
-						_cw.Identify("Stand by for news...");
+						//if (sentSome)											// Have been sending, last story of prev batch 0r ID above needs AS
+						//    _morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
+						_cw.Identify("Stand by for message...");
 						Thread.Sleep(5000);
 						int nStories = messages.Count;
 						foreach (string message in messages)
@@ -785,17 +814,17 @@ namespace com.dc3.cwcom
 							if (logMsg.Length > 40)
 								logMsg = logMsg.Substring(0, 37) + "...";
 							LogMessage("Sending story " + logMsg);
-							_cw.Identify("Sending News");
+							_cw.Identify("Sending message");
 							_morse.CwCom(message, Send);
 							if (--nStories > 0)
 							{
-								_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
+								//_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
 								if (DateTime.Now > _nextConnect)
 								{
 									_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
 									_nextConnect = DateTime.Now.AddSeconds(_reconnSeconds);
 								}
-								_cw.Identify("Stand by for news...");
+								_cw.Identify("Stand by for message...");
 								Thread.Sleep(5000);
 							}
 							else if (DateTime.Now > _nextConnect)
@@ -853,7 +882,7 @@ namespace com.dc3.cwcom
 							// Wait for 2 minutes then check news again
 							//
 							string buf = TimeSpan.FromSeconds(i).ToString().Substring(3);
-							_cw.Identify("Check news in " + buf);
+							_cw.Identify("Check feeds in " + buf);
 							Thread.Sleep(1000);
 						}
 					}
