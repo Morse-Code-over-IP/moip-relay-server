@@ -33,7 +33,7 @@ Global
 		{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = ionosphere\ionosphere-mono.csproj
+		StartupItem = cwrss\cwrss-mono.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
