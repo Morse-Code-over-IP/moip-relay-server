@@ -36,6 +36,9 @@
 // 07-Apr-10	rbd		0.7.2 - Fix American Morse '/'. Put unknown characters
 //						into dotscii enclosed in [] instead of printing error
 //						code in dotscii. Add unknown character delegate.
+// 15-Apr-10	rbd		0.7.2 - If UnknownChar delegate is active (caller is 
+//						being told of unknowns), don't send error code to
+//						MorseMail and CwCom, instead just a blank.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -390,7 +393,7 @@ namespace com.dc3.morse
 		};
 
 		private const string _errCodeIntl = "........";
-		private const string _errCodeAmer = " ";	// Per Les Kerr - just ignore bad characters completely
+		private const string _errCodeAmer = "._._._._._. ";
 
 		private CodeMode _mode;
 		private string _errCode;			// Dotscii for error (Intl vs Amer)
@@ -763,8 +766,13 @@ namespace com.dc3.morse
 				}
 				else
 				{
-					dotscii = _errCode;
-					if (_unkChar != null) _unkChar(c2);
+					if (_unkChar != null)
+					{
+						dotscii = " ";										// Caller knows so don't send error code
+						_unkChar(c2);
+					}
+					else
+						dotscii = _errCode;
 				}
 
 				for (int i = 0; i < dotscii.Length; i++)
@@ -967,8 +975,13 @@ namespace com.dc3.morse
 				}
 				else
 				{
-					dotscii = _errCode;
-					if (_unkChar != null) _unkChar(c2);
+					if (_unkChar != null)
+					{
+						dotscii = " ";										// Caller knows so don't send error code
+						_unkChar(c2);
+					}
+					else
+						dotscii = _errCode;
 				}
 
 				for (int i = 0; i < dotscii.Length; i++)

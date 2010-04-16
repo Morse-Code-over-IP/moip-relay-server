@@ -22,6 +22,7 @@
 // 25-Mar-10	rbd		0.6.8 - Error is 8 dots not 6
 // 01-Apr-10	rbd		0.7.1 - Tests for American Morse Code
 // 05-Apr-10	rbd		0.7.2 - Additional punctuation for American Morse
+// 15-Apr-10	rbd		0.7.2 - Unknown chars are put into [] in DotDash() output.
 //-----------------------------------------------------------------------------
 //
 
@@ -49,7 +50,7 @@ namespace test.morse
 			Assert.AreEqual(".-.-.- --..-- ---... -.-.-. ..--.. -....- .-.-. -..-. -...-", M.DotDash(".,:;?-+/="));
 			Assert.AreEqual(".--.-. -.-.-- .----. -.--. -.--.- ...-..- .-... .-..-. ..--.-", M.DotDash("@!'()$&\"_"));
 			Assert.AreEqual(".-  .-.-.  -... ...-.-", M.DotDash("A \\AR\\ B\\SK\\"));
-			Assert.AreEqual("........", M.DotDash("~"));
+			Assert.AreEqual("[~]", M.DotDash("~"));
 			Assert.Throws<ArgumentNullException>(delegate { M.DotDash(null); });
 			Assert.Throws<ArgumentNullException>(delegate { M.DotDash(""); });
 			M.Mode = Morse.CodeMode.American;

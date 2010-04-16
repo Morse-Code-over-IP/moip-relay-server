@@ -94,6 +94,7 @@
 //						'#' from news stories.
 // 14-Apr-10	rbd		0.7.2 - Add Unicode "non-breaking space" to filter.
 //						Oops, make log path platform independent.
+// 15-Apr-10	rbd		0.7.2 - Add '*' to filter.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -452,7 +453,7 @@ namespace com.dc3.cwcom
 		{
 			string buf = HttpUtility.HtmlDecode(stuff);							// Decode HTML entities, etc.
 			buf = Regex.Replace(buf, "<[^>]*>", " ");							// Remove HTML tags completely
-			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>\\u00A0]", " ");	// Some characters we don't have translations for => space
+			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>\\*\\u00A0]", " ");	// Some characters we don't have translations for => space
 			buf = Regex.Replace(buf, "[\\‘\\’\\`]", "'");						// Unicode left/right single quote, backtick -> ASCII single quote
 			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
 			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
