@@ -12,24 +12,5 @@ The ionosphere project implements a CwCom "Ionosphere" server and "who's using m
 
 The test project contains a set of unit tests written for the NUnit test tool - see http://www.nunit.org/
 
-USAGE:
+USAGE: See ReadMe.txt
 
-The robot looks for a file called BotList.txt in the same directory the executable is in. The format of the file is one bot per line, | delimited. The fields are
-
-bot-name|ionosphere-server-ip/name|ionosphere-server-port|channel|char-wpm|word-wpm
-
-The bot-name is what shows up in the CwCom station list. The server is usually morsecode.dyndns.org, port 7890. Look in the folder sample-config for a sample.
-
-The robot also looks for an RSS-feed list and a periodic message file for EACH BOT LISTED IN BOTLIST.TXT. 
-
-The rss-feed file has a name of bot-name-RssFeeds.txt. It is | delimited with fields
-
-feed-friendly-name|feed-xml-url
-
-The periodic message file is used to get the text for the bot-generated special messages that are send out every 30 minutes. THe format is one message per line in final "telegram" format with prosigns delimited by \\. 
-
-See the sample-config folder for a set of config files. I think you'll be able to figure out how all of this works once you look at them.
-
-FEED SELECTION:
-
-I have found after a lot of trial and error that the Yahoo! news feeds are by far the best for the "telegram" format that this robot produces. The samples-folder has feed lists with the Yahoo feeds I use on the bots I run at morsecode.dyndns.org:7890 pon channels 2345 (25WPM) and 2346 (15WPM).

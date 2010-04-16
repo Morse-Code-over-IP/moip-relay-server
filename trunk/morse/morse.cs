@@ -819,7 +819,7 @@ namespace com.dc3.morse
 				if (!inProsign)												// Unless doing prosign
 				{
 					space(_cstime);											// Character space
-					if (_mode == CodeMode.American && _aSpaceEmph[c2])
+					if (_mode == CodeMode.American && (dotscii == _errCode || dotscii == " " || _aSpaceEmph[c2]))
 						space(_ctime / 2);
 				}
 			}
@@ -1040,7 +1040,10 @@ namespace com.dc3.morse
 				if (!inProsign || _mode == CodeMode.American)				// Unless doing prosign in International mode
 				{
 					space(_cstime);											// Character space
-					if (_mode == CodeMode.American && (dotscii == _errCode || _aSpaceEmph[c2]))
+					//
+					// dotscii can be either the error code or a space (if client gets unknown char callbacks)
+					//
+					if (_mode == CodeMode.American && (dotscii == _errCode || dotscii == " " || _aSpaceEmph[c2]))
 						space(_ctime / 2);
 				}
 
