@@ -95,6 +95,11 @@
 // 14-Apr-10	rbd		0.7.2 - Add Unicode "non-breaking space" to filter.
 //						Oops, make log path platform independent.
 // 15-Apr-10	rbd		0.7.2 - Add '*' to filter.
+// 16-Apr-10	rbd		0.8.1 - Restore '=' separator to American mode. Add
+//						bot config for station name (American), and feed 
+//						config for message class (American). Change service 
+//						info to reflect that this is now a general purpose
+//						RSS/Morse robot. Fix up comments in several places.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -144,6 +149,7 @@ namespace com.dc3.cwcom
 		// Config items from constructor
 		//
 		private string _botName = "";
+		private string _stationID = "DD";										// Station ID used only for American mode
 		private string _serverAddr = "";
 		private int _serverPort = 7890;
 		private short _botChannel = 1111;
@@ -179,6 +185,7 @@ namespace com.dc3.cwcom
 			public string Name { get; set; }
 			public string URL { get; set; }
 			public int TitleAge { get; set; }									// Seconds
+			public string MessageClass { get; set; }							// American only, e.g. "DPR" for press
 		}
 
 		//
@@ -189,15 +196,18 @@ namespace com.dc3.cwcom
 			public string feedName { get; set; }
 			public DateTime pubDate { get; set; }
 			public int titleAge { get; set; }
+			public string messageClass { get; set; }
 			public XmlNode rssItem { get; set; }
 		}
 
 		//
 		// Constructor
 		//
-		public CwNewsBot(string BotName, string ServerAddr, int ServerPort, short BotChannel, int CharWpm, int WordWpm, Morse.CodeMode Mode)
+		public CwNewsBot(string BotName, string ServerAddr, int ServerPort, short BotChannel, 
+				int CharWpm, int WordWpm, Morse.CodeMode Mode, string station)
 		{
 			_botName = BotName;
+			_stationID = station;
 			_serverAddr = ServerAddr;
 			_serverPort = ServerPort;
 			_botChannel = BotChannel;
@@ -373,7 +383,7 @@ namespace com.dc3.cwcom
 						File.Delete(s_prevPath);
 					File.AppendAllText(s_logPath, prefix + "Log closed for rotation\r\n");
 					File.Move(s_logPath, s_prevPath);
-					File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
+					File.WriteAllText(s_logPath, prefix + "Log opened - times are local\r\n");
 					s_curLogDate = DateTime.Now.Date;
 				}
 
@@ -547,6 +557,7 @@ namespace com.dc3.cwcom
 					datedRssItem n = new datedRssItem();
 					n.feedName = feed.Name;
 					n.titleAge = feed.TitleAge;
+					n.messageClass = feed.MessageClass;
 					n.pubDate = pubUtc;
 					n.rssItem = item;
 					stories.Add(n);
@@ -617,8 +628,7 @@ namespace com.dc3.cwcom
 				{
 					// TODO - Make time zone name adapt to station TZ and DST
 					string date = story.pubDate.ToString("MMM d h mm tt") + " MST";
-					// TODO - Make "DD" station ID a config
-					msg = "## DD DPR " + date + " = ";							// ## placeholder for number, No title or feed name
+					msg = "## " + _stationID + " " + story.messageClass + " " + date + " = ";	// ## placeholder for number, No title or feed name
 					if (detail.Length < title.Length)
 						msg += title + " " + detail;
 					else
@@ -683,7 +693,7 @@ namespace com.dc3.cwcom
 			//    tr += el;
 			//}
 			//LogMessage(tr);
-			_cw.SendCode(code, text, "Sending News");
+			_cw.SendCode(code, text, "Sending code");
 			if (DateTime.Now > _nextConnect)
 			{
 				//
@@ -712,8 +722,11 @@ namespace com.dc3.cwcom
 				// Use caution and test thoroughly on news feeds from any other RSS
 				// source.
 				//
-				// RssFeeds.txt has format name|url, for example:
-				//          Top News|http://rss.news.yahoo.com/rss/topstories
+				// RssFeeds.txt has format name|url|age|rate, for example:
+				//          Top News|http://rss.news.yahoo.com/rss/topstories|120|XX
+				// where age is the number of monites after which a story that has been
+				// seen will again become eligible for sending. Station is used only in
+				// American mode, and is the 2-letter station ID (sine) of the sender.
 				//
 				string[] lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + _botName + "-RssFeeds.txt");
 				for (int i = 0; i < lines.Length; i++)
@@ -727,7 +740,11 @@ namespace com.dc3.cwcom
 						if (bits.Length > 2)
 							F.TitleAge = Convert.ToInt32(bits[2]);
 						else
-							F.TitleAge = _titleAge;
+							F.TitleAge = _titleAge;								// Default if age is not given
+						if (bits.Length > 3)
+							F.MessageClass = bits[3];
+						else
+							F.MessageClass = "";								// Default no message class
 						_rssFeeds.Add(F);
 					}
 				}
@@ -803,6 +820,9 @@ namespace com.dc3.cwcom
 					{
 						//if (sentSome)											// Have been sending, last story of prev batch 0r ID above needs AS
 						//    _morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
+						if (sentSome && _morse.Mode == Morse.CodeMode.American)
+							_morse.CwCom(" = ", Send);							// Do send = for American (MorseKOB separator)
+						//
 						_cw.Identify("Stand by for message...");
 						Thread.Sleep(5000);
 						int nStories = messages.Count;
@@ -822,6 +842,9 @@ namespace com.dc3.cwcom
 							if (--nStories > 0)
 							{
 								//_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
+								if (_morse.Mode == Morse.CodeMode.American)
+									_morse.CwCom(" = ", Send);							// Do send = for American (MorseKOB separator)
+								//
 								if (DateTime.Now > _nextConnect)
 								{
 									_cw.Connect(_serverAddr, _serverPort, _botChannel, _botName, false);	// Not blind
@@ -851,7 +874,7 @@ namespace com.dc3.cwcom
 						if (sentSome && _nextPeriodicMessage >= 0)				// -1 -> no periodics
 						{
 							_morse.CwCom(_morse.Mode == Morse.CodeMode.International ? "\\AS\\" : " = ", Send);
-							LogMessage("End of news, sending periodic robot message");
+							LogMessage("End of info, sending periodic robot message");
 							_cw.Identify("Message from robot");
 							Thread.Sleep(5000);
 							_morse.CwCom(_periodicMessages[_nextPeriodicMessage++], Send);
@@ -941,16 +964,16 @@ namespace com.dc3.cwcom
 			else
 				Console.WriteLine("[Main] " + msg);
 
-			string prefix = "[" + DateTime.Now.ToUniversalTime().ToString("s") + " Main] ";
+			string prefix = "[" + DateTime.Now.ToString("HH:mm:ss") + " Main] ";
 			lock (s_logLock)
 			{
-				if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+				if (DateTime.Now.Date != s_curLogDate)							// Time to rotate log
 				{
 					if (File.Exists(s_prevPath))
 						File.Delete(s_prevPath);
 					File.AppendAllText(s_logPath, prefix + "Log closed for rotation\r\n");
 					File.Move(s_logPath, s_prevPath);
-					File.WriteAllText(s_logPath, prefix + "Log opened - times in UTC\r\n");
+					File.WriteAllText(s_logPath, prefix + "Log opened - times are local\r\n");
 					s_curLogDate = DateTime.Now.Date;
 				}
 
@@ -973,7 +996,7 @@ namespace com.dc3.cwcom
 		private static void CreateBots()
 		{
 			//
-			// Ident|ServerAddr|ServerPort|Channel|CharWPM|WordWPM
+			// Ident|ServerAddr|ServerPort|Channel|CharWPM|WordWPM[|Mode[|Station]]
 			//
 			string[] lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + "BotList.txt");
 			for (int i = 0; i < lines.Length; i++)
@@ -991,14 +1014,20 @@ namespace com.dc3.cwcom
 				// Nothing or anything else -> International
 				//
 				Morse.CodeMode mode;
-				if (bits.Length == 7 && bits[6].ToLower() == "american")
+				string station = "";												// No station ID default
+				if (bits.Length >= 7 && bits[6].ToLower() == "american")
+				{
 					mode = Morse.CodeMode.American;
+					if (bits.Length >= 8) station = bits[7];
+				}
 				else
+				{
 					mode = Morse.CodeMode.International;
+				}
 					
 				CwNewsBot b = new CwNewsBot(bits[0], bits[1], Convert.ToInt32(bits[2]),
 						Convert.ToInt16(bits[3]), Convert.ToInt32(bits[4]),
-						Convert.ToInt32(bits[5]), mode);
+						Convert.ToInt32(bits[5]), mode, station);
 				b.Start();
 				s_botList.Add(b);
 			}
@@ -1032,7 +1061,7 @@ namespace com.dc3.cwcom
 				s_mainThread = Thread.CurrentThread;
 				s_serviceMode = false;
 				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
-				LogMessageS("News engine started via command line...");
+				LogMessageS("Morse engine started via command line...");
 				CreateBots();
 				s_exitFlag.WaitOne();
 				ShutdownBots();
@@ -1057,7 +1086,7 @@ namespace com.dc3.cwcom
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 			s_mainThread = Thread.CurrentThread;
 			s_serviceMode = true;
-			LogMessageS("News engine started as system service...");
+			LogMessageS("Morse engine started as system service...");
 			CreateBots();
 			s_exitFlag.WaitOne();
 			ShutdownBots();
@@ -1092,7 +1121,7 @@ namespace WindowsService
 
 		public WindowsService()
 		{
-			this.ServiceName = "CWCom news robot";
+			this.ServiceName = "Morse Info Robot";
 			this.EventLog.Log = "Application";
 			this.CanHandlePowerEvent = false;
 			this.CanHandleSessionChangeEvent = false;
@@ -1174,15 +1203,15 @@ namespace WindowsService
 
 			//# Service Information
 
-			serviceInstaller.DisplayName = "CWCom News Robot";
-			serviceInstaller.Description = "Sends Yahoo! RSS news feeds in Morse Code over the CWCom system";
+			serviceInstaller.DisplayName = "Morse Info Robot";
+			serviceInstaller.Description = "Sends RSS news feeds in Morse Code over the Internet to CwCom and MorseKOB/JavaKOB";
 			serviceInstaller.StartType = ServiceStartMode.Automatic;
 			string[] deps = { "TCP/IP Protocol Driver" };
 			serviceInstaller.ServicesDependedOn = deps;
 
 			//# This must be identical to the WindowsService.ServiceBase name
 			//# set in the constructor of the WindowsService class
-			serviceInstaller.ServiceName = "CWCom news robot";
+			serviceInstaller.ServiceName = "Morse Info Robot";
 
 			this.Installers.Add(serviceProcessInstaller);
 			this.Installers.Add(serviceInstaller);
