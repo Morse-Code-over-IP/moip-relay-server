@@ -60,6 +60,13 @@ namespace com.dc3.Properties {
             }
         }
         
+        internal static System.Drawing.Icon AppIcon {
+            get {
+                object obj = ResourceManager.GetObject("AppIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
         internal static System.IO.UnmanagedMemoryStream Clack_1 {
             get {
                 return ResourceManager.GetStream("Clack_1", resourceCulture);

@@ -12,6 +12,7 @@
     <AssemblyName>locrss</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -82,6 +83,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\AppIcon.ico" />
     <Content Include="Sounds\Clack 1.wav" />
     <None Include="Sounds\Clack 8.wav" />
     <None Include="Sounds\Clack 2.wav" />

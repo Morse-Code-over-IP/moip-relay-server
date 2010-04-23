@@ -30,7 +30,7 @@ namespace com.dc3.morse
         {
 			_maxLen = MaxLenMs;
 			_freq = 880;															// Defaults (typ.)
-			_ampl = 0.8;
+			_ampl = 0.3;
 			_ditMs = 80;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
