@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DxSounder.cs" />
     <Compile Include="DxTones.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -79,6 +80,24 @@
       <Project>{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}</Project>
       <Name>morse</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Sounds\Clack 1.wav" />
+    <None Include="Sounds\Clack 8.wav" />
+    <None Include="Sounds\Clack 2.wav" />
+    <None Include="Sounds\Clack 3.wav" />
+    <None Include="Sounds\Clack 4.wav" />
+    <None Include="Sounds\Clack 5.wav" />
+    <None Include="Sounds\Clack 6.wav" />
+    <None Include="Sounds\Clack 7.wav" />
+    <Content Include="Sounds\Click 1.wav" />
+    <None Include="Sounds\Click 7.wav" />
+    <None Include="Sounds\Click 6.wav" />
+    <None Include="Sounds\Click 5.wav" />
+    <None Include="Sounds\Click 4.wav" />
+    <None Include="Sounds\Click 3.wav" />
+    <None Include="Sounds\Click 2.wav" />
+    <None Include="Sounds\Click 8.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

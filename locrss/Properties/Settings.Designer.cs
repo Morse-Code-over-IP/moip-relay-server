@@ -74,9 +74,9 @@ namespace com.dc3.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public decimal CodeMode {
+        public int CodeMode {
             get {
-                return ((decimal)(this["CodeMode"]));
+                return ((int)(this["CodeMode"]));
             }
             set {
                 this["CodeMode"] = value;
@@ -85,13 +85,55 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://my.rss.com/story.xml")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string FeedURL {
             get {
                 return ((string)(this["FeedURL"]));
             }
             set {
                 this["FeedURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int SoundMode {
+            get {
+                return ((int)(this["SoundMode"]));
+            }
+            set {
+                this["SoundMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public decimal SounderNumber {
+            get {
+                return ((decimal)(this["SounderNumber"]));
+            }
+            set {
+                this["SounderNumber"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <string>http://rss.news.yahoo.com/rss/topstories</string>
+  <string>http://rss.news.yahoo.com/rss/science</string>
+  <string>http://rss.news.yahoo.com/rss/business</string>
+  <string>http://solo.dc3.com/rss/top100words.asp</string>
+</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection LRU {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["LRU"]));
+            }
+            set {
+                this["LRU"] = value;
             }
         }
     }

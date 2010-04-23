@@ -58,6 +58,8 @@ namespace com.dc3.morse
 			_bufDesc = new BufferDescription(_waveFmt);
 			_bufDesc.DeferLocation = true;
 			_bufDesc.BufferBytes = _waveBuf.Length;
+			_bufDesc.ControlEffects = false;										// Necessary for short tones
+			_bufDesc.GlobalFocus = true;											// Enable audio when program is in background
 
 			_secBuf = new SecondaryBuffer(_bufDesc, _deviceSound);
 			_secBuf.Write(0, _waveBuf, LockFlag.EntireBuffer);

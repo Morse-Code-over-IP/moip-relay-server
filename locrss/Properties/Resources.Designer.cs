@@ -59,5 +59,89 @@ namespace com.dc3.Properties {
                 resourceCulture = value;
             }
         }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_1 {
+            get {
+                return ResourceManager.GetStream("Clack_1", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_2 {
+            get {
+                return ResourceManager.GetStream("Clack_2", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_3 {
+            get {
+                return ResourceManager.GetStream("Clack_3", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_4 {
+            get {
+                return ResourceManager.GetStream("Clack_4", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_5 {
+            get {
+                return ResourceManager.GetStream("Clack_5", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_6 {
+            get {
+                return ResourceManager.GetStream("Clack_6", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Clack_7 {
+            get {
+                return ResourceManager.GetStream("Clack_7", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_1 {
+            get {
+                return ResourceManager.GetStream("Click_1", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_2 {
+            get {
+                return ResourceManager.GetStream("Click_2", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_3 {
+            get {
+                return ResourceManager.GetStream("Click_3", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_4 {
+            get {
+                return ResourceManager.GetStream("Click_4", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_5 {
+            get {
+                return ResourceManager.GetStream("Click_5", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_6 {
+            get {
+                return ResourceManager.GetStream("Click_6", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Click_7 {
+            get {
+                return ResourceManager.GetStream("Click_7", resourceCulture);
+            }
+        }
     }
 }
