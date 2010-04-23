@@ -241,10 +241,10 @@ namespace com.dc3
 			nudPollInterval.Enabled = enable;
 			nudStoryAge.Enabled = enable;
 			nudSerialPort.Enabled = enable;
-			chkUseSerial.Enabled = enable;
+			chkUseSerial.Enabled = enable & !chkUseSerial.Checked;
 			rbAmerican.Enabled = enable;
 			rbInternational.Enabled = enable;
-			btnTestSerial.Enabled = enable;
+			btnTestSerial.Enabled = enable & !chkUseSerial.Checked;
 
 			enable = enable & !_useSerial;
 			nudSounder.Enabled = enable & rbSounder.Checked;
