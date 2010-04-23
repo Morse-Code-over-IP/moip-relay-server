@@ -17,7 +17,7 @@ namespace com.dc3
 	public partial class MainForm : Form
 	{
 		public enum CodeMode { International, American }
-
+		public enum SoundMode { Tone, Sounder }
 		//
 		// Represents an RSS item with a correct pubDate
 		//
@@ -31,9 +31,11 @@ namespace com.dc3
 		// Settings
 		//
 		private CodeMode _codeMode;
+		private SoundMode _soundMode;
 		private int _pollInterval;
 		private int _codeSpeed;
 		private int _toneFreq;
+		private int _sounderNum;
 		private int _storyAge;
 		private string _feedUrl;
 
@@ -46,6 +48,7 @@ namespace com.dc3
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
 		private DxTones _dxTones;
+		private DxSounder _dxSounder;
 		private DateTime _lastPollTime;
 
 		//
@@ -62,19 +65,33 @@ namespace com.dc3
 			_pollInterval = (int)nudPollInterval.Value;
 			_codeSpeed = (int)nudCodeSpeed.Value;
 			_toneFreq = (int)nudToneFreq.Value;
+			_sounderNum = (int)nudSounder.Value;
 			_storyAge = (int)nudStoryAge.Value;
-			_feedUrl = txtFeedUrl.Text;
+			_feedUrl = cbFeedUrl.Text;
 			_run = false;
 
 			if (Properties.Settings.Default.CodeMode == 0)
 				rbInternational.Checked = true;									// Triggers CheckedChanged (typ.)
 			else
 				rbAmerican.Checked = true;
+			if (Properties.Settings.Default.SoundMode == 0)
+				rbTone.Checked = true;
+			else
+				rbSounder.Checked = true;
+
+			foreach (string uri in Properties.Settings.Default.LRU)
+				cbFeedUrl.Items.Add(uri);
 
 			_titleExpireThread = new Thread(new ThreadStart(TitleExpire));
 			_titleExpireThread.Name = "Title Expiry";
 			_titleExpireThread.Start();
 			_dxTones = new DxTones(this, 1000);
+			_dxTones.Frequency = _toneFreq;
+			_dxSounder = new DxSounder(this);
+			_dxSounder.Sounder = _sounderNum;
+
+			statBarLabel.Text = "Ready";
+			statBarCrawl.Text = "";
 		}
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -89,12 +106,15 @@ namespace com.dc3
 				_runThread.Interrupt();
 				_runThread.Join(1000);
 			}
+			Properties.Settings.Default.LRU.Clear();
+			foreach (string uri in cbFeedUrl.Items)
+				Properties.Settings.Default.LRU.Add(uri);
 			Properties.Settings.Default.Save();
 		}
 
-		private void txtFeedUrl_TextChanged(object sender, EventArgs e)
+		private void cbFeedUrl_TextChanged(object sender, EventArgs e)
 		{
-			_feedUrl = txtFeedUrl.Text;
+			_feedUrl = cbFeedUrl.Text;
 		}
 
 		private void nudPollInterval_ValueChanged(object sender, EventArgs e)
@@ -115,6 +135,15 @@ namespace com.dc3
 		private void nudToneFreq_ValueChanged(object sender, EventArgs e)
 		{
 			_toneFreq = (int)nudToneFreq.Value;
+			_dxTones.Frequency = _toneFreq;
+			_dxTones.Tone(100, false);
+		}
+
+		private void nudSounder_ValueChanged(object sender, EventArgs e)
+		{
+			_sounderNum = (int)nudSounder.Value;
+			_dxSounder.Sounder = (int)nudSounder.Value;
+			_dxSounder.ClickClack(100);
 		}
 
 		private void rbInternational_CheckedChanged(object sender, EventArgs e)
@@ -135,21 +164,62 @@ namespace com.dc3
 			}
 		}
 
+		private void rbTone_CheckedChanged(object sender, EventArgs e)
+		{
+			if (rbTone.Checked)
+			{
+				_soundMode = SoundMode.Tone;
+				Properties.Settings.Default.SoundMode = 0;
+			}
+		}
+
+		private void rbSounder_CheckedChanged(object sender, EventArgs e)
+		{
+			if (rbSounder.Checked)
+			{
+				_soundMode = SoundMode.Sounder;
+				Properties.Settings.Default.SoundMode = 1;
+			}
+		}
+
 		private void EnableControls(bool enable)
 		{
-			txtFeedUrl.Enabled = enable;
+			cbFeedUrl.Enabled = enable;
 			nudCodeSpeed.Enabled = enable;
 			nudPollInterval.Enabled = enable;
 			nudStoryAge.Enabled = enable;
 			nudToneFreq.Enabled = enable;
+			nudSounder.Enabled = enable;
 			rbAmerican.Enabled = enable;
 			rbInternational.Enabled = enable;
+			rbTone.Enabled = enable;
+			rbSounder.Enabled = enable;
 		}
 
 		private void btnStartStop_Click(object sender, EventArgs e)
 		{
 			if (!_run)
 			{
+				if (!cbFeedUrl.Items.Contains(cbFeedUrl.Text))					// Add new URIs to combo box when actually USED!
+				{
+					while (cbFeedUrl.Items.Count > 8)							// Safety catch only
+						cbFeedUrl.Items.RemoveAt(0);
+					if (cbFeedUrl.Items.Count == 8)								// If full, remove last item
+						cbFeedUrl.Items.RemoveAt(7);
+					cbFeedUrl.Items.Insert(0, cbFeedUrl.Text);					// Insert new item at top
+				}
+				else
+				{
+					int idx = cbFeedUrl.FindStringExact(cbFeedUrl.Text);
+					if (idx > 0)												// If not already at top, move to top
+					{
+						string uri = cbFeedUrl.Text;							// Save this, next stmt clears text!
+						cbFeedUrl.Items.RemoveAt(idx);
+						cbFeedUrl.Items.Insert(0, uri);
+						cbFeedUrl.Text = uri;
+					}
+				}
+
 				_runThread = new Thread(new ThreadStart(Run));
 				_runThread.Name = "RSS engine";
 				_runThread.Start();
@@ -167,6 +237,52 @@ namespace com.dc3
 				EnableControls(true);
 				btnStartStop.Text = "Start";
 				_run = false;
+			}
+			statBarCrawl.Text = "";
+			statBarLabel.Text = "Ready";
+		}
+
+		//
+		// Cross-thread methods for the worker thread and the status bar
+		//
+		delegate void SetTextCallback(string text);
+
+		private void SetStatus(string text)
+		{
+			if (this.statusStrip1.InvokeRequired)
+			{
+				SetTextCallback d = new SetTextCallback(SetStatus);
+				this.Invoke(d, new object[] { text });
+			}
+			else
+			{
+				statBarLabel.Text = text;
+			}
+		}
+
+		private void SetCrawler(string text)
+		{
+			if (this.statusStrip1.InvokeRequired)
+			{
+				SetTextCallback d = new SetTextCallback(SetCrawler);
+				this.Invoke(d, new object[] { text });
+			}
+			else
+			{
+				statBarCrawl.Text = text;
+			}
+		}
+
+		private void AddToCrawler(string text)
+		{
+			if (this.statusStrip1.InvokeRequired)
+			{
+				SetTextCallback d = new SetTextCallback(AddToCrawler);
+				this.Invoke(d, new object[] { text });
+			}
+			else
+			{
+				statBarCrawl.Text += text;
 			}
 		}
 
@@ -273,10 +389,17 @@ namespace com.dc3
 			for (int i = 0; i < code.Length; i++)
 			{
 				if (code[i] > 0)
-					_dxTones.Tone(code[i], true);
+				{
+					if (_soundMode == SoundMode.Tone)
+						_dxTones.Tone(code[i], true);
+					else
+						_dxSounder.ClickClack(code[i]);
+				}
 				else
 					Thread.Sleep(-code[i]);
 			}
+			string ct = Regex.Replace(text, "\\s", " ");
+			AddToCrawler(ct);
 		}
 
 		private void Run()
@@ -294,7 +417,7 @@ namespace com.dc3
 				{
 					_lastPollTime = DateTime.Now;
 
-					statBarLabel.Text = "Getting RSS feed data...";
+					SetStatus("Getting RSS feed data...");
 					XmlDocument feedXml = new XmlDocument();
 					feedXml.Load(_feedUrl);
 
@@ -311,10 +434,10 @@ namespace com.dc3
 						//
 						// OK we have a story we can use, as we were able to parse the date.
 						//
-						datedRssItem n = new datedRssItem();
-						n.pubDate = pubUtc;
-						n.rssItem = item;
-						stories.Add(n);
+						datedRssItem ni = new datedRssItem();
+						ni.pubDate = pubUtc;
+						ni.rssItem = item;
+						stories.Add(ni);
 					}
 
 					//
@@ -376,10 +499,11 @@ namespace com.dc3
 					//
 					// Now generate Morse Code sound for each of the messages in ths list
 					//
+					int n = 1;
 					foreach (string msg in messages)
 					{
-						int n = 1;
-						statBarLabel.Text = "Sending message " + n + " of " + messages.Count;
+						SetStatus("Sending message " + n++ + " of " + messages.Count);
+						SetCrawler("");
 						M.CwCom(msg, Send);
 						Thread.Sleep(5000);
 					}
@@ -393,7 +517,7 @@ namespace com.dc3
 						for (int i = 0; i < tWait.TotalSeconds; i++)
 						{
 							string buf = TimeSpan.FromSeconds(i).ToString().Substring(3);
-							statBarLabel.Text = "Check feed in " + buf + "...";
+							SetStatus("Check feed in " + buf + "...");
 							Thread.Sleep(1000);
 						}
 					}
