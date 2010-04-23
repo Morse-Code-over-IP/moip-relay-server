@@ -136,5 +136,29 @@ namespace com.dc3.Properties {
                 this["LRU"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public decimal SerialPort {
+            get {
+                return ((decimal)(this["SerialPort"]));
+            }
+            set {
+                this["SerialPort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseSerial {
+            get {
+                return ((bool)(this["UseSerial"]));
+            }
+            set {
+                this["UseSerial"] = value;
+            }
+        }
     }
 }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
+using System.IO.Ports;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -26,7 +28,7 @@ namespace com.dc3
 			public DateTime pubDate { get; set; }
 			public XmlNode rssItem { get; set; }
 		}
-
+		
 		//
 		// Settings
 		//
@@ -38,6 +40,8 @@ namespace com.dc3
 		private int _sounderNum;
 		private int _storyAge;
 		private string _feedUrl;
+		private int _serialPortNum;
+		private bool _useSerial;
 
 		//
 		// State variables
@@ -50,6 +54,7 @@ namespace com.dc3
 		private DxTones _dxTones;
 		private DxSounder _dxSounder;
 		private DateTime _lastPollTime;
+		private SerialPort _serialPort;
 
 		//
 		// Form ctor and event methods
@@ -68,6 +73,9 @@ namespace com.dc3
 			_sounderNum = (int)nudSounder.Value;
 			_storyAge = (int)nudStoryAge.Value;
 			_feedUrl = cbFeedUrl.Text;
+			_serialPortNum = (int)nudSerialPort.Value;
+			_useSerial = chkUseSerial.Checked;
+			_serialPort = null;
 			_run = false;
 
 			if (Properties.Settings.Default.CodeMode == 0)
@@ -92,6 +100,7 @@ namespace com.dc3
 
 			statBarLabel.Text = "Ready";
 			statBarCrawl.Text = "";
+			UpdateUI();
 		}
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -106,6 +115,9 @@ namespace com.dc3
 				_runThread.Interrupt();
 				_runThread.Join(1000);
 			}
+			if (_serialPort != null)
+				_serialPort.Close();
+			_serialPort = null;
 			Properties.Settings.Default.LRU.Clear();
 			foreach (string uri in cbFeedUrl.Items)
 				Properties.Settings.Default.LRU.Add(uri);
@@ -146,6 +158,11 @@ namespace com.dc3
 			_dxSounder.ClickClack(100);
 		}
 
+		private void nudSerialPort_ValueChanged(object sender, EventArgs e)
+		{
+			_serialPortNum = (int)nudSerialPort.Value;
+		}
+
 		private void rbInternational_CheckedChanged(object sender, EventArgs e)
 		{
 			if (rbInternational.Checked)
@@ -171,6 +188,7 @@ namespace com.dc3
 				_soundMode = SoundMode.Tone;
 				Properties.Settings.Default.SoundMode = 0;
 			}
+			UpdateUI();
 		}
 
 		private void rbSounder_CheckedChanged(object sender, EventArgs e)
@@ -180,18 +198,57 @@ namespace com.dc3
 				_soundMode = SoundMode.Sounder;
 				Properties.Settings.Default.SoundMode = 1;
 			}
+			UpdateUI();
 		}
 
-		private void EnableControls(bool enable)
+		private void chkUseSerial_CheckedChanged(object sender, EventArgs e)
 		{
+			_useSerial = chkUseSerial.Checked;
+			UpdateUI();
+		}
+
+		private void btnTestSerial_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				btnTestSerial.Enabled = false;
+				SerialPort S = new SerialPort("COM" + _serialPortNum.ToString());
+				S.Open();
+				S.DtrEnable = true;
+				for (int i = 0; i < 4; i++)
+				{
+					S.RtsEnable = true;
+					Thread.Sleep(100);
+					S.RtsEnable = false;
+					Thread.Sleep(100);
+				}
+				S.DtrEnable = false;
+				S.Close();
+				MessageBox.Show(null, "Test complete, 4 dits sent.", "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(null, ex.Message, "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			}
+			btnTestSerial.Enabled = true;
+		}
+
+		private void UpdateUI()
+		{
+			bool enable = !_run;
 			cbFeedUrl.Enabled = enable;
 			nudCodeSpeed.Enabled = enable;
 			nudPollInterval.Enabled = enable;
 			nudStoryAge.Enabled = enable;
-			nudToneFreq.Enabled = enable;
-			nudSounder.Enabled = enable;
+			nudSerialPort.Enabled = enable;
+			chkUseSerial.Enabled = enable;
 			rbAmerican.Enabled = enable;
 			rbInternational.Enabled = enable;
+			btnTestSerial.Enabled = enable;
+
+			enable = enable & !_useSerial;
+			nudSounder.Enabled = enable & rbSounder.Checked;
+			nudToneFreq.Enabled = enable & rbTone.Checked;
 			rbTone.Enabled = enable;
 			rbSounder.Enabled = enable;
 		}
@@ -223,7 +280,6 @@ namespace com.dc3
 				_runThread = new Thread(new ThreadStart(Run));
 				_runThread.Name = "RSS engine";
 				_runThread.Start();
-				EnableControls(false);
 				btnStartStop.Text = "Stop";
 				_run = true;
 			}
@@ -234,12 +290,15 @@ namespace com.dc3
 					_runThread.Interrupt();
 					_runThread.Join(1000);
 				}
-				EnableControls(true);
+				if (_serialPort != null)
+					_serialPort.Close();
+				_serialPort = null;
 				btnStartStop.Text = "Start";
 				_run = false;
 			}
 			statBarCrawl.Text = "";
 			statBarLabel.Text = "Ready";
+			UpdateUI();
 		}
 
 		//
@@ -382,7 +441,8 @@ namespace com.dc3
 
 		//
 		// Sender delegate for the CwCom mode of Morse. This gets timing arrays, and calls
-		// the tone generator (it's not really CwCom :-)).
+		// the tone generator or twiddles the RTS line on the serial port
+		// (it's not really CwCom :-)).
 		//
 		private void Send(Int32[] code, string text)
 		{
@@ -390,10 +450,19 @@ namespace com.dc3
 			{
 				if (code[i] > 0)
 				{
-					if (_soundMode == SoundMode.Tone)
-						_dxTones.Tone(code[i], true);
+					if (_useSerial)
+					{
+						_serialPort.RtsEnable = true;
+						Thread.Sleep(code[i]);
+						_serialPort.RtsEnable = false;
+					}
 					else
-						_dxSounder.ClickClack(code[i]);
+					{
+						if (_soundMode == SoundMode.Tone)
+							_dxTones.Tone(code[i], true);
+						else
+							_dxSounder.ClickClack(code[i]);
+					}
 				}
 				else
 					Thread.Sleep(-code[i]);
@@ -410,6 +479,13 @@ namespace com.dc3
 				M.CharacterWpm = _codeSpeed;
 				M.WordWpm = _codeSpeed;
 				M.Mode = (_codeMode == CodeMode.International ? Morse.CodeMode.International : Morse.CodeMode.American);
+
+				if (_useSerial)
+				{
+					_serialPort = new SerialPort("COM" + _serialPortNum.ToString());
+					_serialPort.Open();
+					_serialPort.DtrEnable = true;
+				}
 
 				lock (_titleCache) { _titleCache.Clear(); }							// Clear title cache on start
 
@@ -536,6 +612,5 @@ namespace com.dc3
 				return;
 			}
 		}
-
 	}
 }
