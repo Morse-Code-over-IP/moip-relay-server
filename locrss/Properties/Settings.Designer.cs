@@ -25,7 +25,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
         public decimal CodeSpeed {
             get {
                 return ((decimal)(this["CodeSpeed"]));
@@ -37,7 +37,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
         public decimal PollInterval {
             get {
                 return ((decimal)(this["PollInterval"]));
@@ -49,7 +49,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("120")]
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
         public decimal StoryAge {
             get {
                 return ((decimal)(this["StoryAge"]));
@@ -61,7 +61,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("800")]
+        [global::System.Configuration.DefaultSettingValueAttribute("640")]
         public decimal ToneFreq {
             get {
                 return ((decimal)(this["ToneFreq"]));

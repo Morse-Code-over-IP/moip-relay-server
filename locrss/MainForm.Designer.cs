@@ -57,6 +57,7 @@
 			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
 			this.nudStoryAge = new System.Windows.Forms.NumericUpDown();
 			this.nudPollInterval = new System.Windows.Forms.NumericUpDown();
+			this.btnClearCache = new System.Windows.Forms.Button();
 			this.statusStrip1.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).BeginInit();
@@ -74,7 +75,7 @@
 			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statBarLabel,
             this.statBarCrawl});
-			this.statusStrip1.Location = new System.Drawing.Point(0, 240);
+			this.statusStrip1.Location = new System.Drawing.Point(0, 246);
 			this.statusStrip1.Name = "statusStrip1";
 			this.statusStrip1.Size = new System.Drawing.Size(410, 22);
 			this.statusStrip1.SizingGrip = false;
@@ -114,7 +115,7 @@
 			this.groupBox1.Controls.Add(this.nudCodeSpeed);
 			this.groupBox1.Controls.Add(this.rbAmerican);
 			this.groupBox1.Controls.Add(this.rbInternational);
-			this.groupBox1.Location = new System.Drawing.Point(17, 75);
+			this.groupBox1.Location = new System.Drawing.Point(16, 79);
 			this.groupBox1.Name = "groupBox1";
 			this.groupBox1.Size = new System.Drawing.Size(263, 69);
 			this.groupBox1.TabIndex = 3;
@@ -170,7 +171,7 @@
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(74, 48);
+			this.label2.Location = new System.Drawing.Point(14, 48);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(87, 13);
 			this.label2.TabIndex = 5;
@@ -179,7 +180,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(257, 48);
+			this.label5.Location = new System.Drawing.Point(158, 48);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(78, 13);
 			this.label5.TabIndex = 11;
@@ -187,9 +188,9 @@
 			// 
 			// btnStartStop
 			// 
-			this.btnStartStop.Location = new System.Drawing.Point(301, 182);
+			this.btnStartStop.Location = new System.Drawing.Point(298, 186);
 			this.btnStartStop.Name = "btnStartStop";
-			this.btnStartStop.Size = new System.Drawing.Size(92, 27);
+			this.btnStartStop.Size = new System.Drawing.Size(95, 27);
 			this.btnStartStop.TabIndex = 12;
 			this.btnStartStop.Text = "Start";
 			this.btnStartStop.UseVisualStyleBackColor = true;
@@ -202,7 +203,7 @@
 			this.groupBox2.Controls.Add(this.nudToneFreq);
 			this.groupBox2.Controls.Add(this.rbSounder);
 			this.groupBox2.Controls.Add(this.rbTone);
-			this.groupBox2.Location = new System.Drawing.Point(17, 156);
+			this.groupBox2.Location = new System.Drawing.Point(16, 160);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(263, 69);
 			this.groupBox2.TabIndex = 13;
@@ -297,7 +298,7 @@
 			this.groupBox3.Controls.Add(this.chkUseSerial);
 			this.groupBox3.Controls.Add(this.label6);
 			this.groupBox3.Controls.Add(this.nudSerialPort);
-			this.groupBox3.Location = new System.Drawing.Point(298, 75);
+			this.groupBox3.Location = new System.Drawing.Point(298, 79);
 			this.groupBox3.Name = "groupBox3";
 			this.groupBox3.Size = new System.Drawing.Size(95, 69);
 			this.groupBox3.TabIndex = 15;
@@ -376,7 +377,7 @@
             0,
             0,
             0});
-			this.nudStoryAge.Location = new System.Drawing.Point(341, 46);
+			this.nudStoryAge.Location = new System.Drawing.Point(239, 46);
 			this.nudStoryAge.Maximum = new decimal(new int[] {
             1440,
             0,
@@ -397,7 +398,7 @@
 			// nudPollInterval
 			// 
 			this.nudPollInterval.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "PollInterval", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudPollInterval.Location = new System.Drawing.Point(165, 46);
+			this.nudPollInterval.Location = new System.Drawing.Point(104, 46);
 			this.nudPollInterval.Maximum = new decimal(new int[] {
             1440,
             0,
@@ -415,11 +416,23 @@
 			this.nudPollInterval.Value = global::com.dc3.Properties.Settings.Default.PollInterval;
 			this.nudPollInterval.ValueChanged += new System.EventHandler(this.nudPollInterval_ValueChanged);
 			// 
+			// btnClearCache
+			// 
+			this.btnClearCache.Location = new System.Drawing.Point(298, 44);
+			this.btnClearCache.Name = "btnClearCache";
+			this.btnClearCache.Size = new System.Drawing.Size(95, 24);
+			this.btnClearCache.TabIndex = 16;
+			this.btnClearCache.Text = "Clear Cache";
+			this.toolTip.SetToolTip(this.btnClearCache, "Clear the \"seen story\" cache now");
+			this.btnClearCache.UseVisualStyleBackColor = true;
+			this.btnClearCache.Click += new System.EventHandler(this.btnClearCache_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(410, 262);
+			this.ClientSize = new System.Drawing.Size(410, 268);
+			this.Controls.Add(this.btnClearCache);
 			this.Controls.Add(this.groupBox3);
 			this.Controls.Add(this.cbFeedUrl);
 			this.Controls.Add(this.groupBox2);
@@ -487,6 +500,7 @@
 		private System.Windows.Forms.CheckBox chkUseSerial;
 		private System.Windows.Forms.ToolTip toolTip;
 		private System.Windows.Forms.Button btnTestSerial;
+		private System.Windows.Forms.Button btnClearCache;
 	}
 }
 
