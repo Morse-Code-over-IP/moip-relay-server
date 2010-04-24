@@ -90,7 +90,7 @@ namespace com.dc3
 			foreach (string uri in Properties.Settings.Default.LRU)
 				cbFeedUrl.Items.Add(uri);
 
-			_titleExpireThread = new Thread(new ThreadStart(TitleExpire));
+			_titleExpireThread = new Thread(new ThreadStart(TitleExpireThread));
 			_titleExpireThread.Name = "Title Expiry";
 			_titleExpireThread.Start();
 			_dxTones = new DxTones(this, 1000);
@@ -231,6 +231,13 @@ namespace com.dc3
 				MessageBox.Show(null, ex.Message, "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 			}
 			btnTestSerial.Enabled = true;
+		}
+
+
+		private void btnClearCache_Click(object sender, EventArgs e)
+		{
+			TitleExpire();
+			MessageBox.Show(null, "Seen stories have been forgotten", "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
 		private void UpdateUI()
@@ -412,25 +419,14 @@ namespace com.dc3
 		// Remove titles older than 'titleAge' from the cache
 		// Runs as separate thread.
 		//
-		private void TitleExpire()
+		private void TitleExpireThread()
 		{
 			try
 			{
 				while (true)
 				{
-					DateTime expiryTime = DateTime.Now.AddMinutes(-_storyAge);
-					lock (_titleCache)
-					{
-						List<string> oldTitles = new List<string>();
-						foreach (string title in _titleCache.Keys)
-						{
-							if (_titleCache[title] < expiryTime)
-								oldTitles.Add(title);
-						}
-						foreach (string title in oldTitles)
-							_titleCache.Remove(title);
-					}
-					Thread.Sleep(900000);										// Every 15 min
+					TitleExpire();
+					Thread.Sleep(300000);										// Every 5 min
 				}
 			}
 			catch (ThreadInterruptedException)
@@ -439,6 +435,24 @@ namespace com.dc3
 			}
 		}
 
+		//
+		// Worker logic, also used by manual expire button
+		//
+		private void TitleExpire()
+		{
+			DateTime expiryTime = DateTime.Now.AddMinutes(-_storyAge);
+			lock (_titleCache)
+			{
+				List<string> oldTitles = new List<string>();
+				foreach (string title in _titleCache.Keys)
+				{
+					if (_titleCache[title] < expiryTime)
+						oldTitles.Add(title);
+				}
+				foreach (string title in oldTitles)
+					_titleCache.Remove(title);
+			}
+		}
 		//
 		// Sender delegate for the CwCom mode of Morse. This gets timing arrays, and calls
 		// the tone generator or twiddles the RTS line on the serial port
@@ -479,6 +493,8 @@ namespace com.dc3
 				M.CharacterWpm = _codeSpeed;
 				M.WordWpm = _codeSpeed;
 				M.Mode = (_codeMode == CodeMode.International ? Morse.CodeMode.International : Morse.CodeMode.American);
+
+				_msgNr = 1;															// Start with message #1
 
 				if (_useSerial)
 				{
@@ -544,7 +560,7 @@ namespace com.dc3
 						string msg;
 						if (M.Mode == Morse.CodeMode.International)					// Radiotelegraphy
 						{
-							msg = "DE RSS " + time + " \\BT\\ ";
+							msg = "NR " + _msgNr.ToString() + " DE RSS " + time + " \\BT\\";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
@@ -555,14 +571,14 @@ namespace com.dc3
 						{
 							// TODO - Make time zone name adapt to station TZ and DST
 							string date = story.pubDate.ToUniversalTime().ToString("MMM d h mm tt") + " GMT";
-							msg = _msgNr.ToString() + " RSS FILED " + date + " = ";
-							_msgNr += 1;
+							msg = "NR " + _msgNr.ToString() + " RSS FILED " + date + " = ";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
 								msg += detail;
 							msg += " END";
 						}
+						_msgNr += 1;
 
 						lock (_titleCache)
 						{
@@ -572,32 +588,37 @@ namespace com.dc3
 						messages.Add(msg);
 					}
 
-					//
-					// Now generate Morse Code sound for each of the messages in ths list
-					//
-					int n = 1;
-					foreach (string msg in messages)
+					if (messages.Count > 0)
 					{
-						SetStatus("Sending message " + n++ + " of " + messages.Count);
-						SetCrawler("");
-						M.CwCom(msg, Send);
-						Thread.Sleep(5000);
-					}
-
-					//
-					// Wait until next time to poll
-					//
-					TimeSpan tWait = _lastPollTime.AddMinutes(_pollInterval) - DateTime.Now;
-					if (tWait > TimeSpan.Zero)
-					{
-						for (int i = 0; i < tWait.TotalSeconds; i++)
+						//
+						// Have message(s), generate Morse Code sound for each
+						//
+						int n = 1;
+						foreach (string msg in messages)
 						{
-							string buf = TimeSpan.FromSeconds(i).ToString().Substring(3);
-							SetStatus("Check feed in " + buf + "...");
-							Thread.Sleep(1000);
+							SetStatus("Sending message " + n++ + " of " + messages.Count);
+							SetCrawler("");
+							M.CwCom(msg, Send);
+							Thread.Sleep(5000);
 						}
 					}
-					statBarLabel.Text = "";
+					else
+					{
+						//
+						// NJo messages to send this time, wait until next time to poll
+						//
+						TimeSpan tWait = _lastPollTime.AddMinutes(_pollInterval) - DateTime.Now;
+						if (tWait > TimeSpan.Zero)
+						{
+							for (int i = 0; i < tWait.TotalSeconds; i++)
+							{
+								string buf = TimeSpan.FromSeconds(tWait.TotalSeconds - i).ToString().Substring(3, 5);
+								SetStatus("Check feed in " + buf + "...");
+								Thread.Sleep(1000);
+							}
+						}
+					}
+					SetStatus("");
 				}
 
 

@@ -3,16 +3,16 @@
   <Profiles />
   <Settings>
     <Setting Name="CodeSpeed" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">15</Value>
+      <Value Profile="(Default)">20</Value>
     </Setting>
     <Setting Name="PollInterval" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">30</Value>
+      <Value Profile="(Default)">10</Value>
     </Setting>
     <Setting Name="StoryAge" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">120</Value>
+      <Value Profile="(Default)">60</Value>
     </Setting>
     <Setting Name="ToneFreq" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">800</Value>
+      <Value Profile="(Default)">640</Value>
     </Setting>
     <Setting Name="CodeMode" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
