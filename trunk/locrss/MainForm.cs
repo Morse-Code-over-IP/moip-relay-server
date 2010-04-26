@@ -89,6 +89,8 @@ namespace com.dc3
 
 			foreach (string uri in Properties.Settings.Default.LRU)
 				cbFeedUrl.Items.Add(uri);
+			if (cbFeedUrl.Text == "")											// Force something into feed URL
+				cbFeedUrl.Text = Properties.Settings.Default.LRU[0];
 
 			_titleExpireThread = new Thread(new ThreadStart(TitleExpireThread));
 			_titleExpireThread.Name = "Title Expiry";
@@ -127,6 +129,7 @@ namespace com.dc3
 		private void cbFeedUrl_TextChanged(object sender, EventArgs e)
 		{
 			_feedUrl = cbFeedUrl.Text;
+			UpdateUI();															// For disabling Start if empty
 		}
 
 		private void nudPollInterval_ValueChanged(object sender, EventArgs e)
@@ -243,6 +246,7 @@ namespace com.dc3
 		private void UpdateUI()
 		{
 			bool enable = !_run;
+			btnStartStop.Enabled = (cbFeedUrl.Text != "");
 			cbFeedUrl.Enabled = enable;
 			nudCodeSpeed.Enabled = enable;
 			nudPollInterval.Enabled = enable;
