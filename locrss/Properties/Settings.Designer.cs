@@ -85,7 +85,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://rss.news.yahoo.com/rss/topstories")]
         public string FeedURL {
             get {
                 return ((string)(this["FeedURL"]));

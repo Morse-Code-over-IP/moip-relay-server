@@ -18,7 +18,7 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="FeedURL" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">http://rss.news.yahoo.com/rss/topstories</Value>
     </Setting>
     <Setting Name="SoundMode" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
