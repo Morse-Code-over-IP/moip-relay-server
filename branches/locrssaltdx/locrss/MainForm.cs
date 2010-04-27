@@ -296,6 +296,10 @@ namespace com.dc3
 			}
 			else
 			{
+				if (_soundMode == SoundMode.Tone)
+					_dxTones.Stop();
+				else
+					_dxSounder.Stop();
 				if (_runThread != null)
 				{
 					_runThread.Interrupt();
