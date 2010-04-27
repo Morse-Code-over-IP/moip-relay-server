@@ -36,7 +36,10 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="NAudio, Version=1.3.10.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\NAudio\NAudio\bin\Release\NAudio.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
@@ -88,7 +91,6 @@
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
     <Content Include="Sounds\Clack 1.wav" />
-    <None Include="Sounds\Clack 8.wav" />
     <None Include="Sounds\Clack 2.wav" />
     <None Include="Sounds\Clack 3.wav" />
     <None Include="Sounds\Clack 4.wav" />
@@ -102,7 +104,6 @@
     <None Include="Sounds\Click 4.wav" />
     <None Include="Sounds\Click 3.wav" />
     <None Include="Sounds\Click 2.wav" />
-    <None Include="Sounds\Click 8.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

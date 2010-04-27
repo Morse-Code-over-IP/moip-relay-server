@@ -6,36 +6,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.DirectX.DirectSound;
+
+using NAudio.Wave;
+using NAudio.CoreAudioApi;
 
 namespace com.dc3.morse
 {
     class DxSounder
     {
-        private Device _deviceSound;
 		private int _sounder;
 		private int _ditMs;
 
-		private BufferDescription _bufDescClick;
-		private BufferDescription _bufDescClack;
-		private Microsoft.DirectX.DirectSound.Buffer _bufClick;
-		private Microsoft.DirectX.DirectSound.Buffer _bufClack;
+		private WaveOut _waveOut;
 
 		public DxSounder(System.Windows.Forms.Control Handle)
 		{
 			_ditMs = 80;
-
-			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
-			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
-
-			_bufDescClick = new BufferDescription();
-			_bufDescClick.ControlEffects = false;								// Necessary because .wav file is so short (typ.)
-			_bufDescClick.GlobalFocus = true;									// Enable audio when program is in background (typ.)
-
-			_bufDescClack = new BufferDescription();
-			_bufDescClack.ControlEffects = false;
-			_bufDescClack.GlobalFocus = true;
-
 			this.Sounder = 1;													// Default to sounder #1
 		}
 		
@@ -50,37 +36,37 @@ namespace com.dc3.morse
 				if (value < 1 || value > 7)
 					throw new ApplicationException("Sounder number out of range");
 				_sounder = value;
-				switch (value)
-				{
-					case 1:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_1, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_1, _bufDescClack, _deviceSound);
-						break;
-					case 2:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_2, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_2, _bufDescClack, _deviceSound);
-						break;
-					case 3:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_3, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_3, _bufDescClack, _deviceSound);
-						break;
-					case 4:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_4, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_4, _bufDescClack, _deviceSound);
-						break;
-					case 5:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_5, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_5, _bufDescClack, _deviceSound);
-						break;
-					case 6:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_6, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_6, _bufDescClack, _deviceSound);
-						break;
-					case 7:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_7, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_7, _bufDescClack, _deviceSound);
-						break;
-				}
+				//switch (value)
+				//{
+				//    case 1:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_1, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_1, _bufDescClack, _deviceSound);
+				//        break;
+				//    case 2:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_2, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_2, _bufDescClack, _deviceSound);
+				//        break;
+				//    case 3:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_3, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_3, _bufDescClack, _deviceSound);
+				//        break;
+				//    case 4:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_4, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_4, _bufDescClack, _deviceSound);
+				//        break;
+				//    case 5:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_5, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_5, _bufDescClack, _deviceSound);
+				//        break;
+				//    case 6:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_6, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_6, _bufDescClack, _deviceSound);
+				//        break;
+				//    case 7:
+				//        _bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_7, _bufDescClick, _deviceSound);
+				//        _bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_7, _bufDescClack, _deviceSound);
+				//        break;
+				//}
 			}
 		}
 
@@ -107,12 +93,12 @@ namespace com.dc3.morse
 
 		public void ClickClack(int ms)
 		{
-			_bufClick.SetCurrentPosition(0);
-			_bufClick.Play(0, BufferPlayFlags.Default);
-			Thread.Sleep(ms);
-			_bufClick.Stop();
-			_bufClack.SetCurrentPosition(0);
-			_bufClack.Play(0, BufferPlayFlags.Default);
+			//_bufClick.SetCurrentPosition(0);
+			//_bufClick.Play(0, BufferPlayFlags.Default);
+			//Thread.Sleep(ms);
+			//_bufClick.Stop();
+			//_bufClack.SetCurrentPosition(0);
+			//_bufClack.Play(0, BufferPlayFlags.Default);
 		}
     }
 }

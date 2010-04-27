@@ -151,7 +151,7 @@ namespace com.dc3
 		{
 			_toneFreq = (int)nudToneFreq.Value;
 			_dxTones.Frequency = _toneFreq;
-			_dxTones.Tone(100, false);
+			_dxTones.Tone(100);
 		}
 
 		private void nudSounder_ValueChanged(object sender, EventArgs e)
@@ -477,7 +477,7 @@ namespace com.dc3
 					else
 					{
 						if (_soundMode == SoundMode.Tone)
-							_dxTones.Tone(code[i], true);
+							_dxTones.Tone(code[i]);
 						else
 							_dxSounder.ClickClack(code[i]);
 					}
