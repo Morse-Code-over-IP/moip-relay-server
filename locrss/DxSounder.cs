@@ -17,7 +17,7 @@ namespace com.dc3.morse
 		private int _sounder;
 		private int _ditMs;
 
-		private WaveOut _waveOut;
+		//private WaveOut _waveOut;
 
 		public DxSounder(System.Windows.Forms.Control Handle)
 		{
