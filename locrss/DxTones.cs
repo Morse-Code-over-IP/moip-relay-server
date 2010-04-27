@@ -106,6 +106,11 @@ namespace com.dc3.morse
 			}
 		}
 
+		public void Stop()
+		{
+			_waveOut.Stop();
+		}
+
 		public int DitMilliseconds
 		{
 			get { return _ditMs; }

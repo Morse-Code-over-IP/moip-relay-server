@@ -76,6 +76,11 @@ namespace com.dc3.morse
 			set { _ditMs = value; }
 		}
 
+		public void Stop()
+		{
+			return;
+		}
+
 		public void Dit()
 		{
 			ClickClack(_ditMs);
