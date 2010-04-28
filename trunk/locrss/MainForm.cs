@@ -1,4 +1,31 @@
-﻿using System;
+﻿//tabs=4
+//-----------------------------------------------------------------------------
+// TITLE:		MainForm.cs
+//
+// FACILITY:	RSS to Morse tool
+//
+// ABSTRACT:	Reads news from Yahoo! RSS feeds and generates Morse code tones
+//				or telegraph sounds. This is the main form for the app.
+//
+// ENVIRONMENT:	Microsoft.NET 2.0/3.5
+//				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
+// SOUND OUTPUT: This version uses System.Media.SoundPlayer for sound output
+//				(see SpTones.cs and SpSounder.cs). TO change it to use Managed
+//				DirectX, remove SpTones.cs and SpSounder.cs from the project,
+//				add DxTones.cs and DxSounder.cs, then #define DIRECTX.
+//
+// AUTHOR:		Bob Denny, <rdenny@dc3.com>
+//
+// Edit Log:
+//
+// When			Who		What
+//----------	---		-------------------------------------------------------
+// ??-Apr-10	rbd		Initial editing and development
+// 28-Apr-10	rbd		1.1.0 Merge SoundPlayer support and make it the default.
+//
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -51,8 +78,13 @@ namespace com.dc3
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
-		private DxTones _dxTones;
-		private DxSounder _dxSounder;
+#if DIRECTX
+		private DxTones _tones;
+		private DxSounder _sounder;
+#else
+		private SpTones _tones;
+		private SpSounder _sounder;
+#endif
 		private DateTime _lastPollTime;
 		private SerialPort _serialPort;
 
@@ -95,10 +127,15 @@ namespace com.dc3
 			_titleExpireThread = new Thread(new ThreadStart(TitleExpireThread));
 			_titleExpireThread.Name = "Title Expiry";
 			_titleExpireThread.Start();
+#if DIRECTX
 			_dxTones = new DxTones(this, 1000);
-			_dxTones.Frequency = _toneFreq;
 			_dxSounder = new DxSounder(this);
-			_dxSounder.Sounder = _sounderNum;
+#else
+			_tones = new SpTones(1000);
+			_sounder = new SpSounder();
+#endif
+			_tones.Frequency = _toneFreq;
+			_sounder.Sounder = _sounderNum;
 
 			statBarLabel.Text = "Ready";
 			statBarCrawl.Text = "";
@@ -150,15 +187,15 @@ namespace com.dc3
 		private void nudToneFreq_ValueChanged(object sender, EventArgs e)
 		{
 			_toneFreq = (int)nudToneFreq.Value;
-			_dxTones.Frequency = _toneFreq;
-			_dxTones.Tone(100, false);
+			_tones.Frequency = _toneFreq;
+			_tones.Tone(100);
 		}
 
 		private void nudSounder_ValueChanged(object sender, EventArgs e)
 		{
 			_sounderNum = (int)nudSounder.Value;
-			_dxSounder.Sounder = (int)nudSounder.Value;
-			_dxSounder.ClickClack(100);
+			_sounder.Sounder = (int)nudSounder.Value;
+			_sounder.ClickClack(100);
 		}
 
 		private void nudSerialPort_ValueChanged(object sender, EventArgs e)
@@ -477,9 +514,9 @@ namespace com.dc3
 					else
 					{
 						if (_soundMode == SoundMode.Tone)
-							_dxTones.Tone(code[i], true);
+							_tones.Tone(code[i]);
 						else
-							_dxSounder.ClickClack(code[i]);
+							_sounder.ClickClack(code[i]);
 					}
 				}
 				else

@@ -44,8 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DxSounder.cs" />
-    <Compile Include="DxTones.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,6 +76,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="SpSounder.cs" />
+    <Compile Include="SpTones.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\morse\morse.csproj">

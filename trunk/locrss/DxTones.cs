@@ -1,5 +1,24 @@
+//tabs=4
+//-----------------------------------------------------------------------------
+// TITLE:		DxTones.cs
 //
+// FACILITY:	RSS to Morse tool
+//
+// ABSTRACT:	Generates radio tone sounds via Managed DirectX. This is
+//				no longer used, see SpTones.cs.
+//
+// ENVIRONMENT:	Microsoft.NET 2.0/3.5
+//				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
+// AUTHOR:		Bob Denny, <rdenny@dc3.com>
+//
+// Edit Log:
+//
+// When			Who		What
+//----------	---		-------------------------------------------------------
 // 22-Apr-10	rbd		Play tones of arbitrary length
+// 28-Apr-10	rbd		Remove sync parameter from Tone()
 //
 using System;
 using System.Collections.Generic;
@@ -137,12 +156,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			Tone(_ditMs, true);
+			Tone(_ditMs);
 		}
 
 		public void Dah()
 		{
-			Tone(_ditMs * 3, true);
+			Tone(_ditMs * 3);
 		}
 
 		public void Space()
@@ -150,11 +169,11 @@ namespace com.dc3.morse
 			Thread.Sleep(_ditMs);
 		}
 
-		public void Tone(int ms, bool sync)
+		public void Tone(int ms)
 		{
 			_secBuf.SetCurrentPosition((_sampleRate * (_maxLen - ms)) * 2 / 1000);
 			_secBuf.Play(0, BufferPlayFlags.Default);
-			if (sync) Thread.Sleep(ms);
+			Thread.Sleep(ms);
 		}
     }
 }
