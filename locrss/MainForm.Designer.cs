@@ -1,4 +1,4 @@
-﻿namespace com.dc3
+namespace com.dc3
 {
 	partial class MainForm
 	{
@@ -94,7 +94,11 @@
 			this.statBarCrawl.AutoSize = false;
 			this.statBarCrawl.BackColor = System.Drawing.Color.Black;
 			this.statBarCrawl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+#if MONO_BUILD
+			this.statBarCrawl.Font = new System.Drawing.Font("Monaco", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+#else
 			this.statBarCrawl.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+#endif			
 			this.statBarCrawl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
 			this.statBarCrawl.Name = "statBarCrawl";
 			this.statBarCrawl.Size = new System.Drawing.Size(258, 17);

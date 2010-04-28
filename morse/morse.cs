@@ -39,6 +39,9 @@
 // 15-Apr-10	rbd		0.7.2 - If UnknownChar delegate is active (caller is 
 //						being told of unknowns), don't send error code to
 //						MorseMail and CwCom, instead just a blank.
+// 28-Apr-10			1.1.0 - Mono exclusion for Unicode open and close double
+//						quotes, they appear same to Mono, resulting in a 
+//						duplicate key exception in ctor.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -309,8 +312,10 @@ namespace com.dc3.morse
 			{ '(', "....._-." },
 			{ ')', "....._.._.." },
 			{ '\'', "..-._.-.." },
-			{ '“', "..-._-." },		// Open/Left double quote
-			{ '”', "..-._-.-." },	// Close/Right double quote
+#if !MONO_BUILD			
+//			{ '“', "..-._-." },		// Open/Left double quote
+//			{ '”', "..-._-.-." },	// Close/Right double quote
+#endif
 			{ '"', "..-._-." },		// Plain quote -> Open/Left double quote
 			{ '[', "-..._.-.." },	// Same for L/R bracket
 			{ ']', "-..._.-.." },
@@ -377,8 +382,10 @@ namespace com.dc3.morse
 			{ '(', true },
 			{ ')', true },
 			{ '\'', true },
+#if !MONO_BUILD
 			{ '“', true },
 			{ '”', true },
+#endif
 			{ '"', true },
 			{ '[', true },
 			{ ']', true },
