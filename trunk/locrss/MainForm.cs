@@ -1,4 +1,4 @@
-﻿//tabs=4
+//tabs=4
 //-----------------------------------------------------------------------------
 // TITLE:		MainForm.cs
 //
@@ -24,6 +24,8 @@
 //----------	---		-------------------------------------------------------
 // ??-Apr-10	rbd		Initial editing and development
 // 28-Apr-10	rbd		1.1.0 Merge SoundPlayer support and make it the default.
+//					For Mono, do not include null as first param to 
+//					MessageBox.Show()
 //
 using System;
 using System.Collections.Generic;
@@ -252,7 +254,11 @@ namespace com.dc3
 			try
 			{
 				btnTestSerial.Enabled = false;
+#if MONO_BUILD
+				SerialPort S = new SerialPort("/dev/tty.serial" + _serialPortNum.ToString());
+#else
 				SerialPort S = new SerialPort("COM" + _serialPortNum.ToString());
+#endif
 				S.Open();
 				S.DtrEnable = true;
 				for (int i = 0; i < 4; i++)
@@ -264,11 +270,11 @@ namespace com.dc3
 				}
 				S.DtrEnable = false;
 				S.Close();
-				MessageBox.Show(null, "Test complete, 4 dits sent.", "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				MessageBox.Show("Test complete, 4 dits sent.", "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show(null, ex.Message, "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				MessageBox.Show(ex.Message, "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 			}
 			btnTestSerial.Enabled = true;
 		}
@@ -277,7 +283,7 @@ namespace com.dc3
 		private void btnClearCache_Click(object sender, EventArgs e)
 		{
 			TitleExpire();
-			MessageBox.Show(null, "Seen stories have been forgotten", "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show("Seen stories have been forgotten", "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
 		private void UpdateUI()
@@ -539,7 +545,11 @@ namespace com.dc3
 
 				if (_useSerial)
 				{
+#if MONO_BUILD
+					_serialPort = new SerialPort("/dev/tty.serial" + _serialPortNum.ToString());
+#else
 					_serialPort = new SerialPort("COM" + _serialPortNum.ToString());
+#endif
 					_serialPort.Open();
 					_serialPort.DtrEnable = true;
 				}
@@ -670,7 +680,7 @@ namespace com.dc3
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show(null, ex.Message, "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				MessageBox.Show(ex.Message, "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				return;
 			}
 		}
