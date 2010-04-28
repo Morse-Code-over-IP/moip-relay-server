@@ -1,0 +1,5 @@
+Top News|http://rss.news.yahoo.com/rss/topstories
+Tech News|http://rss.news.yahoo.com/rss/tech
+Business News|http://rss.news.yahoo.com/rss/business
+Science News|http://rss.news.yahoo.com/rss/science
+Weird News|http://rss.news.yahoo.com/rss/oddlyenough
