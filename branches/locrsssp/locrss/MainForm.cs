@@ -51,8 +51,8 @@ namespace com.dc3
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
-		private DxTones _dxTones;
-		private DxSounder _dxSounder;
+		private SpTones _dxTones;
+		private SpSounder _dxSounder;
 		private DateTime _lastPollTime;
 		private SerialPort _serialPort;
 
@@ -95,9 +95,9 @@ namespace com.dc3
 			_titleExpireThread = new Thread(new ThreadStart(TitleExpireThread));
 			_titleExpireThread.Name = "Title Expiry";
 			_titleExpireThread.Start();
-			_dxTones = new DxTones(this, 1000);
+			_dxTones = new SpTones(1000);
 			_dxTones.Frequency = _toneFreq;
-			_dxSounder = new DxSounder(this);
+			_dxSounder = new SpSounder();
 			_dxSounder.Sounder = _sounderNum;
 
 			statBarLabel.Text = "Ready";
@@ -151,7 +151,7 @@ namespace com.dc3
 		{
 			_toneFreq = (int)nudToneFreq.Value;
 			_dxTones.Frequency = _toneFreq;
-			_dxTones.Tone(100, false);
+			_dxTones.Tone(100);
 		}
 
 		private void nudSounder_ValueChanged(object sender, EventArgs e)
@@ -477,7 +477,7 @@ namespace com.dc3
 					else
 					{
 						if (_soundMode == SoundMode.Tone)
-							_dxTones.Tone(code[i], true);
+							_dxTones.Tone(code[i]);
 						else
 							_dxSounder.ClickClack(code[i]);
 					}
