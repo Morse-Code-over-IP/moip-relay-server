@@ -36,7 +36,6 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
@@ -44,8 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DxSounder.cs" />
-    <Compile Include="DxTones.cs" />
+    <Compile Include="SpSounder.cs" />
+    <Compile Include="SpTones.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
