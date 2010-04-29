@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "RSS Morse"
-#define MyAppVerName "RSS Morse 1.1"
+#define MyAppVerName "RSS Morse 1.2"
 #define MyAppPublisher "Robert B. Denny"
 #define MyAppURL "https://sourceforge.net/projects/morse-rss-news/"
 #define MyAppExeName "RSSMorse.exe"
@@ -21,7 +21,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=D:\dev\misc\MorseTools\locrss\Setup
-OutputBaseFilename=RSSMorse(1.1)Setup
+OutputBaseFilename=RSSMorse(1.2)Setup
 SetupIconFile=D:\dev\misc\MorseTools\locrss\Resources\AppIcon.ico
 Compression=lzma
 SolidCompression=yes
@@ -41,7 +41,7 @@ Source: "D:\dev\misc\MorseTools\locrss\doc\*"; DestDir: "{app}\doc"; Flags: igno
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\RSS Morse Help"; Filename: "{app}\doc\index.html"
+Name: "{group}\RSS Morse Help"; Filename: "{app}\doc\index.html"; IconFilename: "{app}\doc\Help.ico"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
