@@ -51,16 +51,19 @@ namespace com.dc3
 			this.rbSounder = new System.Windows.Forms.RadioButton();
 			this.rbTone = new System.Windows.Forms.RadioButton();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
-			this.btnTestSerial = new System.Windows.Forms.Button();
+			this.picTestSerial = new System.Windows.Forms.PictureBox();
 			this.chkUseSerial = new System.Windows.Forms.CheckBox();
 			this.label6 = new System.Windows.Forms.Label();
 			this.nudSerialPort = new System.Windows.Forms.NumericUpDown();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
 			this.btnClearCache = new System.Windows.Forms.Button();
+			this.llHelp = new System.Windows.Forms.LinkLabel();
+			this.picHelp = new System.Windows.Forms.PictureBox();
+			this.picRSS = new System.Windows.Forms.PictureBox();
+			this.llRSSFeeds = new System.Windows.Forms.LinkLabel();
 			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
 			this.nudStoryAge = new System.Windows.Forms.NumericUpDown();
 			this.nudPollInterval = new System.Windows.Forms.NumericUpDown();
-			this.llHelp = new System.Windows.Forms.LinkLabel();
 			this.statusStrip1.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudTimingComp)).BeginInit();
@@ -69,7 +72,10 @@ namespace com.dc3
 			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).BeginInit();
 			this.groupBox3.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.picTestSerial)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.picHelp)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.picRSS)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudStoryAge)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudPollInterval)).BeginInit();
 			this.SuspendLayout();
@@ -335,7 +341,7 @@ namespace com.dc3
 			// 
 			// groupBox3
 			// 
-			this.groupBox3.Controls.Add(this.btnTestSerial);
+			this.groupBox3.Controls.Add(this.picTestSerial);
 			this.groupBox3.Controls.Add(this.chkUseSerial);
 			this.groupBox3.Controls.Add(this.label6);
 			this.groupBox3.Controls.Add(this.nudSerialPort);
@@ -346,15 +352,18 @@ namespace com.dc3
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Ext Sounder";
 			// 
-			// btnTestSerial
+			// picTestSerial
 			// 
-			this.btnTestSerial.Location = new System.Drawing.Point(63, 45);
-			this.btnTestSerial.Name = "btnTestSerial";
-			this.btnTestSerial.Size = new System.Drawing.Size(17, 17);
-			this.btnTestSerial.TabIndex = 2;
-			this.toolTip.SetToolTip(this.btnTestSerial, "Test the serial port and sounder");
-			this.btnTestSerial.UseVisualStyleBackColor = true;
-			this.btnTestSerial.Click += new System.EventHandler(this.btnTestSerial_Click);
+			this.picTestSerial.Cursor = System.Windows.Forms.Cursors.Hand;
+			this.picTestSerial.Image = ((System.Drawing.Image)(resources.GetObject("picTestSerial.Image")));
+			this.picTestSerial.Location = new System.Drawing.Point(62, 46);
+			this.picTestSerial.Name = "picTestSerial";
+			this.picTestSerial.Size = new System.Drawing.Size(18, 18);
+			this.picTestSerial.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+			this.picTestSerial.TabIndex = 17;
+			this.picTestSerial.TabStop = false;
+			this.toolTip.SetToolTip(this.picTestSerial, "Click to send 4 dots to the sounder");
+			this.picTestSerial.Click += new System.EventHandler(this.picTestSerial_Click);
 			// 
 			// chkUseSerial
 			// 
@@ -362,7 +371,7 @@ namespace com.dc3
 			this.chkUseSerial.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.chkUseSerial.Checked = global::com.dc3.Properties.Settings.Default.UseSerial;
 			this.chkUseSerial.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::com.dc3.Properties.Settings.Default, "UseSerial", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.chkUseSerial.Location = new System.Drawing.Point(10, 46);
+			this.chkUseSerial.Location = new System.Drawing.Point(10, 47);
 			this.chkUseSerial.Name = "chkUseSerial";
 			this.chkUseSerial.Size = new System.Drawing.Size(45, 17);
 			this.chkUseSerial.TabIndex = 1;
@@ -406,6 +415,58 @@ namespace com.dc3
 			this.toolTip.SetToolTip(this.btnClearCache, "Clear the \"seen story\" cache now");
 			this.btnClearCache.UseVisualStyleBackColor = true;
 			this.btnClearCache.Click += new System.EventHandler(this.btnClearCache_Click);
+			// 
+			// llHelp
+			// 
+			this.llHelp.AutoSize = true;
+			this.llHelp.Location = new System.Drawing.Point(328, 183);
+			this.llHelp.Name = "llHelp";
+			this.llHelp.Size = new System.Drawing.Size(46, 13);
+			this.llHelp.TabIndex = 12;
+			this.llHelp.TabStop = true;
+			this.llHelp.Text = "Help me";
+			this.toolTip.SetToolTip(this.llHelp, "Click to see RSS Morse help");
+			this.llHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llHelp_LinkClicked);
+			// 
+			// picHelp
+			// 
+			this.picHelp.Cursor = System.Windows.Forms.Cursors.Hand;
+			this.picHelp.Image = ((System.Drawing.Image)(resources.GetObject("picHelp.Image")));
+			this.picHelp.InitialImage = null;
+			this.picHelp.Location = new System.Drawing.Point(306, 183);
+			this.picHelp.Name = "picHelp";
+			this.picHelp.Size = new System.Drawing.Size(16, 16);
+			this.picHelp.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+			this.picHelp.TabIndex = 13;
+			this.picHelp.TabStop = false;
+			this.toolTip.SetToolTip(this.picHelp, "Click to see RSS Morse help");
+			this.picHelp.Click += new System.EventHandler(this.picHelp_Click);
+			// 
+			// picRSS
+			// 
+			this.picRSS.Cursor = System.Windows.Forms.Cursors.Hand;
+			this.picRSS.Image = ((System.Drawing.Image)(resources.GetObject("picRSS.Image")));
+			this.picRSS.InitialImage = null;
+			this.picRSS.Location = new System.Drawing.Point(306, 160);
+			this.picRSS.Name = "picRSS";
+			this.picRSS.Size = new System.Drawing.Size(16, 17);
+			this.picRSS.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+			this.picRSS.TabIndex = 15;
+			this.picRSS.TabStop = false;
+			this.toolTip.SetToolTip(this.picRSS, "Click to see Yahoo! RSS Feeds");
+			this.picRSS.Click += new System.EventHandler(this.picRSS_Click);
+			// 
+			// llRSSFeeds
+			// 
+			this.llRSSFeeds.AutoSize = true;
+			this.llRSSFeeds.Location = new System.Drawing.Point(328, 162);
+			this.llRSSFeeds.Name = "llRSSFeeds";
+			this.llRSSFeeds.Size = new System.Drawing.Size(58, 13);
+			this.llRSSFeeds.TabIndex = 14;
+			this.llRSSFeeds.TabStop = true;
+			this.llRSSFeeds.Text = "RSS feeds";
+			this.toolTip.SetToolTip(this.llRSSFeeds, "Click to see Yahoo! RSS Feeds");
+			this.llRSSFeeds.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llRSSFeeds_LinkClicked);
 			// 
 			// cbFeedUrl
 			// 
@@ -457,7 +518,7 @@ namespace com.dc3
             0,
             0});
 			this.nudPollInterval.Minimum = new decimal(new int[] {
-            5,
+            2,
             0,
             0,
             0});
@@ -468,22 +529,14 @@ namespace com.dc3
 			this.nudPollInterval.Value = global::com.dc3.Properties.Settings.Default.PollInterval;
 			this.nudPollInterval.ValueChanged += new System.EventHandler(this.nudPollInterval_ValueChanged);
 			// 
-			// llHelp
-			// 
-			this.llHelp.AutoSize = true;
-			this.llHelp.Location = new System.Drawing.Point(301, 172);
-			this.llHelp.Name = "llHelp";
-			this.llHelp.Size = new System.Drawing.Size(87, 13);
-			this.llHelp.TabIndex = 12;
-			this.llHelp.TabStop = true;
-			this.llHelp.Text = "Help me with this";
-			this.llHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llHelp_LinkClicked);
-			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(410, 275);
+			this.Controls.Add(this.picRSS);
+			this.Controls.Add(this.llRSSFeeds);
+			this.Controls.Add(this.picHelp);
 			this.Controls.Add(this.llHelp);
 			this.Controls.Add(this.btnClearCache);
 			this.Controls.Add(this.groupBox3);
@@ -502,7 +555,7 @@ namespace com.dc3
 			this.MinimizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "RSS to Morse";
+			this.Text = "RSS to Morse V1.2";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.statusStrip1.ResumeLayout(false);
@@ -517,7 +570,10 @@ namespace com.dc3
 			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).EndInit();
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox3.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.picTestSerial)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.picHelp)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.picRSS)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudStoryAge)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudPollInterval)).EndInit();
 			this.ResumeLayout(false);
@@ -553,11 +609,14 @@ namespace com.dc3
 		private System.Windows.Forms.NumericUpDown nudSerialPort;
 		private System.Windows.Forms.CheckBox chkUseSerial;
 		private System.Windows.Forms.ToolTip toolTip;
-		private System.Windows.Forms.Button btnTestSerial;
 		private System.Windows.Forms.Button btnClearCache;
 		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.NumericUpDown nudTimingComp;
 		private System.Windows.Forms.LinkLabel llHelp;
+		private System.Windows.Forms.PictureBox picHelp;
+		private System.Windows.Forms.PictureBox picRSS;
+		private System.Windows.Forms.LinkLabel llRSSFeeds;
+		private System.Windows.Forms.PictureBox picTestSerial;
 	}
 }
 

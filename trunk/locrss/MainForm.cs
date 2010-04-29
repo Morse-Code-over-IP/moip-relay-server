@@ -257,11 +257,11 @@ namespace com.dc3
 			UpdateUI();
 		}
 
-		private void btnTestSerial_Click(object sender, EventArgs e)
+		private void picTestSerial_Click(object sender, EventArgs e)
 		{
 			try
 			{
-				btnTestSerial.Enabled = false;
+				picTestSerial.Enabled = false;
 #if MONO_BUILD
 				SerialPort S = new SerialPort("/dev/tty.serial" + _serialPortNum.ToString());
 #else
@@ -284,7 +284,7 @@ namespace com.dc3
 			{
 				MessageBox.Show(ex.Message, "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 			}
-			btnTestSerial.Enabled = true;
+			picTestSerial.Enabled = true;
 		}
 
 
@@ -297,6 +297,21 @@ namespace com.dc3
 		private void llHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
+		}
+
+		private void picHelp_Click(object sender, EventArgs e)
+		{
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
+		}
+
+		private void llRSSFeeds_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			System.Diagnostics.Process.Start("http://news.yahoo.com/page/rss");
+		}
+
+		private void picRSS_Click(object sender, EventArgs e)
+		{
+			System.Diagnostics.Process.Start("http://news.yahoo.com/page/rss");
 		}
 
 		private void UpdateUI()
@@ -312,7 +327,7 @@ namespace com.dc3
 			chkUseSerial.Enabled = enable;
 			rbAmerican.Enabled = enable;
 			rbInternational.Enabled = enable;
-			btnTestSerial.Enabled = enable & !chkUseSerial.Checked;
+			picTestSerial.Enabled = enable & !chkUseSerial.Checked;
 
 			enable = enable & !_useSerial;
 			nudSounder.Enabled = enable & rbSounder.Checked;
@@ -597,6 +612,9 @@ namespace com.dc3
 						stories.Add(ni);
 					}
 
+					if (stories.Count == 0)
+						throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
+
 					//
 					// Create a list of strings which are the final messages to be send in Morse
 					//
@@ -610,6 +628,9 @@ namespace com.dc3
 								continue;												// Recently sent, skip
 						}
 
+						// ?? SHOULD I DO THIS ??
+						//if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))
+						//    continue;
 						//
 						// May be headline-only article, or a weird feed where the detail is much
 						// shorter than the title (Quote of the day, title is quote, detail is author)
@@ -696,5 +717,6 @@ namespace com.dc3
 				return;
 			}
 		}
+
 	}
 }

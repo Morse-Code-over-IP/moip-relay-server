@@ -49,7 +49,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("60")]
+        [global::System.Configuration.DefaultSettingValueAttribute("120")]
         public decimal StoryAge {
             get {
                 return ((decimal)(this["StoryAge"]));
@@ -126,6 +126,9 @@ namespace com.dc3.Properties {
   <string>http://rss.news.yahoo.com/rss/topstories</string>
   <string>http://rss.news.yahoo.com/rss/science</string>
   <string>http://rss.news.yahoo.com/rss/business</string>
+  <string>http://rss.news.yahoo.com/rss/tech</string>
+  <string>http://rss.news.yahoo.com/rss/oped</string>
+  <string>http://rss.news.yahoo.com/rss/oddlyenough</string>
   <string>http://solo.dc3.com/rss/top100words.asp</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection LRU {

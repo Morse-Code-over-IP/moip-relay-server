@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
+    <None Include="help.png" />
     <Content Include="Sounds\Clack 1.wav" />
     <None Include="Sounds\Clack 8.wav" />
     <None Include="Sounds\Clack 2.wav" />
