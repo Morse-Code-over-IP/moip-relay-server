@@ -35,6 +35,8 @@ namespace com.dc3
 			this.statBarCrawl = new System.Windows.Forms.ToolStripStatusLabel();
 			this.label1 = new System.Windows.Forms.Label();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
+			this.label7 = new System.Windows.Forms.Label();
+			this.nudTimingComp = new System.Windows.Forms.NumericUpDown();
 			this.label3 = new System.Windows.Forms.Label();
 			this.nudCodeSpeed = new System.Windows.Forms.NumericUpDown();
 			this.rbAmerican = new System.Windows.Forms.RadioButton();
@@ -54,12 +56,14 @@ namespace com.dc3
 			this.label6 = new System.Windows.Forms.Label();
 			this.nudSerialPort = new System.Windows.Forms.NumericUpDown();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.btnClearCache = new System.Windows.Forms.Button();
 			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
 			this.nudStoryAge = new System.Windows.Forms.NumericUpDown();
 			this.nudPollInterval = new System.Windows.Forms.NumericUpDown();
-			this.btnClearCache = new System.Windows.Forms.Button();
+			this.llHelp = new System.Windows.Forms.LinkLabel();
 			this.statusStrip1.SuspendLayout();
 			this.groupBox1.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.nudTimingComp)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).BeginInit();
 			this.groupBox2.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).BeginInit();
@@ -75,7 +79,7 @@ namespace com.dc3
 			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statBarLabel,
             this.statBarCrawl});
-			this.statusStrip1.Location = new System.Drawing.Point(0, 246);
+			this.statusStrip1.Location = new System.Drawing.Point(0, 253);
 			this.statusStrip1.Name = "statusStrip1";
 			this.statusStrip1.Size = new System.Drawing.Size(410, 22);
 			this.statusStrip1.SizingGrip = false;
@@ -94,11 +98,7 @@ namespace com.dc3
 			this.statBarCrawl.AutoSize = false;
 			this.statBarCrawl.BackColor = System.Drawing.Color.Black;
 			this.statBarCrawl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-#if MONO_BUILD
-			this.statBarCrawl.Font = new System.Drawing.Font("Monaco", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-#else
 			this.statBarCrawl.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-#endif			
 			this.statBarCrawl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
 			this.statBarCrawl.Name = "statBarCrawl";
 			this.statBarCrawl.Size = new System.Drawing.Size(258, 17);
@@ -115,6 +115,8 @@ namespace com.dc3
 			// 
 			// groupBox1
 			// 
+			this.groupBox1.Controls.Add(this.label7);
+			this.groupBox1.Controls.Add(this.nudTimingComp);
 			this.groupBox1.Controls.Add(this.label3);
 			this.groupBox1.Controls.Add(this.nudCodeSpeed);
 			this.groupBox1.Controls.Add(this.rbAmerican);
@@ -126,10 +128,35 @@ namespace com.dc3
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Morse Code";
 			// 
+			// label7
+			// 
+			this.label7.AutoSize = true;
+			this.label7.Location = new System.Drawing.Point(101, 44);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(90, 13);
+			this.label7.TabIndex = 13;
+			this.label7.Text = "Timing Comp (ms)";
+			// 
+			// nudTimingComp
+			// 
+			this.nudTimingComp.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "TimingComp", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudTimingComp.Location = new System.Drawing.Point(195, 42);
+			this.nudTimingComp.Maximum = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+			this.nudTimingComp.Name = "nudTimingComp";
+			this.nudTimingComp.Size = new System.Drawing.Size(51, 20);
+			this.nudTimingComp.TabIndex = 1;
+			this.toolTip.SetToolTip(this.nudTimingComp, "Increase to tighten up space between mark symbols");
+			this.nudTimingComp.Value = global::com.dc3.Properties.Settings.Default.TimingComp;
+			this.nudTimingComp.ValueChanged += new System.EventHandler(this.nudTimingComp_ValueChanged);
+			// 
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(119, 33);
+			this.label3.Location = new System.Drawing.Point(118, 21);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(74, 13);
 			this.label3.TabIndex = 11;
@@ -138,10 +165,20 @@ namespace com.dc3
 			// nudCodeSpeed
 			// 
 			this.nudCodeSpeed.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "CodeSpeed", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudCodeSpeed.Location = new System.Drawing.Point(196, 31);
+			this.nudCodeSpeed.Location = new System.Drawing.Point(195, 19);
+			this.nudCodeSpeed.Maximum = new decimal(new int[] {
+            35,
+            0,
+            0,
+            0});
+			this.nudCodeSpeed.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
 			this.nudCodeSpeed.Name = "nudCodeSpeed";
 			this.nudCodeSpeed.Size = new System.Drawing.Size(51, 20);
-			this.nudCodeSpeed.TabIndex = 10;
+			this.nudCodeSpeed.TabIndex = 0;
 			this.toolTip.SetToolTip(this.nudCodeSpeed, "Code speed, words per minute");
 			this.nudCodeSpeed.Value = global::com.dc3.Properties.Settings.Default.CodeSpeed;
 			this.nudCodeSpeed.ValueChanged += new System.EventHandler(this.nudCodeSpeed_ValueChanged);
@@ -192,10 +229,10 @@ namespace com.dc3
 			// 
 			// btnStartStop
 			// 
-			this.btnStartStop.Location = new System.Drawing.Point(298, 186);
+			this.btnStartStop.Location = new System.Drawing.Point(298, 209);
 			this.btnStartStop.Name = "btnStartStop";
 			this.btnStartStop.Size = new System.Drawing.Size(95, 27);
-			this.btnStartStop.TabIndex = 12;
+			this.btnStartStop.TabIndex = 7;
 			this.btnStartStop.Text = "Start";
 			this.btnStartStop.UseVisualStyleBackColor = true;
 			this.btnStartStop.Click += new System.EventHandler(this.btnStartStop_Click);
@@ -209,15 +246,15 @@ namespace com.dc3
 			this.groupBox2.Controls.Add(this.rbTone);
 			this.groupBox2.Location = new System.Drawing.Point(16, 160);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(263, 69);
-			this.groupBox2.TabIndex = 13;
+			this.groupBox2.Size = new System.Drawing.Size(263, 75);
+			this.groupBox2.TabIndex = 4;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Sound Output";
 			// 
 			// nudSounder
 			// 
 			this.nudSounder.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SounderNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudSounder.Location = new System.Drawing.Point(196, 42);
+			this.nudSounder.Location = new System.Drawing.Point(196, 43);
 			this.nudSounder.Maximum = new decimal(new int[] {
             7,
             0,
@@ -230,7 +267,7 @@ namespace com.dc3
             0});
 			this.nudSounder.Name = "nudSounder";
 			this.nudSounder.Size = new System.Drawing.Size(50, 20);
-			this.nudSounder.TabIndex = 13;
+			this.nudSounder.TabIndex = 1;
 			this.toolTip.SetToolTip(this.nudSounder, "Sounder type - change to hear sample");
 			this.nudSounder.Value = global::com.dc3.Properties.Settings.Default.SounderNumber;
 			this.nudSounder.ValueChanged += new System.EventHandler(this.nudSounder_ValueChanged);
@@ -238,7 +275,7 @@ namespace com.dc3
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(115, 21);
+			this.label4.Location = new System.Drawing.Point(115, 22);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(78, 13);
 			this.label4.TabIndex = 12;
@@ -252,7 +289,7 @@ namespace com.dc3
             0,
             0,
             0});
-			this.nudToneFreq.Location = new System.Drawing.Point(196, 19);
+			this.nudToneFreq.Location = new System.Drawing.Point(196, 20);
 			this.nudToneFreq.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -265,7 +302,7 @@ namespace com.dc3
             0});
 			this.nudToneFreq.Name = "nudToneFreq";
 			this.nudToneFreq.Size = new System.Drawing.Size(51, 20);
-			this.nudToneFreq.TabIndex = 11;
+			this.nudToneFreq.TabIndex = 0;
 			this.toolTip.SetToolTip(this.nudToneFreq, "Tone frequency - change to hear sample");
 			this.nudToneFreq.Value = global::com.dc3.Properties.Settings.Default.ToneFreq;
 			this.nudToneFreq.ValueChanged += new System.EventHandler(this.nudToneFreq_ValueChanged);
@@ -273,7 +310,7 @@ namespace com.dc3
 			// rbSounder
 			// 
 			this.rbSounder.AutoSize = true;
-			this.rbSounder.Location = new System.Drawing.Point(16, 42);
+			this.rbSounder.Location = new System.Drawing.Point(16, 43);
 			this.rbSounder.Name = "rbSounder";
 			this.rbSounder.Size = new System.Drawing.Size(153, 17);
 			this.rbSounder.TabIndex = 1;
@@ -286,7 +323,7 @@ namespace com.dc3
 			// rbTone
 			// 
 			this.rbTone.AutoSize = true;
-			this.rbTone.Location = new System.Drawing.Point(16, 19);
+			this.rbTone.Location = new System.Drawing.Point(16, 20);
 			this.rbTone.Name = "rbTone";
 			this.rbTone.Size = new System.Drawing.Size(81, 17);
 			this.rbTone.TabIndex = 0;
@@ -305,7 +342,7 @@ namespace com.dc3
 			this.groupBox3.Location = new System.Drawing.Point(298, 79);
 			this.groupBox3.Name = "groupBox3";
 			this.groupBox3.Size = new System.Drawing.Size(95, 69);
-			this.groupBox3.TabIndex = 15;
+			this.groupBox3.TabIndex = 6;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Ext Sounder";
 			// 
@@ -314,7 +351,7 @@ namespace com.dc3
 			this.btnTestSerial.Location = new System.Drawing.Point(63, 45);
 			this.btnTestSerial.Name = "btnTestSerial";
 			this.btnTestSerial.Size = new System.Drawing.Size(17, 17);
-			this.btnTestSerial.TabIndex = 14;
+			this.btnTestSerial.TabIndex = 2;
 			this.toolTip.SetToolTip(this.btnTestSerial, "Test the serial port and sounder");
 			this.btnTestSerial.UseVisualStyleBackColor = true;
 			this.btnTestSerial.Click += new System.EventHandler(this.btnTestSerial_Click);
@@ -328,7 +365,7 @@ namespace com.dc3
 			this.chkUseSerial.Location = new System.Drawing.Point(10, 46);
 			this.chkUseSerial.Name = "chkUseSerial";
 			this.chkUseSerial.Size = new System.Drawing.Size(45, 17);
-			this.chkUseSerial.TabIndex = 13;
+			this.chkUseSerial.TabIndex = 1;
 			this.chkUseSerial.Text = "Use";
 			this.toolTip.SetToolTip(this.chkUseSerial, "Disable sounds and use real sounder");
 			this.chkUseSerial.UseVisualStyleBackColor = true;
@@ -359,6 +396,17 @@ namespace com.dc3
 			this.nudSerialPort.Value = global::com.dc3.Properties.Settings.Default.SerialPort;
 			this.nudSerialPort.ValueChanged += new System.EventHandler(this.nudSerialPort_ValueChanged);
 			// 
+			// btnClearCache
+			// 
+			this.btnClearCache.Location = new System.Drawing.Point(298, 44);
+			this.btnClearCache.Name = "btnClearCache";
+			this.btnClearCache.Size = new System.Drawing.Size(95, 24);
+			this.btnClearCache.TabIndex = 5;
+			this.btnClearCache.Text = "Clear Cache";
+			this.toolTip.SetToolTip(this.btnClearCache, "Clear the \"seen story\" cache now");
+			this.btnClearCache.UseVisualStyleBackColor = true;
+			this.btnClearCache.Click += new System.EventHandler(this.btnClearCache_Click);
+			// 
 			// cbFeedUrl
 			// 
 			this.cbFeedUrl.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
@@ -368,7 +416,7 @@ namespace com.dc3
 			this.cbFeedUrl.Location = new System.Drawing.Point(74, 14);
 			this.cbFeedUrl.Name = "cbFeedUrl";
 			this.cbFeedUrl.Size = new System.Drawing.Size(319, 21);
-			this.cbFeedUrl.TabIndex = 14;
+			this.cbFeedUrl.TabIndex = 0;
 			this.cbFeedUrl.Text = global::com.dc3.Properties.Settings.Default.FeedURL;
 			this.toolTip.SetToolTip(this.cbFeedUrl, "RSS Feed URL - May be file or web feed");
 			this.cbFeedUrl.TextChanged += new System.EventHandler(this.cbFeedUrl_TextChanged);
@@ -394,7 +442,7 @@ namespace com.dc3
             0});
 			this.nudStoryAge.Name = "nudStoryAge";
 			this.nudStoryAge.Size = new System.Drawing.Size(52, 20);
-			this.nudStoryAge.TabIndex = 8;
+			this.nudStoryAge.TabIndex = 2;
 			this.toolTip.SetToolTip(this.nudStoryAge, "Don\'t re-send stories sent within this time");
 			this.nudStoryAge.Value = global::com.dc3.Properties.Settings.Default.StoryAge;
 			this.nudStoryAge.ValueChanged += new System.EventHandler(this.nudStoryAge_ValueChanged);
@@ -415,27 +463,28 @@ namespace com.dc3
             0});
 			this.nudPollInterval.Name = "nudPollInterval";
 			this.nudPollInterval.Size = new System.Drawing.Size(45, 20);
-			this.nudPollInterval.TabIndex = 4;
+			this.nudPollInterval.TabIndex = 1;
 			this.toolTip.SetToolTip(this.nudPollInterval, "Interval between checks of RSS feed for new stories");
 			this.nudPollInterval.Value = global::com.dc3.Properties.Settings.Default.PollInterval;
 			this.nudPollInterval.ValueChanged += new System.EventHandler(this.nudPollInterval_ValueChanged);
 			// 
-			// btnClearCache
+			// llHelp
 			// 
-			this.btnClearCache.Location = new System.Drawing.Point(298, 44);
-			this.btnClearCache.Name = "btnClearCache";
-			this.btnClearCache.Size = new System.Drawing.Size(95, 24);
-			this.btnClearCache.TabIndex = 16;
-			this.btnClearCache.Text = "Clear Cache";
-			this.toolTip.SetToolTip(this.btnClearCache, "Clear the \"seen story\" cache now");
-			this.btnClearCache.UseVisualStyleBackColor = true;
-			this.btnClearCache.Click += new System.EventHandler(this.btnClearCache_Click);
+			this.llHelp.AutoSize = true;
+			this.llHelp.Location = new System.Drawing.Point(301, 172);
+			this.llHelp.Name = "llHelp";
+			this.llHelp.Size = new System.Drawing.Size(87, 13);
+			this.llHelp.TabIndex = 12;
+			this.llHelp.TabStop = true;
+			this.llHelp.Text = "Help me with this";
+			this.llHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llHelp_LinkClicked);
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(410, 268);
+			this.ClientSize = new System.Drawing.Size(410, 275);
+			this.Controls.Add(this.llHelp);
 			this.Controls.Add(this.btnClearCache);
 			this.Controls.Add(this.groupBox3);
 			this.Controls.Add(this.cbFeedUrl);
@@ -460,6 +509,7 @@ namespace com.dc3
 			this.statusStrip1.PerformLayout();
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.nudTimingComp)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).EndInit();
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();
@@ -505,6 +555,9 @@ namespace com.dc3
 		private System.Windows.Forms.ToolTip toolTip;
 		private System.Windows.Forms.Button btnTestSerial;
 		private System.Windows.Forms.Button btnClearCache;
+		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.NumericUpDown nudTimingComp;
+		private System.Windows.Forms.LinkLabel llHelp;
 	}
 }
 
