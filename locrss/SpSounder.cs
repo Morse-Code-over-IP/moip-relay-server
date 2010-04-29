@@ -84,7 +84,7 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs);
+			Thread.Sleep(_ditMs - _startLatency);
 		}
 
 		//

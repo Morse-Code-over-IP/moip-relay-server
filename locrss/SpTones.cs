@@ -53,7 +53,7 @@ namespace com.dc3.morse
 			_duration = MaxLenMs;
 			_frequency = 640.0F;													// Defaults (typ.)
 			_amplitude = 0.3F;
-			_startLatency = 3;
+			_startLatency = 0;
 			_ditMs = 80;
 
 			data = GenTone(_frequency, _amplitude, _duration);
@@ -172,7 +172,7 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs);
+			Thread.Sleep(_ditMs - _startLatency);
 		}
 
 		//
@@ -192,7 +192,7 @@ namespace com.dc3.morse
 			_player.Stream = _wavStrm;
 			//_player.Load();
 			_player.Play();
-			Thread.Sleep(ms - _startLatency);
+			Thread.Sleep(ms);
 		}
     }
 }

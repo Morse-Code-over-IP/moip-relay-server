@@ -160,5 +160,17 @@ namespace com.dc3.Properties {
                 this["UseSerial"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public decimal TimingComp {
+            get {
+                return ((decimal)(this["TimingComp"]));
+            }
+            set {
+                this["TimingComp"] = value;
+            }
+        }
     }
 }

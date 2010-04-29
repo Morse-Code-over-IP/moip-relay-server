@@ -24,8 +24,10 @@
 //----------	---		-------------------------------------------------------
 // ??-Apr-10	rbd		Initial editing and development
 // 28-Apr-10	rbd		1.1.0 Merge SoundPlayer support and make it the default.
-//					For Mono, do not include null as first param to 
-//					MessageBox.Show()
+//						For Mono, do not include null as first param to 
+//						MessageBox.Show(). Mono has no sound so doesn't work!
+//						Add Timing Comp control for tone start latency. Fix
+//						tab ordering. Fix range of code speed control.
 //
 using System;
 using System.Collections.Generic;
@@ -66,6 +68,7 @@ namespace com.dc3
 		private int _pollInterval;
 		private int _codeSpeed;
 		private int _toneFreq;
+		private int _timingComp;
 		private int _sounderNum;
 		private int _storyAge;
 		private string _feedUrl;
@@ -103,6 +106,7 @@ namespace com.dc3
 			Debug.Print("Load");
 			_pollInterval = (int)nudPollInterval.Value;
 			_codeSpeed = (int)nudCodeSpeed.Value;
+			_timingComp = (int)nudTimingComp.Value;
 			_toneFreq = (int)nudToneFreq.Value;
 			_sounderNum = (int)nudSounder.Value;
 			_storyAge = (int)nudStoryAge.Value;
@@ -186,6 +190,10 @@ namespace com.dc3
 			_codeSpeed = (int)nudCodeSpeed.Value;
 		}
 
+		private void nudTimingComp_ValueChanged(object sender, EventArgs e)
+		{
+			_timingComp = (int)nudTimingComp.Value;
+		}
 		private void nudToneFreq_ValueChanged(object sender, EventArgs e)
 		{
 			_toneFreq = (int)nudToneFreq.Value;
@@ -286,12 +294,18 @@ namespace com.dc3
 			MessageBox.Show("Seen stories have been forgotten", "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
+		private void llHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
+		}
+
 		private void UpdateUI()
 		{
 			bool enable = !_run;
 			btnStartStop.Enabled = (cbFeedUrl.Text != "");
 			cbFeedUrl.Enabled = enable;
 			nudCodeSpeed.Enabled = enable;
+			nudTimingComp.Enabled = enable;
 			nudPollInterval.Enabled = enable;
 			nudStoryAge.Enabled = enable;
 			nudSerialPort.Enabled = enable;
@@ -526,7 +540,7 @@ namespace com.dc3
 					}
 				}
 				else
-					Thread.Sleep(-code[i]);
+					Thread.Sleep(_useSerial ? -code[i] : -code[i] - _timingComp);
 			}
 			string ct = Regex.Replace(text, "\\s", " ");
 			AddToCrawler(ct);
@@ -671,8 +685,6 @@ namespace com.dc3
 					}
 					SetStatus("");
 				}
-
-
 			}
 			catch (ThreadInterruptedException)
 			{
