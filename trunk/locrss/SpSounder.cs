@@ -19,6 +19,7 @@
 //----------	---		-------------------------------------------------------
 // 27-Apr-10	rbd		From SpTones, for sounder audio
 // 28-Apr-10	rbd		1.1.0 - Simplify sound resource loading
+// 30-Apr-10	rbd		1.2.0 - ISounder, Stop()
 //
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpSounder
+    class SpSounder : ISounder
     {
 		private int _sounder;
 		private SoundPlayer _spClick;
@@ -98,6 +99,12 @@ namespace com.dc3.morse
 			Thread.Sleep(ms);														// ... wait for just the mark time, then ...
 			_spClick.Stop();														// ... stop the click in case the sound is too long
 			_spClack.Play();														// Start the clack and return while playing
+		}
+
+		public void Stop()
+		{
+			_spClick.Stop();
+			_spClack.Stop();
 		}
     }
 }

@@ -18,6 +18,7 @@
 // When			Who		What
 //----------	---		-------------------------------------------------------
 // 27-Apr-10	rbd		Initial edit
+// 30-Apr-10	rbd		ITone intervace
 //
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpTones
+    class SpTones : ITone
     {
 		private const int _sampleRate = 44100;
 		private const short _bitsPerSample = 16;
@@ -191,8 +192,13 @@ namespace com.dc3.morse
 			_player.SoundLocation = "x";											// Trick! Force the stream to be reloaded next
 			_player.Stream = _wavStrm;
 			//_player.Load();
-			_player.Play();
+			_player.Play();															// TODO - PlaySync() and no Thread.Sleep?
 			Thread.Sleep(ms);
+		}
+
+		public void Stop()
+		{
+			_player.Stop();
 		}
     }
 }
