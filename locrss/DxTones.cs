@@ -4,8 +4,7 @@
 //
 // FACILITY:	RSS to Morse tool
 //
-// ABSTRACT:	Generates radio tone sounds via Managed DirectX. This is
-//				no longer used, see SpTones.cs.
+// ABSTRACT:	Generates radio tone sounds via Managed DirectX.
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
@@ -19,6 +18,7 @@
 //----------	---		-------------------------------------------------------
 // 22-Apr-10	rbd		Play tones of arbitrary length
 // 28-Apr-10	rbd		Remove sync parameter from Tone()
+// 30-Apr-10	rbd		ITone intervace
 //
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxTones
+    class DxTones : ITone
     {
 		private const int _sampleRate = 44100;
 		private const short _bitsPerSample = 16;
@@ -36,8 +36,8 @@ namespace com.dc3.morse
 
         private Device _deviceSound;
 		private int _maxLen;														// Max length tone
-		private double _freq;
-		private double _ampl;
+		private float _freq;
+		private float _ampl;
 		private int _ditMs;
 
 		private byte[] _waveBuf;
@@ -49,7 +49,7 @@ namespace com.dc3.morse
         {
 			_maxLen = MaxLenMs;
 			_freq = 880;															// Defaults (typ.)
-			_ampl = 0.3;
+			_ampl = 0.3F;
 			_ditMs = 80;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
@@ -128,7 +128,7 @@ namespace com.dc3.morse
 			}
 		}
 
-		public double Frequency
+		public float Frequency
 		{
 			get { return _freq; }
 			set 
@@ -138,7 +138,7 @@ namespace com.dc3.morse
 			}
 		}
 
-		public double Amplitude
+		public float Amplitude
 		{
 			get { return _ampl; }
 			set
@@ -174,6 +174,11 @@ namespace com.dc3.morse
 			_secBuf.SetCurrentPosition((_sampleRate * (_maxLen - ms)) * 2 / 1000);
 			_secBuf.Play(0, BufferPlayFlags.Default);
 			Thread.Sleep(ms);
+		}
+
+		public void Stop()
+		{
+			_secBuf.Stop();
 		}
     }
 }

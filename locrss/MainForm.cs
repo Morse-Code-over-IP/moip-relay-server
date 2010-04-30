@@ -12,9 +12,19 @@
 //				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
 // SOUND OUTPUT: This version uses System.Media.SoundPlayer for sound output
-//				(see SpTones.cs and SpSounder.cs). TO change it to use Managed
+//				(see SpTones.cs and SpSounder.cs). To change it to use Managed
 //				DirectX, remove SpTones.cs and SpSounder.cs from the project,
 //				add DxTones.cs and DxSounder.cs, then #define DIRECTX.
+//
+// NOTE ON CODE AND CHAR SPEED SPINBOXES:  If the CharSpeed spinbox is auto-bound
+//				to the Application Setting, the interaction between it and the
+//				CodeSPeed spinbox is strange. When the CodeSpeed ValueChanged
+//				event fires, and needs to increase the code speed to match
+//				char speed cannot be less then code speed!), a complex series
+//				of events takes plaace, including re-binding all of the settings
+//				which resets the CodeSpeed bopx back to its pre-spin value. 
+//				Making a long story short, manually binding the CharSpeed spinbox
+//				avoids this problem. Weird.
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -28,6 +38,10 @@
 //						MessageBox.Show(). Mono has no sound so doesn't work!
 //						Add Timing Comp control for tone start latency. Fix
 //						tab ordering. Fix range of code speed control.
+// 30-Apr-10	rbd		1.2.0 - Reorganize, add spark gap, resurrect DirectX,
+//						move DX and TimingComp to separate form.  Add message
+//						to cache only is really sent completely. New class
+//						MorseMessage. Increase URL list capacity to 16.
 //
 using System;
 using System.Collections.Generic;
@@ -50,7 +64,7 @@ namespace com.dc3
 	public partial class MainForm : Form
 	{
 		public enum CodeMode { International, American }
-		public enum SoundMode { Tone, Sounder }
+		public enum SoundMode { Tone, Spark, Sounder }
 		//
 		// Represents an RSS item with a correct pubDate
 		//
@@ -58,6 +72,12 @@ namespace com.dc3
 		{
 			public DateTime pubDate { get; set; }
 			public XmlNode rssItem { get; set; }
+		}
+
+		private class MorseMessage
+		{
+			public string Title { get; set; }
+			public string Contents { get; set; }
 		}
 		
 		//
@@ -67,9 +87,12 @@ namespace com.dc3
 		private SoundMode _soundMode;
 		private int _pollInterval;
 		private int _codeSpeed;
+		private int _charSpeed;
+		private bool _directX;
 		private int _toneFreq;
 		private int _timingComp;
 		private int _sounderNum;
+		private int _sparkNum;
 		private int _storyAge;
 		private string _feedUrl;
 		private int _serialPortNum;
@@ -87,8 +110,9 @@ namespace com.dc3
 		private DxTones _tones;
 		private DxSounder _sounder;
 #else
-		private SpTones _tones;
-		private SpSounder _sounder;
+		private ITone _tones;
+		private ISounder _sounder;
+		private ISpark _spark;
 #endif
 		private DateTime _lastPollTime;
 		private SerialPort _serialPort;
@@ -106,9 +130,16 @@ namespace com.dc3
 			Debug.Print("Load");
 			_pollInterval = (int)nudPollInterval.Value;
 			_codeSpeed = (int)nudCodeSpeed.Value;
-			_timingComp = (int)nudTimingComp.Value;
+			// -- MANUALLY BOUND - SEE NOTE ABOVE --
+			nudCharSpeed.Value = Properties.Settings.Default.CharSpeed;
+			nudCharSpeed.Minimum = (decimal)_codeSpeed;
+			_charSpeed = (int)nudCharSpeed.Value;
+			// -------------------------------------
+			_directX = Properties.Settings.Default.DirectX;
+			_timingComp = (int)Properties.Settings.Default.TimingComp;
 			_toneFreq = (int)nudToneFreq.Value;
 			_sounderNum = (int)nudSounder.Value;
+			_sparkNum = (int)nudSpark.Value;
 			_storyAge = (int)nudStoryAge.Value;
 			_feedUrl = cbFeedUrl.Text;
 			_serialPortNum = (int)nudSerialPort.Value;
@@ -120,10 +151,18 @@ namespace com.dc3
 				rbInternational.Checked = true;									// Triggers CheckedChanged (typ.)
 			else
 				rbAmerican.Checked = true;
-			if (Properties.Settings.Default.SoundMode == 0)
-				rbTone.Checked = true;
-			else
-				rbSounder.Checked = true;
+			switch (Properties.Settings.Default.SoundMode)
+			{
+				case 0:
+					rbTone.Checked = true;
+					break;
+				case 1:
+					rbSounder.Checked = true;
+					break;
+				case 2:
+					rbSpark.Checked = true;
+					break;
+			}
 
 			foreach (string uri in Properties.Settings.Default.LRU)
 				cbFeedUrl.Items.Add(uri);
@@ -133,15 +172,8 @@ namespace com.dc3
 			_titleExpireThread = new Thread(new ThreadStart(TitleExpireThread));
 			_titleExpireThread.Name = "Title Expiry";
 			_titleExpireThread.Start();
-#if DIRECTX
-			_dxTones = new DxTones(this, 1000);
-			_dxSounder = new DxSounder(this);
-#else
-			_tones = new SpTones(1000);
-			_sounder = new SpSounder();
-#endif
-			_tones.Frequency = _toneFreq;
-			_sounder.Sounder = _sounderNum;
+
+			SetupSound();
 
 			statBarLabel.Text = "Ready";
 			statBarCrawl.Text = "";
@@ -188,12 +220,20 @@ namespace com.dc3
 		private void nudCodeSpeed_ValueChanged(object sender, EventArgs e)
 		{
 			_codeSpeed = (int)nudCodeSpeed.Value;
+			if (_codeSpeed > _charSpeed)
+				nudCharSpeed.Value = (decimal)_codeSpeed;
+			nudCharSpeed.Minimum = (decimal)_codeSpeed;
+
 		}
 
-		private void nudTimingComp_ValueChanged(object sender, EventArgs e)
+		private void nudCharSpeed_ValueChanged(object sender, EventArgs e)
 		{
-			_timingComp = (int)nudTimingComp.Value;
+			// -- MANUALLY BOUND - SEE NOTE ABOVE --
+			_charSpeed = (int)nudCharSpeed.Value;
+			Properties.Settings.Default.CharSpeed = (decimal)_charSpeed;
+			// -------------------------------------
 		}
+
 		private void nudToneFreq_ValueChanged(object sender, EventArgs e)
 		{
 			_toneFreq = (int)nudToneFreq.Value;
@@ -201,10 +241,17 @@ namespace com.dc3
 			_tones.Tone(100);
 		}
 
+		private void nudSpark_ValueChanged(object sender, EventArgs e)
+		{
+			_sparkNum = (int)nudSpark.Value;
+			_spark.SparkNumber = _sparkNum;
+			_spark.Spark(100);
+		}
+
 		private void nudSounder_ValueChanged(object sender, EventArgs e)
 		{
 			_sounderNum = (int)nudSounder.Value;
-			_sounder.Sounder = (int)nudSounder.Value;
+			_sounder.Sounder = _sounderNum;
 			_sounder.ClickClack(100);
 		}
 
@@ -220,6 +267,7 @@ namespace com.dc3
 				_codeMode = CodeMode.International;
 				Properties.Settings.Default.CodeMode = 0;
 			}
+			UpdateUI();
 		}
 
 		private void rbAmerican_CheckedChanged(object sender, EventArgs e)
@@ -229,6 +277,7 @@ namespace com.dc3
 				_codeMode = CodeMode.American;
 				Properties.Settings.Default.CodeMode = 1;
 			}
+			UpdateUI();
 		}
 
 		private void rbTone_CheckedChanged(object sender, EventArgs e)
@@ -237,6 +286,16 @@ namespace com.dc3
 			{
 				_soundMode = SoundMode.Tone;
 				Properties.Settings.Default.SoundMode = 0;
+			}
+			UpdateUI();
+		}
+
+		private void rbSpark_CheckedChanged(object sender, EventArgs e)
+		{
+			if (rbSpark.Checked)
+			{
+				_soundMode = SoundMode.Spark;
+				Properties.Settings.Default.SoundMode = 2;
 			}
 			UpdateUI();
 		}
@@ -294,9 +353,49 @@ namespace com.dc3
 			MessageBox.Show("Seen stories have been forgotten", "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
+		private void mnuUrlResetToDefault_Click(object sender, EventArgs e)
+		{
+			//
+			// THios is really obscure. I found an article on the almighty StackOverflow
+			// http://stackoverflow.com/questions/49269/reading-default-application-settings-in-c
+			// which showed how to get the original/default value of an application
+			// setting. But doing this does not return a collection it returns raw XML.
+			// So we have to parse that and get the LRU list that way. Oh well...
+			//
+			string lru = (string)Properties.Settings.Default.Properties["LRU"].DefaultValue;
+			XmlDocument listXml = new XmlDocument();
+			listXml.LoadXml(lru);
+			XmlNodeList items = listXml.SelectNodes("/ArrayOfString/string");
+			cbFeedUrl.Items.Clear();
+			foreach (XmlNode item in items)
+				cbFeedUrl.Items.Add(item.InnerText);
+			cbFeedUrl.Text = items.Item(0).InnerText;
+		}
+
+		private void llSoundCfg_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			picSoundCfg_Click(sender, new EventArgs());
+		}
+
+		private void picSoundCfg_Click(object sender, EventArgs e)
+		{
+			SoundCfgForm sf = new SoundCfgForm();
+			sf.TimingComp = (int)Properties.Settings.Default.TimingComp;
+			sf.UseDirectX = Properties.Settings.Default.DirectX;
+			if (sf.ShowDialog(this) == DialogResult.OK)
+			{
+				_timingComp = sf.TimingComp;
+				Properties.Settings.Default.TimingComp = (decimal)_timingComp;
+				if (_directX != sf.UseDirectX)									// Switching sound technology
+					SetupSound();
+				_directX = sf.UseDirectX;
+				Properties.Settings.Default.DirectX = _directX;
+			}
+		}
+
 		private void llHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
+			picHelp_Click(sender, new EventArgs());
 		}
 
 		private void picHelp_Click(object sender, EventArgs e)
@@ -306,12 +405,31 @@ namespace com.dc3
 
 		private void llRSSFeeds_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			System.Diagnostics.Process.Start("http://news.yahoo.com/page/rss");
+			picRSS_Click(sender, new EventArgs());
 		}
 
 		private void picRSS_Click(object sender, EventArgs e)
 		{
 			System.Diagnostics.Process.Start("http://news.yahoo.com/page/rss");
+		}
+
+		private void SetupSound()
+		{
+			if (_directX)
+			{
+				_tones = new DxTones(this, 1000);
+				_sounder = new DxSounder(this);
+				_spark = new DxSpark(this);
+			}
+			else
+			{
+				_tones = new SpTones(1000);
+				_sounder = new SpSounder();
+				_spark = new SpSpark(1000);
+			}
+			_tones.Frequency = _toneFreq;
+			_sounder.Sounder = _sounderNum;
+			_spark.SparkNumber = _sparkNum;
 		}
 
 		private void UpdateUI()
@@ -320,7 +438,7 @@ namespace com.dc3
 			btnStartStop.Enabled = (cbFeedUrl.Text != "");
 			cbFeedUrl.Enabled = enable;
 			nudCodeSpeed.Enabled = enable;
-			nudTimingComp.Enabled = enable;
+			nudCharSpeed.Enabled = enable;
 			nudPollInterval.Enabled = enable;
 			nudStoryAge.Enabled = enable;
 			nudSerialPort.Enabled = enable;
@@ -330,10 +448,14 @@ namespace com.dc3
 			picTestSerial.Enabled = enable & !chkUseSerial.Checked;
 
 			enable = enable & !_useSerial;
+			nudSpark.Enabled = enable && rbSpark.Checked;
 			nudSounder.Enabled = enable & rbSounder.Checked;
 			nudToneFreq.Enabled = enable & rbTone.Checked;
 			rbTone.Enabled = enable;
 			rbSounder.Enabled = enable;
+			rbSpark.Enabled = enable;
+			llSoundCfg.Enabled = enable;
+			picSoundCfg.Enabled = enable;
 		}
 
 		private void btnStartStop_Click(object sender, EventArgs e)
@@ -342,10 +464,10 @@ namespace com.dc3
 			{
 				if (!cbFeedUrl.Items.Contains(cbFeedUrl.Text))					// Add new URIs to combo box when actually USED!
 				{
-					while (cbFeedUrl.Items.Count > 8)							// Safety catch only
+					while (cbFeedUrl.Items.Count > 16)							// Safety catch only
 						cbFeedUrl.Items.RemoveAt(0);
-					if (cbFeedUrl.Items.Count == 8)								// If full, remove last item
-						cbFeedUrl.Items.RemoveAt(7);
+					if (cbFeedUrl.Items.Count == 16)								// If full, remove last item
+						cbFeedUrl.Items.RemoveAt(15);
 					cbFeedUrl.Items.Insert(0, cbFeedUrl.Text);					// Insert new item at top
 				}
 				else
@@ -368,6 +490,18 @@ namespace com.dc3
 			}
 			else
 			{
+				switch (_soundMode)
+				{
+					case SoundMode.Tone:
+						_tones.Stop();
+						break;
+					case SoundMode.Spark:
+						_spark.Stop();
+						break;
+					case SoundMode.Sounder:
+						_sounder.Stop();
+						break;
+				}
 				if (_runThread != null)
 				{
 					_runThread.Interrupt();
@@ -548,10 +682,18 @@ namespace com.dc3
 					}
 					else
 					{
-						if (_soundMode == SoundMode.Tone)
-							_tones.Tone(code[i]);
-						else
-							_sounder.ClickClack(code[i]);
+						switch (_soundMode)
+						{
+							case SoundMode.Tone:
+								_tones.Tone(code[i]);
+								break;
+							case SoundMode.Spark:
+								_spark.Spark(code[i]);
+								break;
+							case SoundMode.Sounder:
+								_sounder.ClickClack(code[i]);
+								break;
+						}
 					}
 				}
 				else
@@ -566,9 +708,9 @@ namespace com.dc3
 			try
 			{
 				Morse M = new Morse();
-				M.CharacterWpm = _codeSpeed;
-				M.WordWpm = _codeSpeed;
 				M.Mode = (_codeMode == CodeMode.International ? Morse.CodeMode.International : Morse.CodeMode.American);
+				M.CharacterWpm = _charSpeed;
+				M.WordWpm = _codeSpeed;
 
 				_msgNr = 1;															// Start with message #1
 
@@ -583,7 +725,8 @@ namespace com.dc3
 					_serialPort.DtrEnable = true;
 				}
 
-				lock (_titleCache) { _titleCache.Clear(); }							// Clear title cache on start
+				// Remember the state of the title cache, we have a clear button!
+				//lock (_titleCache) { _titleCache.Clear(); }							// Clear title cache on start
 
 				while (true)
 				{
@@ -618,7 +761,7 @@ namespace com.dc3
 					//
 					// Create a list of strings which are the final messages to be send in Morse
 					//
-					List<string> messages = new List<string>();
+					List<MorseMessage> messages = new List<MorseMessage>();
 					foreach (datedRssItem story in stories)
 					{
 						string title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
@@ -666,12 +809,10 @@ namespace com.dc3
 						}
 						_msgNr += 1;
 
-						lock (_titleCache)
-						{
-							_titleCache.Add(title, DateTime.Now);
-						}
-
-						messages.Add(msg);
+						MorseMessage m = new MorseMessage();
+						m.Title = title;
+						m.Contents = msg;
+						messages.Add(m);
 					}
 
 					if (messages.Count > 0)
@@ -680,18 +821,22 @@ namespace com.dc3
 						// Have message(s), generate Morse Code sound for each
 						//
 						int n = 1;
-						foreach (string msg in messages)
+						foreach (MorseMessage msg in messages)
 						{
 							SetStatus("Sending message " + n++ + " of " + messages.Count);
 							SetCrawler("");
-							M.CwCom(msg, Send);
+							M.CwCom(msg.Contents, Send);
+							lock (_titleCache)
+							{
+								_titleCache.Add(msg.Title, DateTime.Now);
+							}
 							Thread.Sleep(5000);
 						}
 					}
 					else
 					{
 						//
-						// NJo messages to send this time, wait until next time to poll
+						// No messages to send this time, wait until next time to poll
 						//
 						TimeSpan tWait = _lastPollTime.AddMinutes(_pollInterval) - DateTime.Now;
 						if (tWait > TimeSpan.Zero)

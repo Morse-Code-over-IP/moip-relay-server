@@ -52,13 +52,19 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DxSounder.cs" />
+    <Compile Include="DxSpark.cs" />
+    <Compile Include="DxTones.cs" />
+    <Compile Include="SoundInterfaces.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -74,6 +80,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SoundCfgForm.resx">
+      <DependentUpon>SoundCfgForm.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -91,12 +100,20 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="SoundCfgForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SoundCfgForm.Designer.cs">
+      <DependentUpon>SoundCfgForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="SpSounder.cs" />
+    <Compile Include="SpSpark.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SpTones.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
-    <None Include="help.png" />
     <Content Include="Sounds\Clack 1.wav" />
     <None Include="Sounds\Clack 8.wav" />
     <None Include="Sounds\Clack 2.wav" />
@@ -106,6 +123,8 @@
     <None Include="Sounds\Clack 6.wav" />
     <None Include="Sounds\Clack 7.wav" />
     <Content Include="Sounds\Click 1.wav" />
+    <None Include="Sounds\Spark 2.wav" />
+    <None Include="Sounds\Spark 1.wav" />
     <None Include="Sounds\Click 7.wav" />
     <None Include="Sounds\Click 6.wav" />
     <None Include="Sounds\Click 5.wav" />

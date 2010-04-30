@@ -150,5 +150,17 @@ namespace com.dc3.Properties {
                 return ResourceManager.GetStream("Click_7", resourceCulture);
             }
         }
+        
+        internal static System.IO.UnmanagedMemoryStream Spark_1 {
+            get {
+                return ResourceManager.GetStream("Spark_1", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Spark_2 {
+            get {
+                return ResourceManager.GetStream("Spark_2", resourceCulture);
+            }
+        }
     }
 }

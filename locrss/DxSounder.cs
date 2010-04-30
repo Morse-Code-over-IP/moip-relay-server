@@ -4,8 +4,7 @@
 //
 // FACILITY:	RSS to Morse tool
 //
-// ABSTRACT:	Generates telegraph sounder sounds via Managed DirectX. This is
-//				no longer used, see SpSounder.cs.
+// ABSTRACT:	Generates telegraph sounder sounds via Managed DirectX. 
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
@@ -18,6 +17,8 @@
 // When			Who		What
 //----------	---		-------------------------------------------------------
 // 22-Apr-10	rbd		From DxTones, for sounder audio
+// 30-Apr-10	rbd		1.2.0 - Resurrect, simplify sound resource loading
+//						ISounder.
 //
 using System;
 using System.Collections.Generic;
@@ -28,11 +29,12 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxSounder
+    class DxSounder : ISounder
     {
         private Device _deviceSound;
 		private int _sounder;
 		private int _ditMs;
+		private int _startLatency;
 
 		private BufferDescription _bufDescClick;
 		private BufferDescription _bufDescClack;
@@ -68,38 +70,17 @@ namespace com.dc3.morse
 				if (value < 1 || value > 7)
 					throw new ApplicationException("Sounder number out of range");
 				_sounder = value;
-				switch (value)
-				{
-					case 1:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_1, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_1, _bufDescClack, _deviceSound);
-						break;
-					case 2:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_2, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_2, _bufDescClack, _deviceSound);
-						break;
-					case 3:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_3, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_3, _bufDescClack, _deviceSound);
-						break;
-					case 4:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_4, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_4, _bufDescClack, _deviceSound);
-						break;
-					case 5:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_5, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_5, _bufDescClack, _deviceSound);
-						break;
-					case 6:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_6, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_6, _bufDescClack, _deviceSound);
-						break;
-					case 7:
-						_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Click_7, _bufDescClick, _deviceSound);
-						_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.Clack_7, _bufDescClack, _deviceSound);
-						break;
-				}
+				_bufClick = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.ResourceManager.GetStream("Click_" + value), 
+							_bufDescClick, _deviceSound);
+				_bufClack = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.ResourceManager.GetStream("Clack_" + value), 
+							_bufDescClick, _deviceSound);
 			}
+		}
+
+		public int StartLatency
+		{
+			get { return _startLatency; }
+			set { _startLatency = value; }
 		}
 
 		public int DitMilliseconds
@@ -120,7 +101,7 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs);
+			Thread.Sleep(_ditMs - _startLatency);
 		}
 
 		public void ClickClack(int ms)
@@ -131,6 +112,12 @@ namespace com.dc3.morse
 			_bufClick.Stop();
 			_bufClack.SetCurrentPosition(0);
 			_bufClack.Play(0, BufferPlayFlags.Default);
+		}
+
+		public void Stop()
+		{
+			_bufClick.Stop();
+			_bufClack.Stop();
 		}
     }
 }

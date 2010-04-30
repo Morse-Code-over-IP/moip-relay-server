@@ -42,6 +42,11 @@
 // 28-Apr-10			1.1.0 - Mono exclusion for Unicode open and close double
 //						quotes, they appear same to Mono, resulting in a 
 //						duplicate key exception in ctor.
+// 30-Apr-10	rbd		1.2.0 - Oops, unknown char -> space upset timing in
+//						American, and caused tests to fail! Do not send extra
+//						space on " " just the real error code! Throw exception
+//						if WordWPM is changed to other than CharWPM when in
+//						American mode.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -106,19 +111,10 @@ namespace com.dc3.morse
 	/// sent 750 elements (using correct spacing). Each element, therefore, is 60/750 = 0.08 sec. or 80 milliseconds.
 	/// For normal/standard timing, set the <see cref="CharacterWpm"/> and <see cref="WordWpm"/> properties to the
 	/// same value.</para>
-	/// <h1 class="heading">Split-Speed (Farnsworth) Timing (<u>International only</u>)</h1>
-	/// <para>The Farnsworth method uses timing in which the character and word speeds are set separately, with the
-	/// word speed being slower. The dits, dahs, and intra-character spacing are at the (higher) character speed.
-	/// The inter-character and inter-word spacing are increased, bringing the overall speed down to the (slower)
-	/// word speed. For example, to send at 15 WPM character rate (as above) but with a 5 WPM word rate, the dits 
-	/// and intra-character spacing will still be 80 ms. with dah of 240 ms. However, the inter-character
-	/// spacing will be 1.38 seconds, and the inter-word spacing will be 3.99 seconds.
-	/// </para>
 	/// <h1 class="heading">American Morse Code Timing</h1>
 	/// <para>The mark/space timings for American Morse Code are considerably more complex. As per International code,
 	/// the element ("dit") length is set to the time base divided by the character speed <see cref="CharacterWpm" />. 
-	/// Note that split speed timing is not supported for American Morse Code, so in this mode 
-	/// <see cref="WordWpm" /> is always the same as <see cref="CharacterWpm" />. Inter-character spacing is 
+	/// Inter-character spacing is 
 	/// nominally 2.75 elements. Numbers, punctuation symbols, and the letter 'L' have an extra half an element time added to this
 	/// inter-character spacing, for a total of 3.25 elements. Inter-word spacing is 6 elements minus the inter-character 
 	/// spacing.
@@ -134,6 +130,19 @@ namespace com.dc3.morse
 	/// <para>Finally, the letter 'L' is sent by a long dah, 5.6 elements long, and the number '0' is sent by an 
 	/// even longer dah, 8.9 elements long. As mentioned above, both are followed by the inter-character spacing plus
 	/// a half an element.
+	/// </para>
+	/// <h1 class="heading">Split-Speed (Farnsworth) Timing</h1>
+	/// <para>The Farnsworth method uses timing in which the character and word speeds are set separately, with the
+	/// word speed being slower. The dits, dahs, and intra-character spacing are at the (higher) character speed.
+	/// The inter-character and inter-word spacing are increased, bringing the overall speed down to the (slower)
+	/// word speed. For example, to send at 15 WPM character rate (as above) but with a 5 WPM word rate, the dits 
+	/// and intra-character spacing will still be 80 ms. with dah of 240 ms. However, the inter-character
+	/// spacing will be 1.38 seconds, and the inter-word spacing will be 3.99 seconds.
+	/// </para>
+	/// <para>Split-speed timing is approximated for American Morse mode. The actual overall WPM will not be exact;
+	/// it will be a bit fast. For split speed in American Morse mode, the inter-character and inter-word space 
+	/// times are simply mutiplied by the ratio of the character speed to the word speed (always greater than or 
+	/// equal to one).
 	/// </para>
 	/// </remarks>
 	public class Morse
@@ -313,8 +322,8 @@ namespace com.dc3.morse
 			{ ')', "....._.._.." },
 			{ '\'', "..-._.-.." },
 #if !MONO_BUILD			
-//			{ '“', "..-._-." },		// Open/Left double quote
-//			{ '”', "..-._-.-." },	// Close/Right double quote
+			{ '“', "..-._-." },		// Open/Left double quote
+			{ '”', "..-._-.-." },	// Close/Right double quote
 #endif
 			{ '"', "..-._-." },		// Plain quote -> Open/Left double quote
 			{ '[', "-..._.-.." },	// Same for L/R bracket
@@ -462,11 +471,16 @@ namespace com.dc3.morse
 				//
 				// American Morse, rather subjective. This produces nearly the same
 				// timings as the MorseKOB program, which has one of the best American
-				// Morse decoders around. 
+				// Morse decoders around. Split timing is a fudge, may need to change.
 				//
 				_stime = _ctime;
 				_cstime = (int)(_stime * 2.75);
 				_wstime = (_stime * 6) - _cstime;
+				if (_wwpm < _cwpm)
+				{
+					_cstime = (int)((double)_cstime * (double)_cwpm / (double)_wwpm);
+					_wstime = (int)((double)_wstime * (double)_cwpm / (double)_wwpm);
+				}
 			}
 		}
 
@@ -528,8 +542,11 @@ namespace com.dc3.morse
 			set 
 			{ 
 				_mode = value;
-				_errCode = (value == CodeMode.International ? _errCodeIntl : _errCodeAmer);
-				_wwpm = _cwpm;												// No split timing in American mode
+				_wwpm = _cwpm;
+				if (value == CodeMode.International)
+					_errCode = _errCodeIntl;
+				else
+					_errCode = _errCodeAmer;
 				_accSpace = 1000;											// Reset the leading space just in case
 				_calcSpaceTime();
 			}
@@ -561,8 +578,9 @@ namespace com.dc3.morse
 		/// The character speed in words per minute (default = 15). For details, see the remarks
 		/// for <see cref="Morse" />.
 		/// </summary>
-		/// <remarks>Changing this property sets <see cref="WordWpm" /> equal to the value being set.</remarks>
-		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when the value is set &lt; 5 WPM or &gt; 100 WPM</exception>
+		/// <remarks>Changing this property sets <see cref="WordWpm" /> equal to the value being set. For split
+		/// speeds, set this property first, then <see cref="WordWpm" />.</remarks>
+		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when the value is set &lt; 5 WPM or &gt; 100 WPM.</exception>
 		/// <seealso cref="WordWpm" />
 		/// <seealso cref="TimeBase" />
 		public int CharacterWpm
@@ -573,7 +591,7 @@ namespace com.dc3.morse
 				if (value < 5 || value > 100)
 					throw new ArgumentOutOfRangeException("CharacterWpm", "must be between 5 and 100 WPM");
 				_cwpm = value;
-				if (_mode == CodeMode.American) _wwpm = _cwpm;
+				_wwpm = _cwpm;
 				_ctime = _tbase / _cwpm;
 				_calcSpaceTime();
 			}
@@ -583,14 +601,11 @@ namespace com.dc3.morse
 		/// The word speed in words per minute (default = 15). For details, see the remarks
 		/// for <see cref="Morse" />.
 		/// </summary>
-		/// <remarks>For split speed (International Morse Code <see cref="Mode" /> only), set this
-		/// property last, after <see cref="TimeBase" /> and/or <see cref="CharacterWpm" />. Cannot be changed 
-		/// when in AMerican Morse Code <see cref="Mode" />.
+		/// <remarks>For split speed, set this
+		/// property last, after <see cref="TimeBase" /> and/or <see cref="CharacterWpm" />.
 		/// </remarks>
 		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when the value is set &lt; 5 WPM or &gt; 100 WPM, 
 		/// or to a value greater than <see cref="CharacterWpm" />.</exception>
-		/// <exception cref="System.ApplicationException">Thrown if an attempt is made to change this property when in 
-		/// American Morse Code <see cref="Mode" />.</exception>
 		/// <seealso cref="CharacterWpm" />
 		/// <seealso cref="TimeBase" />
 		public int WordWpm
@@ -598,8 +613,6 @@ namespace com.dc3.morse
 			get { return _wwpm; }
 			set
 			{
-				if (_mode == CodeMode.American)
-					throw new ApplicationException("Split speeds are not supported in American Morse Code mode");
 				if (value < 5 || value > 100)
 					throw new ArgumentOutOfRangeException("WordWpm", "must be between 5 and 100 WPM");
 				if (value > _cwpm)
@@ -826,7 +839,7 @@ namespace com.dc3.morse
 				if (!inProsign)												// Unless doing prosign
 				{
 					space(_cstime);											// Character space
-					if (_mode == CodeMode.American && (dotscii == _errCode || dotscii == " " || _aSpaceEmph[c2]))
+					if (_mode == CodeMode.American && (dotscii == _errCode || _aSpaceEmph[c2]))
 						space(_ctime / 2);
 				}
 			}
@@ -1047,10 +1060,7 @@ namespace com.dc3.morse
 				if (!inProsign || _mode == CodeMode.American)				// Unless doing prosign in International mode
 				{
 					space(_cstime);											// Character space
-					//
-					// dotscii can be either the error code or a space (if client gets unknown char callbacks)
-					//
-					if (_mode == CodeMode.American && (dotscii == _errCode || dotscii == " " || _aSpaceEmph[c2]))
+					if (_mode == CodeMode.American && (dotscii == _errCode || _aSpaceEmph[c2]))
 						space(_ctime / 2);
 				}
 

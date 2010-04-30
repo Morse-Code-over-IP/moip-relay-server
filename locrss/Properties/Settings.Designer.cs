@@ -166,13 +166,49 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public decimal TimingComp {
             get {
                 return ((decimal)(this["TimingComp"]));
             }
             set {
                 this["TimingComp"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public decimal SparkNumber {
+            get {
+                return ((decimal)(this["SparkNumber"]));
+            }
+            set {
+                this["SparkNumber"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        public decimal CharSpeed {
+            get {
+                return ((decimal)(this["CharSpeed"]));
+            }
+            set {
+                this["CharSpeed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool DirectX {
+            get {
+                return ((bool)(this["DirectX"]));
+            }
+            set {
+                this["DirectX"] = value;
             }
         }
     }
