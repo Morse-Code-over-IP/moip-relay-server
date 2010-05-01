@@ -41,14 +41,17 @@
 // 30-Apr-10	rbd		1.2.0 - Reorganize, add spark gap, resurrect DirectX,
 //						move DX and TimingComp to separate form.  Add message
 //						to cache only is really sent completely. New class
-//						MorseMessage. Increase URL list capacity to 16.
+//						MorseMessage. Increase URL list capacity to 16. Handle
+//						authenticated feeds!
 //
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -57,7 +60,6 @@ using System.Windows.Forms;
 using System.Xml;
 
 using com.dc3.morse;
-using System.Diagnostics;
 
 namespace com.dc3
 {
@@ -626,6 +628,50 @@ namespace com.dc3
 		}
 
 		//
+		// Get the XML from a feed supporting a URL of the form
+		//   http://user:pass@domain/...
+		// so can get authenticated feeds (e.g. Twitter). Cannot
+		// do this with XmlDocument.Load();
+		//
+		private string GetAuthFeedXml(string authUrl)
+		{
+			string xml, buf;
+			HttpWebResponse rsp = null;											// [sentinel]
+			NetworkCredential cred = null;										// [sentinel]
+
+			buf = authUrl;
+			buf = Regex.Replace(buf, "http://([^\\:]*\\:[^\\@]*)\\@.*", "$1");
+			if (buf != authUrl)													// If found basic auth
+			{
+				string[] bits = buf.Split(new char[] { ':' });
+				if (bits.Length != 2)
+					throw new ApplicationException("Basic auth format is incorrect, see help");
+				cred = new NetworkCredential(bits[0], bits[1]);
+			}
+
+			try
+			{
+				HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(authUrl);
+				if (cred != null)
+					req.Credentials = cred;
+				rsp = (HttpWebResponse)req.GetResponse();
+				if (rsp.StatusCode != HttpStatusCode.OK)
+					throw new ApplicationException("RSS server returned " + rsp.StatusDescription + ", check the URL");
+				if (rsp.ContentLength <= 0)										// Yahoo! does this
+					throw new ApplicationException("RSS server can't return feed data, check the URL");
+				using (Stream rspStrm = rsp.GetResponseStream())
+				{
+					using (StreamReader rdr = new StreamReader(rspStrm))
+						xml = rdr.ReadToEnd();
+				}
+				return xml;
+			}
+			finally
+			{
+				if (rsp != null) rsp.Close();
+			}
+		}
+		//
 		// Remove titles older than 'titleAge' from the cache
 		// Runs as separate thread.
 		//
@@ -712,7 +758,7 @@ namespace com.dc3
 				M.CharacterWpm = _charSpeed;
 				M.WordWpm = _codeSpeed;
 
-				_msgNr = 1;															// Start with message #1
+				_msgNr = 1;														// Start with message #1
 
 				if (_useSerial)
 				{
@@ -726,7 +772,7 @@ namespace com.dc3
 				}
 
 				// Remember the state of the title cache, we have a clear button!
-				//lock (_titleCache) { _titleCache.Clear(); }							// Clear title cache on start
+				//lock (_titleCache) { _titleCache.Clear(); }					// Clear title cache on start
 
 				while (true)
 				{
@@ -734,7 +780,8 @@ namespace com.dc3
 
 					SetStatus("Getting RSS feed data...");
 					XmlDocument feedXml = new XmlDocument();
-					feedXml.Load(_feedUrl);
+					//feedXml.Load(_feedUrl);
+					feedXml.LoadXml(GetAuthFeedXml(_feedUrl));
 
 					XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
 					if (items.Count == 0)
@@ -743,9 +790,9 @@ namespace com.dc3
 					List<datedRssItem> stories = new List<datedRssItem>();
 					foreach (XmlNode item in items)
 					{
-						DateTime pubUtc = GetPubDateUtc(item);						// See comments above, sick hack
+						DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
 						if (pubUtc == DateTime.MinValue)
-							continue;												// Bad pubDate, skip this story
+							continue;											// Bad pubDate, skip this story
 						//
 						// OK we have a story we can use, as we were able to parse the date.
 						//
@@ -768,7 +815,7 @@ namespace com.dc3
 						lock (_titleCache)
 						{
 							if (_titleCache.ContainsKey(title))
-								continue;												// Recently sent, skip
+								continue;										// Recently sent, skip
 						}
 
 						// ?? SHOULD I DO THIS ??
@@ -787,7 +834,7 @@ namespace com.dc3
 							detail = "";
 
 						string msg;
-						if (M.Mode == Morse.CodeMode.International)					// Radiotelegraphy
+						if (M.Mode == Morse.CodeMode.International)				// Radiotelegraphy
 						{
 							msg = "NR " + _msgNr.ToString() + " DE RSS " + time + " \\BT\\";
 							if (detail.Length < title.Length)

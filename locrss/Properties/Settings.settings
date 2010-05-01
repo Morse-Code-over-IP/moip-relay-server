@@ -48,7 +48,7 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="SparkNumber" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">1</Value>
+      <Value Profile="(Default)">3</Value>
     </Setting>
     <Setting Name="CharSpeed" Type="System.Decimal" Scope="User">
       <Value Profile="(Default)">20</Value>

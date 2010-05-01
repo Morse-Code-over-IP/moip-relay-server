@@ -169,4 +169,10 @@
   <data name="Spark_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Sounds\Spark 2.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Spark_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sounds\Spark 3.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Spark_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Sounds\Spark 4.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

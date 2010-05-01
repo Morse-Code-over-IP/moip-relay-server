@@ -18,7 +18,7 @@
 // When			Who		What
 //----------	---		-------------------------------------------------------
 // 29-Apr-10	rbd		Initial edit - from SpTones
-// 30-Apr-10	rbd		1.2.0 - ISpark
+// 30-Apr-10	rbd		1.2.0 - ISpark, 4 sounds
 //
 using System;
 using System.Collections.Generic;
@@ -58,7 +58,7 @@ namespace com.dc3.morse
 			get { return _sparkNumber; }
 			set
 			{
-				if (value < 1 || value > 2)
+				if (value < 1 || value > 4)
 					throw new ApplicationException("Spark number out of range");
 				_sparkNumber = value;
 

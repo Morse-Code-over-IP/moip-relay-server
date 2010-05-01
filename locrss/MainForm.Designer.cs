@@ -281,7 +281,7 @@ namespace com.dc3
 			this.nudSpark.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SparkNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
 			this.nudSpark.Location = new System.Drawing.Point(216, 43);
 			this.nudSpark.Maximum = new decimal(new int[] {
-            2,
+            4,
             0,
             0,
             0});

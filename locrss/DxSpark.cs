@@ -60,7 +60,7 @@ namespace com.dc3.morse
 			get { return _sparkNum; }
 			set
 			{
-				if (value < 1 || value > 7)
+				if (value < 1 || value > 4)
 					throw new ApplicationException("Spark number out of range");
 				_sparkNum = value;
 				_buf = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.ResourceManager.GetStream("Spark_" + value), 
