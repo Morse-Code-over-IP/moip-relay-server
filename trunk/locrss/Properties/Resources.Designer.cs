@@ -162,5 +162,17 @@ namespace com.dc3.Properties {
                 return ResourceManager.GetStream("Spark_2", resourceCulture);
             }
         }
+        
+        internal static System.IO.UnmanagedMemoryStream Spark_3 {
+            get {
+                return ResourceManager.GetStream("Spark_3", resourceCulture);
+            }
+        }
+        
+        internal static System.IO.UnmanagedMemoryStream Spark_4 {
+            get {
+                return ResourceManager.GetStream("Spark_4", resourceCulture);
+            }
+        }
     }
 }
