@@ -19,6 +19,7 @@
 //----------	---		-------------------------------------------------------
 // 29-Apr-10	rbd		Initial edit - from SpTones
 // 30-Apr-10	rbd		1.2.0 - ISpark, 4 sounds
+// 02-May-10	rbd		Interface and ctor changes for loadable directx classes
 //
 using System;
 using System.Collections.Generic;
@@ -31,13 +32,13 @@ namespace com.dc3.morse
 {
     class SpSpark : ISpark
     {
-		private const int _sampleRate = 44100;										// Parameters of spark WAV file resources
-		private const short _bitsPerSample = 16;
-		private const short _bytesPerSample = 2;
-		private const int _duration = 1000;
-		private const long _totalLengthPos = 4;										// These come from the WAV resource
-		private const long _dataLengthPos = 42;
-		private const int _headerSize = 38;
+		//private const int _sampleRate = 44100;										// Parameters of spark WAV file resources
+		//private const short _bitsPerSample = 16;
+		//private const short _bytesPerSample = 2;
+		//private const int _duration = 1000;
+		//private const long _totalLengthPos = 4;										// These come from the WAV resource
+		//private const long _dataLengthPos = 42;
+		//private const int _headerSize = 38;
 
 		private int _sparkNumber;
 		private int _ditMs;
@@ -46,14 +47,14 @@ namespace com.dc3.morse
 		//private BinaryWriter _bWriter;
 		private SoundPlayer _player;
 
-		public SpSpark(int MaxLenMs)
+		public SpSpark()
         {
 			_startLatency = 0;
 			_ditMs = 80;
-			this.SparkNumber = 1;
+			this.SoundIndex = 1;
 		}
 
-		public int SparkNumber
+		public int SoundIndex
 		{
 			get { return _sparkNumber; }
 			set
@@ -93,12 +94,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			Spark(_ditMs);
+			PlayFor(_ditMs);
 		}
 
 		public void Dah()
 		{
-			Spark(_ditMs * 3);
+			PlayFor(_ditMs * 3);
 		}
 
 		public void Space()
@@ -109,7 +110,7 @@ namespace com.dc3.morse
 		//
 		// Synchronous for the duration of ms
 		//
-		public void Spark(int ms)
+		public void PlayFor(int ms)
 		{
 			//int l = 2 * ((_sampleRate * ms) / 1000);								// New data length - must be even number!
 			//int m = _headerSize + l;

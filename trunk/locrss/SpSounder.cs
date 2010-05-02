@@ -20,6 +20,7 @@
 // 27-Apr-10	rbd		From SpTones, for sounder audio
 // 28-Apr-10	rbd		1.1.0 - Simplify sound resource loading
 // 30-Apr-10	rbd		1.2.0 - ISounder, Stop()
+// 02-May-10	rbd		Interface and ctor changes for loadable directx classes
 //
 using System;
 using System.Collections.Generic;
@@ -42,13 +43,13 @@ namespace com.dc3.morse
 		{
 			_startLatency = 0;
 			_ditMs = 80;
-			this.Sounder = 1;													// Default to sounder #1
+			this.SoundIndex = 1;													// Default to sounder #1
 		}
 		
 		//
 		// Publics
 		//
-		public int Sounder
+		public int SoundIndex
 		{
 			get { return _sounder; }
 			set
@@ -75,12 +76,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			ClickClack(_ditMs);
+			PlayFor(_ditMs);
 		}
 
 		public void Dah()
 		{
-			ClickClack(_ditMs * 3);
+			PlayFor(_ditMs * 3);
 		}
 
 		public void Space()
@@ -92,7 +93,7 @@ namespace com.dc3.morse
 		// Synchronous for the duration of ms, the 'clack', which comes
 		// at the end of the 'mark' symbol, is allowed to play async.
 		//
-		public void ClickClack(int ms)
+		public void PlayFor(int ms)
 		{
 			_spClack.Stop();														// In case previous mark's clack still playing
 			_spClick.Play();														// Start the click playing then...

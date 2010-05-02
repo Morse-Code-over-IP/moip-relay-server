@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E4570459-2DF3-415D-B99D-A5C82C0972B9}</ProjectGuid>
+    <ProjectGuid>{E22C29AA-5AE2-41CB-BDB2-6F9E18AA955B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>com.dc3</RootNamespace>
-    <AssemblyName>RSSMorse</AssemblyName>
+    <AssemblyName>RSSMorseNoDx</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
@@ -20,8 +20,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <OutputPath>bin\DebugNoDx\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NODX</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
@@ -29,8 +29,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>bin\ReleaseNoDx\</OutputPath>
+    <DefineConstants>TRACE;NODX</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
@@ -61,15 +61,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DxSounder.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DxSpark.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DxTones.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="SoundInterfaces.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

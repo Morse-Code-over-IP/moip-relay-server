@@ -18,26 +18,25 @@ namespace com.dc3
 
 	interface ISpark
 	{
-		
-		int SoundIndex { get; set; }
+		int SparkNumber { get; set; }
 		int StartLatency { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();
 		void Dah();
 		void Space();
-		void PlayFor(int ms);
+		void Spark(int ms);
 		void Stop();
 	}
 
 	interface ISounder
 	{
-		int SoundIndex { get; set; }
+		int Sounder { get; set; }
 		int StartLatency { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();
 		void Dah();
 		void Space();
-		void PlayFor(int ms);
+		void ClickClack(int ms);
 		void Stop();
 	}
 }

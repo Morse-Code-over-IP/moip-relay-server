@@ -11,11 +11,6 @@
 //				Developed under Visual Studio.NET 2008
 //				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
-// SOUND OUTPUT: This version uses System.Media.SoundPlayer for sound output
-//				(see SpTones.cs and SpSounder.cs). To change it to use Managed
-//				DirectX, remove SpTones.cs and SpSounder.cs from the project,
-//				add DxTones.cs and DxSounder.cs, then #define DIRECTX.
-//
 // NOTE ON CODE AND CHAR SPEED SPINBOXES:  If the CharSpeed spinbox is auto-bound
 //				to the Application Setting, the interaction between it and the
 //				CodeSPeed spinbox is strange. When the CodeSpeed ValueChanged
@@ -43,6 +38,9 @@
 //						to cache only is really sent completely. New class
 //						MorseMessage. Increase URL list capacity to 16. Handle
 //						authenticated feeds!
+// 01-May-10	rbd		1.3.0 - Make this runnable on systems which don't have
+//						Microsoft.DirectX via second project which omits DX
+//						sound classes and ref to DirectX.DirectSound
 //
 using System;
 using System.Collections.Generic;
@@ -52,6 +50,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Ports;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -108,14 +107,9 @@ namespace com.dc3
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
-#if DIRECTX
-		private DxTones _tones;
-		private DxSounder _sounder;
-#else
 		private ITone _tones;
 		private ISounder _sounder;
 		private ISpark _spark;
-#endif
 		private DateTime _lastPollTime;
 		private SerialPort _serialPort;
 
@@ -246,15 +240,15 @@ namespace com.dc3
 		private void nudSpark_ValueChanged(object sender, EventArgs e)
 		{
 			_sparkNum = (int)nudSpark.Value;
-			_spark.SparkNumber = _sparkNum;
-			_spark.Spark(100);
+			_spark.SoundIndex = _sparkNum;
+			_spark.PlayFor(100);
 		}
 
 		private void nudSounder_ValueChanged(object sender, EventArgs e)
 		{
 			_sounderNum = (int)nudSounder.Value;
-			_sounder.Sounder = _sounderNum;
-			_sounder.ClickClack(100);
+			_sounder.SoundIndex = _sounderNum;
+			_sounder.PlayFor(100);
 		}
 
 		private void nudSerialPort_ValueChanged(object sender, EventArgs e)
@@ -417,6 +411,11 @@ namespace com.dc3
 
 		private void SetupSound()
 		{
+#if NODX
+				_tones = new SpTones();
+				_sounder = new SpSounder();
+				_spark = new SpSpark();
+#else
 			if (_directX)
 			{
 				_tones = new DxTones(this, 1000);
@@ -425,13 +424,14 @@ namespace com.dc3
 			}
 			else
 			{
-				_tones = new SpTones(1000);
+				_tones = new SpTones();
 				_sounder = new SpSounder();
-				_spark = new SpSpark(1000);
+				_spark = new SpSpark();
 			}
+#endif
 			_tones.Frequency = _toneFreq;
-			_sounder.Sounder = _sounderNum;
-			_spark.SparkNumber = _sparkNum;
+			_sounder.SoundIndex = _sounderNum;
+			_spark.SoundIndex = _sparkNum;
 		}
 
 		private void UpdateUI()
@@ -734,10 +734,10 @@ namespace com.dc3
 								_tones.Tone(code[i]);
 								break;
 							case SoundMode.Spark:
-								_spark.Spark(code[i]);
+								_spark.PlayFor(code[i]);
 								break;
 							case SoundMode.Sounder:
-								_sounder.ClickClack(code[i]);
+								_sounder.PlayFor(code[i]);
 								break;
 						}
 					}
