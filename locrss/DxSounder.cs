@@ -56,13 +56,13 @@ namespace com.dc3.morse
 			_bufDescClack.ControlEffects = false;
 			_bufDescClack.GlobalFocus = true;
 
-			this.Sounder = 1;													// Default to sounder #1
+			this.SoundIndex = 1;													// Default to sounder #1
 		}
 		
 		//
 		// Publics
 		//
-		public int Sounder
+		public int SoundIndex
 		{
 			get { return _sounder; }
 			set
@@ -91,12 +91,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			ClickClack(_ditMs);
+			PlayFor(_ditMs);
 		}
 
 		public void Dah()
 		{
-			ClickClack(_ditMs * 3);
+			PlayFor(_ditMs * 3);
 		}
 
 		public void Space()
@@ -104,7 +104,7 @@ namespace com.dc3.morse
 			Thread.Sleep(_ditMs - _startLatency);
 		}
 
-		public void ClickClack(int ms)
+		public void PlayFor(int ms)
 		{
 			_bufClick.SetCurrentPosition(0);
 			_bufClick.Play(0, BufferPlayFlags.Default);

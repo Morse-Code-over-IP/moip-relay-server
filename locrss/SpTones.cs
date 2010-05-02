@@ -19,6 +19,7 @@
 //----------	---		-------------------------------------------------------
 // 27-Apr-10	rbd		Initial edit
 // 30-Apr-10	rbd		ITone intervace
+// 02-May-10	rbd		Interface and ctor changes for loadable directx classes
 //
 using System;
 using System.Collections.Generic;
@@ -34,11 +35,11 @@ namespace com.dc3.morse
 		private const int _sampleRate = 44100;
 		private const short _bitsPerSample = 16;
 		private const short _bytesPerSample = 2;
+		private const int _duration = 1000;
 
 		private float _frequency;
 		private float _amplitude;
 		private int _ditMs;
-		private int _duration;
 		private int _startLatency;
 		private byte[] data;
 		private MemoryStream _wavStrm;
@@ -49,9 +50,8 @@ namespace com.dc3.morse
 		private long _dataLengthPos;
 		private SoundPlayer _player;
 
-		public SpTones(int MaxLenMs)
+		public SpTones()
         {
-			_duration = MaxLenMs;
 			_frequency = 640.0F;													// Defaults (typ.)
 			_amplitude = 0.3F;
 			_startLatency = 0;
@@ -181,7 +181,7 @@ namespace com.dc3.morse
 		//
 		public void Tone(int ms)
 		{
-			int l = 2 * ((_sampleRate * ms) / _duration);							// New data length - must be even number!
+			int l = 2 * ((_sampleRate * ms) / 1000);								// New data length - must be even number!
 			int m = _totalLength - _dataLength + l;
 			_bWriter.Seek((int)_totalLengthPos, SeekOrigin.Begin);
 			_bWriter.Write(m);

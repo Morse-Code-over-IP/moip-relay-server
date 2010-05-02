@@ -13,6 +13,9 @@ namespace com.dc3
 		public SoundCfgForm()
 		{
 			InitializeComponent();
+#if NODX
+			chkDirectX.Enabled = false;
+#endif
 		}
 
 		public int TimingComp
@@ -20,12 +23,19 @@ namespace com.dc3
 			get { return (int)nudTimingComp.Value; }
 			set { nudTimingComp.Value = (decimal)value; }
 		}
-
+#if NODX
+		public bool UseDirectX
+		{
+			get { return false; }
+			set {  }
+		}
+#else
 		public bool UseDirectX
 		{
 			get { return chkDirectX.Checked; }
 			set { chkDirectX.Checked = value; }
 		}
+#endif
 	}
 
 }

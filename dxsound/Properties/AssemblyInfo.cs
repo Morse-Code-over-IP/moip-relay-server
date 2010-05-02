@@ -5,16 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RSS Morse")]
-[assembly: AssemblyDescription("RSS to Morse code translator")]
-#if NODX
-[assembly: AssemblyConfiguration("Built without managed DirectX support")]
-#else
-[assembly: AssemblyConfiguration("SUpport for Managed DirectX and Media.SoundPlayer")]
-#endif
-[assembly: AssemblyCompany("Robert B. Denny, Mesa, AZ <rdenny@dc3.com>")]
-[assembly: AssemblyProduct("RSS Morse")]
-[assembly: AssemblyCopyright("Open Source Common Public Attribution License")]
+[assembly: AssemblyTitle("dxsound")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("DC-3 Dreams, SP")]
+[assembly: AssemblyProduct("dxsound")]
+[assembly: AssemblyCopyright("Copyright © DC-3 Dreams, SP 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -24,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("573ac84d-0375-441b-95fc-35d32c27f62e")]
+[assembly: Guid("ac19d9fc-50e6-419e-9189-fc9685ef3034")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -36,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

@@ -49,13 +49,13 @@ namespace com.dc3.morse
 			_bufDesc.ControlEffects = false;									// Necessary because .wav file is so short (typ.)
 			_bufDesc.GlobalFocus = true;										// Enable audio when program is in background (typ.)
 
-			this.SparkNumber = 1;												// Default to spark number #1
+			this.SoundIndex = 1;												// Default to spark number #1
 		}
 		
 		//
 		// Publics
 		//
-		public int SparkNumber
+		public int SoundIndex
 		{
 			get { return _sparkNum; }
 			set
@@ -82,12 +82,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			Spark(_ditMs);
+			PlayFor(_ditMs);
 		}
 
 		public void Dah()
 		{
-			Spark(_ditMs * 3);
+			PlayFor(_ditMs * 3);
 		}
 
 		public void Space()
@@ -95,7 +95,7 @@ namespace com.dc3.morse
 			Thread.Sleep(_ditMs - _startLatency);
 		}
 
-		public void Spark(int ms)
+		public void PlayFor(int ms)
 		{
 			_buf.SetCurrentPosition(0);
 			_buf.Play(0, BufferPlayFlags.Default);
