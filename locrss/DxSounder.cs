@@ -19,6 +19,9 @@
 // 22-Apr-10	rbd		From DxTones, for sounder audio
 // 30-Apr-10	rbd		1.2.0 - Resurrect, simplify sound resource loading
 //						ISounder.
+// 02-May-10	rbd		Interface and ctor changes for loadable directx classes
+// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface.
 //
 using System;
 using System.Collections.Generic;
@@ -29,7 +32,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxSounder : ISounder
+    class DxSounder : IAudioWav
     {
         private Device _deviceSound;
 		private int _sounder;

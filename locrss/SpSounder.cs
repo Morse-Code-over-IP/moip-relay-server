@@ -21,6 +21,8 @@
 // 28-Apr-10	rbd		1.1.0 - Simplify sound resource loading
 // 30-Apr-10	rbd		1.2.0 - ISounder, Stop()
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
+// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface.
 //
 using System;
 using System.Collections.Generic;
@@ -31,7 +33,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpSounder : ISounder
+    class SpSounder : IAudioWav
     {
 		private int _sounder;
 		private SoundPlayer _spClick;

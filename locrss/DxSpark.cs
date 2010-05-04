@@ -17,6 +17,9 @@
 // When			Who		What
 //----------	---		-------------------------------------------------------
 // 30-Apr-10	rbd		From DxSounder, for spark gap audio
+// 02-May-10	rbd		Interface and ctor changes for loadable directx classes
+// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface.
 //
 using System;
 using System.Collections.Generic;
@@ -27,7 +30,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxSpark : ISpark
+    class DxSpark : IAudioWav
     {
         private Device _deviceSound;
 		private int _sparkNum;

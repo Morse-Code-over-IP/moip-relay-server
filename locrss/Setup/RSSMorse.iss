@@ -6,7 +6,6 @@
 #define MyAppPublisher "Robert B. Denny"
 #define MyAppURL "https://sourceforge.net/projects/morse-rss-news/"
 #define MyAppExeName "RSSMorse.exe"
-#define MyAppExeName2 "RSSMorseNoDx.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -22,8 +21,9 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=D:\dev\misc\MorseTools\locrss\Setup
-OutputBaseFilename=RSSMorse(1.3)Setup
+OutputBaseFilename=RSSMorse13Setup
 SetupIconFile=D:\dev\misc\MorseTools\locrss\Resources\AppIcon.ico
+WizardImageFile=SetupImage.bmp
 Compression=lzma
 SolidCompression=yes
 
@@ -34,19 +34,16 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\dev\misc\MorseTools\locrss\bin\Release\RSSMorse.exe"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
+Source: "D:\dev\misc\MorseTools\locrss\bin\Release\RSSMorse.exe"; DestDir: "{app}";
 Source: "D:\dev\misc\MorseTools\locrss\bin\Release\RSSMorse.exe.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\dev\misc\MorseTools\locrss\bin\ReleaseNoDx\RSSMorseNoDx.exe"; DestDir: "{app}"; DestName: "{#MyAppExeName2}"
-Source: "D:\dev\misc\MorseTools\locrss\bin\ReleaseNoDx\RSSMorseNoDx.exe.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\dev\misc\MorseTools\locrss\bin\Release\DC3.MorseEncode.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\dev\misc\MorseTools\locrss\bin\Release\DC3.MorseEncode.dll"; DestDir: "{app}";
 Source: "D:\dev\misc\MorseTools\locrss\doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\dev\misc\MorseTools\locrss\Setup\DirectX Assemblies\*"; DestDir: "{app}";
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{#MyAppName} (no DX)"; Filename: "{app}\{#MyAppExeName2}"
 Name: "{group}\RSS Morse Help"; Filename: "{app}\doc\index.html"; IconFilename: "{app}\doc\Help.ico"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{commondesktop}\{#MyAppName} (no DX)"; Filename: "{app}\{#MyAppExeName2}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent

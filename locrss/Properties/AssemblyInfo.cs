@@ -7,11 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("RSS Morse")]
 [assembly: AssemblyDescription("RSS to Morse code translator")]
-#if NODX
-[assembly: AssemblyConfiguration("Built without managed DirectX support")]
-#else
-[assembly: AssemblyConfiguration("SUpport for Managed DirectX and Media.SoundPlayer")]
-#endif
+[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Robert B. Denny, Mesa, AZ <rdenny@dc3.com>")]
 [assembly: AssemblyProduct("RSS Morse")]
 [assembly: AssemblyCopyright("Open Source Common Public Attribution License")]

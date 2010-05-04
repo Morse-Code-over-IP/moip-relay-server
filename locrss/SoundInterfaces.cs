@@ -8,18 +8,6 @@ namespace com.dc3
 	{
 		float Frequency { get; set; }
 		float Amplitude { get; set; }
-		int DitMilliseconds { get; set; }
-		void Dit();
-		void Dah();
-		void Space();
-		void Tone(int ms);
-		void Stop();
-	}
-
-	interface ISpark
-	{
-		
-		int SoundIndex { get; set; }
 		int StartLatency { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();
@@ -29,8 +17,9 @@ namespace com.dc3
 		void Stop();
 	}
 
-	interface ISounder
+	interface IAudioWav
 	{
+		
 		int SoundIndex { get; set; }
 		int StartLatency { get; set; }
 		int DitMilliseconds { get; set; }

@@ -39,6 +39,7 @@ namespace com.dc3.morse
 		private float _freq;
 		private float _ampl;
 		private int _ditMs;
+		private int _startLatency;
 
 		private byte[] _waveBuf;
 		private WaveFormat _waveFmt;
@@ -51,6 +52,7 @@ namespace com.dc3.morse
 			_freq = 880;															// Defaults (typ.)
 			_ampl = 0.3F;
 			_ditMs = 80;
+			_startLatency = 0;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
@@ -148,6 +150,12 @@ namespace com.dc3.morse
 			}
 		}
 
+		public int StartLatency
+		{
+			get { return _startLatency; }
+			set { _startLatency = value; }
+		}
+
 		public int DitMilliseconds
 		{
 			get { return _ditMs; }
@@ -156,12 +164,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			Tone(_ditMs);
+			PlayFor(_ditMs);
 		}
 
 		public void Dah()
 		{
-			Tone(_ditMs * 3);
+			PlayFor(_ditMs * 3);
 		}
 
 		public void Space()
@@ -169,7 +177,7 @@ namespace com.dc3.morse
 			Thread.Sleep(_ditMs);
 		}
 
-		public void Tone(int ms)
+		public void PlayFor(int ms)
 		{
 			_secBuf.SetCurrentPosition((_sampleRate * (_maxLen - ms)) * 2 / 1000);
 			_secBuf.Play(0, BufferPlayFlags.Default);

@@ -20,6 +20,8 @@
 // 29-Apr-10	rbd		Initial edit - from SpTones
 // 30-Apr-10	rbd		1.2.0 - ISpark, 4 sounds
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
+// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface.
 //
 using System;
 using System.Collections.Generic;
@@ -30,7 +32,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpSpark : ISpark
+    class SpSpark : IAudioWav
     {
 		//private const int _sampleRate = 44100;										// Parameters of spark WAV file resources
 		//private const short _bitsPerSample = 16;
