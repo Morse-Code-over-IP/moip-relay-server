@@ -28,10 +28,9 @@
         prevWord = word;
     }
 
-    var randTitle = Math.floor(Math.random() * 1000000);                 // Randomize title for RSS readers
-    var resp = "<rss version=\"2.0\">\r\n<channel>\r\n<item>\r\n<title>20 random words " + 
-                "from top 100 English words [" + randTitle + "]</title>\r\n" + 
-                "<description>" + article + "</description>\r\n" + 
+    var resp = "<rss version=\"2.0\">\r\n<channel>\r\n<item>\r\n<title>test" + 
+                "</title>\r\n" + 
+                "<description>PMGMT=</description>\r\n" + 
                 "</item>\r\n</channel>\r\n</rss>\r\n";
     Response.ContentType = "text/xml";
     Response.AddHeader("Content-Length", resp.length);
