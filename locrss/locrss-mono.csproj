@@ -1,35 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E4570459-2DF3-415D-B99D-A5C82C0972B9}</ProjectGuid>
+    <ProjectGuid>{3109C103-F0FB-4B05-A453-5B09508F6417}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>com.dc3</RootNamespace>
-    <AssemblyName>locrss</AssemblyName>
+    <AssemblyName>RSSMorse</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
     <TargetFrameworkSubset>
     </TargetFrameworkSubset>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Mono|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\debug-mono\</OutputPath>
     <DefineConstants>DEBUG;TRACE;MONO_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-Mono|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release-Mono\</OutputPath>
     <DefineConstants>TRACE;MONO_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -75,12 +75,15 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="SoundCfgForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SoundCfgForm.Designer.cs">
+      <DependentUpon>SoundCfgForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="SpSounder.cs" />
     <Compile Include="SpTones.cs" />
     <Compile Include="PreciseDelay.cs" />
-    <Compile Include="SoundCfgForm.cs" />
-    <Compile Include="SoundCfgForm.Designer.cs" />
-    <None Include="SoundCfgForm.resx" />
     <Compile Include="SoundInterfaces.cs" />
     <Compile Include="SpSpark.cs" />
     <None Include="Sounds\Spark 1.wav" />
@@ -91,6 +94,9 @@
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
     <Content Include="Sounds\Clack 1.wav" />
+    <EmbeddedResource Include="SoundCfgForm.resx">
+      <DependentUpon>SoundCfgForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Sounds\Clack 2.wav" />
     <None Include="Sounds\Clack 3.wav" />
     <None Include="Sounds\Clack 4.wav" />
@@ -105,6 +111,12 @@
     <None Include="Sounds\Click 3.wav" />
     <None Include="Sounds\Click 2.wav" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\morse\morse.csproj">
+      <Project>{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}</Project>
+      <Name>morse</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -113,10 +125,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <ProjectReference Include="..\morse\morse-mono.csproj">
-      <Project>{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}</Project>
-      <Name>morse-mono</Name>
-    </ProjectReference>
-  </ItemGroup>
 </Project>
