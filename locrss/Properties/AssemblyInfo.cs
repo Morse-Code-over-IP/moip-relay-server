@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -7,7 +7,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("RSS Morse")]
 [assembly: AssemblyDescription("RSS to Morse code translator")]
-[assembly: AssemblyConfiguration("")]
+#if MONO_BUILD
+[assembly: AssemblyConfiguration("Mono 2.4 or later")]
+#else
+[assembly: AssemblyConfiguration("Windows XP or later")]
+#endif
 [assembly: AssemblyCompany("Robert B. Denny, Mesa, AZ <rdenny@dc3.com>")]
 [assembly: AssemblyProduct("RSS Morse")]
 [assembly: AssemblyCopyright("Open Source Common Public Attribution License")]

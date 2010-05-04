@@ -426,6 +426,7 @@ namespace com.dc3
 
 		private void SetupSound()
 		{
+#if !MONO_BUILD
 			if (_directX)
 			{
 				_tones = new DxTones(this, 1000);
@@ -438,6 +439,11 @@ namespace com.dc3
 				_sounder = new SpSounder();
 				_spark = new SpSpark();
 			}
+#else
+			_tones = new SpTones();
+			_sounder = new SpSounder();
+			_spark = new SpSpark();
+#endif
 			_tones.Frequency = _toneFreq;
 			_sounder.SoundIndex = _sounderNum;
 			_spark.SoundIndex = _sparkNum;

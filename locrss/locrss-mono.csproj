@@ -77,6 +77,16 @@
     <Compile Include="Settings.cs" />
     <Compile Include="SpSounder.cs" />
     <Compile Include="SpTones.cs" />
+    <Compile Include="PreciseDelay.cs" />
+    <Compile Include="SoundCfgForm.cs" />
+    <Compile Include="SoundCfgForm.Designer.cs" />
+    <None Include="SoundCfgForm.resx" />
+    <Compile Include="SoundInterfaces.cs" />
+    <Compile Include="SpSpark.cs" />
+    <None Include="Sounds\Spark 1.wav" />
+    <None Include="Sounds\Spark 2.wav" />
+    <None Include="Sounds\Spark 3.wav" />
+    <None Include="Sounds\Spark 4.wav" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
