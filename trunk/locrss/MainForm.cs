@@ -41,6 +41,11 @@
 // 01-May-10	rbd		1.3.0 - Make this runnable on systems which don't have
 //						Microsoft.DirectX via second project which omits DX
 //						sound classes and ref to DirectX.DirectSound
+// 03-May-10	rbd		1.3.0 - Much better solution: Include the Managed DirectX
+//						assemblies in the setup. This allows Fusion to find them
+//						if the DirectX End User Runtime is not installed. Refactor
+//						audio interfaces, now just two (tone and wav). Fix DX/Sound
+//						switching (on close SoundCfg dialog).
 //
 using System;
 using System.Collections.Generic;
@@ -108,8 +113,8 @@ namespace com.dc3
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
 		private ITone _tones;
-		private ISounder _sounder;
-		private ISpark _spark;
+		private IAudioWav _sounder;
+		private IAudioWav _spark;
 		private DateTime _lastPollTime;
 		private SerialPort _serialPort;
 
@@ -234,7 +239,7 @@ namespace com.dc3
 		{
 			_toneFreq = (int)nudToneFreq.Value;
 			_tones.Frequency = _toneFreq;
-			_tones.Tone(100);
+			_tones.PlayFor(100);
 		}
 
 		private void nudSpark_ValueChanged(object sender, EventArgs e)
@@ -383,8 +388,12 @@ namespace com.dc3
 				_timingComp = sf.TimingComp;
 				Properties.Settings.Default.TimingComp = (decimal)_timingComp;
 				if (_directX != sf.UseDirectX)									// Switching sound technology
+				{
+					_directX = sf.UseDirectX;
 					SetupSound();
-				_directX = sf.UseDirectX;
+				}
+				else
+					_directX = sf.UseDirectX;
 				Properties.Settings.Default.DirectX = _directX;
 			}
 		}
@@ -411,11 +420,6 @@ namespace com.dc3
 
 		private void SetupSound()
 		{
-#if NODX
-				_tones = new SpTones();
-				_sounder = new SpSounder();
-				_spark = new SpSpark();
-#else
 			if (_directX)
 			{
 				_tones = new DxTones(this, 1000);
@@ -428,7 +432,6 @@ namespace com.dc3
 				_sounder = new SpSounder();
 				_spark = new SpSpark();
 			}
-#endif
 			_tones.Frequency = _toneFreq;
 			_sounder.SoundIndex = _sounderNum;
 			_spark.SoundIndex = _sparkNum;
@@ -731,7 +734,7 @@ namespace com.dc3
 						switch (_soundMode)
 						{
 							case SoundMode.Tone:
-								_tones.Tone(code[i]);
+								_tones.PlayFor(code[i]);
 								break;
 							case SoundMode.Spark:
 								_spark.PlayFor(code[i]);

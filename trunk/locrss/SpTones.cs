@@ -163,12 +163,12 @@ namespace com.dc3.morse
 
 		public void Dit()
 		{
-			Tone(_ditMs);
+			PlayFor(_ditMs);
 		}
 
 		public void Dah()
 		{
-			Tone(_ditMs * 3);
+			PlayFor(_ditMs * 3);
 		}
 
 		public void Space()
@@ -179,7 +179,7 @@ namespace com.dc3.morse
 		//
 		// Synchronous for the duration of ms
 		//
-		public void Tone(int ms)
+		public void PlayFor(int ms)
 		{
 			int l = 2 * ((_sampleRate * ms) / 1000);								// New data length - must be even number!
 			int m = _totalLength - _dataLength + l;
