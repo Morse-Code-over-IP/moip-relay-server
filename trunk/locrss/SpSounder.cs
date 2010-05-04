@@ -88,7 +88,8 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs - _startLatency);
+//			Thread.Sleep(_ditMs - _startLatency);
+			
 		}
 
 		//
@@ -99,7 +100,8 @@ namespace com.dc3.morse
 		{
 			_spClack.Stop();														// In case previous mark's clack still playing
 			_spClick.Play();														// Start the click playing then...
-			Thread.Sleep(ms);														// ... wait for just the mark time, then ...
+//			Thread.Sleep(ms);														// ... wait for just the mark time, then ...
+			PreciseDelay.Wait(ms);
 			_spClick.Stop();														// ... stop the click in case the sound is too long
 			_spClack.Play();														// Start the clack and return while playing
 		}

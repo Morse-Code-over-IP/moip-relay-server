@@ -174,14 +174,16 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs);
+//			Thread.Sleep(_ditMs);
+			PreciseDelay.Wait(_ditMs);
 		}
 
 		public void PlayFor(int ms)
 		{
 			_secBuf.SetCurrentPosition((_sampleRate * (_maxLen - ms)) * 2 / 1000);
 			_secBuf.Play(0, BufferPlayFlags.Default);
-			Thread.Sleep(ms);
+//			Thread.Sleep(ms);
+			PreciseDelay.Wait(ms);
 		}
 
 		public void Stop()

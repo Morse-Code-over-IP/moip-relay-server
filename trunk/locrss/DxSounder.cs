@@ -104,14 +104,16 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs - _startLatency);
+//			Thread.Sleep(_ditMs - _startLatency);
+			PreciseDelay.Wait(_ditMs - _startLatency);
 		}
 
 		public void PlayFor(int ms)
 		{
 			_bufClick.SetCurrentPosition(0);
 			_bufClick.Play(0, BufferPlayFlags.Default);
-			Thread.Sleep(ms);
+//			Thread.Sleep(ms);
+			PreciseDelay.Wait(ms);
 			_bufClick.Stop();
 			_bufClack.SetCurrentPosition(0);
 			_bufClack.Play(0, BufferPlayFlags.Default);

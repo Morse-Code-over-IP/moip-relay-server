@@ -106,7 +106,8 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs - _startLatency);
+//			Thread.Sleep(_ditMs - _startLatency);
+			PreciseDelay.Wait(_ditMs - _startLatency);
 		}
 
 		//
@@ -128,7 +129,8 @@ namespace com.dc3.morse
 			//_player.Play();															// TODO - PlaySync() and no Thread.Sleep?
 			//Thread.Sleep(ms);
 			_player.Play();
-			Thread.Sleep(ms);
+//			Thread.Sleep(ms);
+			PreciseDelay.Wait(ms);
 			_player.Stop();
 		}
 
