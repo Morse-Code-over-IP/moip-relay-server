@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
@@ -10,6 +10,7 @@ namespace com.dc3
 
 	static class PreciseDelay
 	{
+#if !MONO_BUILD
 		[StructLayout(LayoutKind.Sequential)]
 		public struct TimeCaps
 		{
@@ -90,5 +91,21 @@ namespace com.dc3
 
 			_complEvt.WaitOne(5000);
 		}
+#else
+		public static void Initialize()
+		{
+			return;
+		}
+		
+		public static void Cleanup()
+		{
+			return;
+		}
+		
+		public static void Wait(int ms)
+		{
+			Thread.Sleep(ms);
+		}
+#endif
 	}
 }
