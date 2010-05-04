@@ -173,7 +173,8 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			Thread.Sleep(_ditMs - _startLatency);
+//			Thread.Sleep(_ditMs - _startLatency);
+			PreciseDelay.Wait(_ditMs - _startLatency);
 		}
 
 		//
@@ -193,7 +194,8 @@ namespace com.dc3.morse
 			_player.Stream = _wavStrm;
 			//_player.Load();
 			_player.Play();															// TODO - PlaySync() and no Thread.Sleep?
-			Thread.Sleep(ms);
+//			Thread.Sleep(ms);
+			PreciseDelay.Wait(ms);
 		}
 
 		public void Stop()

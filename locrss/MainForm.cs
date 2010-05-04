@@ -46,6 +46,8 @@
 //						if the DirectX End User Runtime is not installed. Refactor
 //						audio interfaces, now just two (tone and wav). Fix DX/Sound
 //						switching (on close SoundCfg dialog).
+// 03-May-10	rbd		1.3.1 - Switched to new PreciseDelay.Wait for timing, uses
+//						multimedia timer. Make sounder test dits at 30WPM.
 //
 using System;
 using System.Collections.Generic;
@@ -175,6 +177,7 @@ namespace com.dc3
 			_titleExpireThread.Start();
 
 			SetupSound();
+			PreciseDelay.Initialize();
 
 			statBarLabel.Text = "Ready";
 			statBarCrawl.Text = "";
@@ -196,6 +199,7 @@ namespace com.dc3
 			if (_serialPort != null)
 				_serialPort.Close();
 			_serialPort = null;
+			PreciseDelay.Cleanup();
 			Properties.Settings.Default.LRU.Clear();
 			foreach (string uri in cbFeedUrl.Items)
 				Properties.Settings.Default.LRU.Add(uri);
@@ -329,12 +333,14 @@ namespace com.dc3
 #endif
 				S.Open();
 				S.DtrEnable = true;
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < 4; i++)										// 4 dits @ 30 WPM
 				{
 					S.RtsEnable = true;
-					Thread.Sleep(100);
+//					Thread.Sleep(100);
+					PreciseDelay.Wait(40);
 					S.RtsEnable = false;
-					Thread.Sleep(100);
+//					Thread.Sleep(100);
+					PreciseDelay.Wait(40);
 				}
 				S.DtrEnable = false;
 				S.Close();
@@ -726,7 +732,8 @@ namespace com.dc3
 					if (_useSerial)
 					{
 						_serialPort.RtsEnable = true;
-						Thread.Sleep(code[i]);
+//						Thread.Sleep(code[i]);
+						PreciseDelay.Wait(code[i]);
 						_serialPort.RtsEnable = false;
 					}
 					else
@@ -746,7 +753,8 @@ namespace com.dc3
 					}
 				}
 				else
-					Thread.Sleep(_useSerial ? -code[i] : -code[i] - _timingComp);
+//					Thread.Sleep(_useSerial ? -code[i] : -code[i] - _timingComp);
+					PreciseDelay.Wait(_useSerial ? -code[i] : -code[i] - _timingComp);
 			}
 			string ct = Regex.Replace(text, "\\s", " ");
 			AddToCrawler(ct);
