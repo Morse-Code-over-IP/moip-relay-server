@@ -18,8 +18,8 @@
 //----------	---		-------------------------------------------------------
 // 30-Apr-10	rbd		From DxSounder, for spark gap audio
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
-// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
-//						common IAudioWav interface.
+// 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface. New PreciseDelay.
 //
 using System;
 using System.Collections.Generic;
@@ -95,7 +95,6 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-//			Thread.Sleep(_ditMs - _startLatency);
 			PreciseDelay.Wait(_ditMs - _startLatency);
 		}
 
@@ -103,7 +102,6 @@ namespace com.dc3.morse
 		{
 			_buf.SetCurrentPosition(0);
 			_buf.Play(0, BufferPlayFlags.Default);
-//			Thread.Sleep(ms);
 			PreciseDelay.Wait(ms);
 			_buf.Stop();
 		}

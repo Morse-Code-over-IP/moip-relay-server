@@ -1,3 +1,27 @@
+//tabs=4
+//-----------------------------------------------------------------------------
+// TITLE:		PrecisionDelay.cs
+//
+// FACILITY:	RSS to Morse tool
+//
+// ABSTRACT:	Thread.Sleep is not accurate enough for timing of Morse Code.
+//				This class uses the WIndows Multimedia Timer services to 
+//				implement a precise delay without hogging CPU resources. The
+//				wait is ended via setting an Auto-Reset event so spin-looping
+//				is avoided.
+//
+// ENVIRONMENT:	Microsoft.NET 2.0/3.5
+//				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
+// AUTHOR:		Bob Denny, <rdenny@dc3.com>
+//
+// Edit Log:
+//
+// When			Who		What
+//----------	---		-------------------------------------------------------
+// 03-May-10	rbd		1.3.2 - Initial edit.
+//
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -75,6 +99,8 @@ namespace com.dc3
 
 		public static void Wait(int ms)
 		{
+			if (ms <= 1) return;												// Don't bother at 1 ms or less
+
 			lock (_lockObj)
 			{
 				if (_timerId != 0)

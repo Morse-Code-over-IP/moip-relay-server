@@ -61,6 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComPortCtrl.cs" />
     <Compile Include="DxSounder.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -46,8 +46,10 @@
 //						if the DirectX End User Runtime is not installed. Refactor
 //						audio interfaces, now just two (tone and wav). Fix DX/Sound
 //						switching (on close SoundCfg dialog).
-// 03-May-10	rbd		1.3.1 - Switched to new PreciseDelay.Wait for timing, uses
-//						multimedia timer. Make sounder test dits at 30WPM.
+// 03-May-10	rbd		1.3.2 - Switched to new PreciseDelay.Wait for timing, uses
+//						multimedia timer. Make sounder test dits at 20WPM.
+// 04-May-10	rbd		1.3.3 - Low level serial control for physical sounder, 
+//						change test dits to 20WPM. Misc cleanups.
 //
 using System;
 using System.Collections.Generic;
@@ -118,7 +120,7 @@ namespace com.dc3
 		private IAudioWav _sounder;
 		private IAudioWav _spark;
 		private DateTime _lastPollTime;
-		private SerialPort _serialPort;
+		private ComPortCtrl _serialPort;
 
 		//
 		// Form ctor and event methods
@@ -326,24 +328,21 @@ namespace com.dc3
 			try
 			{
 				picTestSerial.Enabled = false;
+				ComPortCtrl S = new ComPortCtrl();
 #if MONO_BUILD
-				SerialPort S = new SerialPort("/dev/tty.serial" + _serialPortNum.ToString());
+				S.Open("/dev/tty.serial" + _serialPortNum.ToString());
 #else
-				SerialPort S = new SerialPort("COM" + _serialPortNum.ToString());
+				S.Open("COM" + _serialPortNum.ToString());
 #endif
-				S.Open();
-				S.DtrEnable = true;
-				for (int i = 0; i < 4; i++)										// 4 dits @ 30 WPM
+				for (int i = 0; i < 4; i++)										// 4 dits @ 20 WPM
 				{
-					S.RtsEnable = true;
-//					Thread.Sleep(100);
-					PreciseDelay.Wait(40);
-					S.RtsEnable = false;
-//					Thread.Sleep(100);
-					PreciseDelay.Wait(40);
+					S.RTS = true;
+					PreciseDelay.Wait(60);
+					S.RTS = false;
+					PreciseDelay.Wait(60);
 				}
-				S.DtrEnable = false;
 				S.Close();
+				S.Dispose();
 				MessageBox.Show("Test complete, 4 dits sent.", "Sounder Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			catch (Exception ex)
@@ -363,10 +362,10 @@ namespace com.dc3
 		private void mnuUrlResetToDefault_Click(object sender, EventArgs e)
 		{
 			//
-			// THios is really obscure. I found an article on the almighty StackOverflow
+			// This is really obscure. I found an article on the almighty StackOverflow
 			// http://stackoverflow.com/questions/49269/reading-default-application-settings-in-c
 			// which showed how to get the original/default value of an application
-			// setting. But doing this does not return a collection it returns raw XML.
+			// setting. But doing this does not return a collection - it returns raw XML.
 			// So we have to parse that and get the LRU list that way. Oh well...
 			//
 			string lru = (string)Properties.Settings.Default.Properties["LRU"].DefaultValue;
@@ -392,6 +391,9 @@ namespace com.dc3
 			if (sf.ShowDialog(this) == DialogResult.OK)
 			{
 				_timingComp = sf.TimingComp;
+				_tones.StartLatency = _timingComp;
+				_sounder.StartLatency = _timingComp;
+				_spark.StartLatency = _timingComp;
 				Properties.Settings.Default.TimingComp = (decimal)_timingComp;
 				if (_directX != sf.UseDirectX)									// Switching sound technology
 				{
@@ -445,8 +447,11 @@ namespace com.dc3
 			_spark = new SpSpark();
 #endif
 			_tones.Frequency = _toneFreq;
+			_tones.StartLatency = _timingComp;
 			_sounder.SoundIndex = _sounderNum;
+			_sounder.StartLatency = _timingComp;
 			_spark.SoundIndex = _sparkNum;
+			_spark.StartLatency = _timingComp;
 		}
 
 		private void UpdateUI()
@@ -737,10 +742,9 @@ namespace com.dc3
 				{
 					if (_useSerial)
 					{
-						_serialPort.RtsEnable = true;
-//						Thread.Sleep(code[i]);
+						_serialPort.RTS = true;
 						PreciseDelay.Wait(code[i]);
-						_serialPort.RtsEnable = false;
+						_serialPort.RTS = false;
 					}
 					else
 					{
@@ -759,7 +763,6 @@ namespace com.dc3
 					}
 				}
 				else
-//					Thread.Sleep(_useSerial ? -code[i] : -code[i] - _timingComp);
 					PreciseDelay.Wait(_useSerial ? -code[i] : -code[i] - _timingComp);
 			}
 			string ct = Regex.Replace(text, "\\s", " ");
@@ -779,13 +782,12 @@ namespace com.dc3
 
 				if (_useSerial)
 				{
+					_serialPort = new ComPortCtrl();
 #if MONO_BUILD
-					_serialPort = new SerialPort("/dev/tty.serial" + _serialPortNum.ToString());
+					_serialPort.Open("/dev/tty.serial" + _serialPortNum.ToString());
 #else
-					_serialPort = new SerialPort("COM" + _serialPortNum.ToString());
+					_serialPort.Open("COM" + _serialPortNum.ToString());
 #endif
-					_serialPort.Open();
-					_serialPort.DtrEnable = true;
 				}
 
 				// Remember the state of the title cache, we have a clear button!
