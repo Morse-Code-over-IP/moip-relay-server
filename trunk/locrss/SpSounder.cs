@@ -4,8 +4,7 @@
 //
 // FACILITY:	RSS to Morse tool
 //
-// ABSTRACT:	Generates telegraph sounder sounds via Media.SoundPlayer. This is
-//				used in preference to Managed DirectX (see DxSounder.cs).
+// ABSTRACT:	Generates telegraph sounder sounds via Media.SoundPlayer. 
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
@@ -21,8 +20,9 @@
 // 28-Apr-10	rbd		1.1.0 - Simplify sound resource loading
 // 30-Apr-10	rbd		1.2.0 - ISounder, Stop()
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
-// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
-//						common IAudioWav interface.
+// 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface. New PreciseDelay.
+// 05-May-10	rbd		1.3.3 - Oops, forgot the delay in Space();
 //
 using System;
 using System.Collections.Generic;
@@ -89,7 +89,7 @@ namespace com.dc3.morse
 		public void Space()
 		{
 //			Thread.Sleep(_ditMs - _startLatency);
-			
+			PreciseDelay.Wait(_ditMs - StartLatency);
 		}
 
 		//
@@ -100,7 +100,6 @@ namespace com.dc3.morse
 		{
 			_spClack.Stop();														// In case previous mark's clack still playing
 			_spClick.Play();														// Start the click playing then...
-//			Thread.Sleep(ms);														// ... wait for just the mark time, then ...
 			PreciseDelay.Wait(ms);
 			_spClick.Stop();														// ... stop the click in case the sound is too long
 			_spClack.Play();														// Start the clack and return while playing

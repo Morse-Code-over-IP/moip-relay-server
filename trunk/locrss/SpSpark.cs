@@ -4,8 +4,7 @@
 //
 // FACILITY:	RSS to Morse tool
 //
-// ABSTRACT:	Generates spark gap sounds via Media.SoundPlayer. This is
-//				used in preference to Managed DirectX (see DxTones.cs).
+// ABSTRACT:	Generates spark gap sounds via Media.SoundPlayer. 
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
@@ -20,8 +19,8 @@
 // 29-Apr-10	rbd		Initial edit - from SpTones
 // 30-Apr-10	rbd		1.2.0 - ISpark, 4 sounds
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
-// 03-May-10	rbd		1.3.0 - No loadables. Shipping DX assys. Refactor to new
-//						common IAudioWav interface.
+// 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
+//						common IAudioWav interface. New PreciseDelay.
 //
 using System;
 using System.Collections.Generic;
@@ -106,7 +105,6 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-//			Thread.Sleep(_ditMs - _startLatency);
 			PreciseDelay.Wait(_ditMs - _startLatency);
 		}
 
@@ -129,7 +127,6 @@ namespace com.dc3.morse
 			//_player.Play();															// TODO - PlaySync() and no Thread.Sleep?
 			//Thread.Sleep(ms);
 			_player.Play();
-//			Thread.Sleep(ms);
 			PreciseDelay.Wait(ms);
 			_player.Stop();
 		}
