@@ -20,6 +20,8 @@
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
 // 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
 //						common IAudioWav interface. New PreciseDelay.
+// 05-May-10	rbd		1.4.2 - Seek to within ms of end of spark sound, play to
+//						and. Eliminates expensive Stop() call.
 //
 using System;
 using System.Collections.Generic;
@@ -100,10 +102,9 @@ namespace com.dc3.morse
 
 		public void PlayFor(int ms)
 		{
-			_buf.SetCurrentPosition(0);
+			_buf.SetCurrentPosition(_bufDesc.BufferBytes - ((_bufDesc.Format.AverageBytesPerSecond * ms) / 1000));
 			_buf.Play(0, BufferPlayFlags.Default);
 			PreciseDelay.Wait(ms);
-			_buf.Stop();
 		}
 
 		public void Stop()
