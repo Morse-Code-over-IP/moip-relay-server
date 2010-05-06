@@ -23,6 +23,8 @@
 // 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
 //						common IAudioWav interface. New PreciseDelay.
 // 05-May-10	rbd		1.3.3 - Oops, forgot the delay in Space();
+// 05-May-10	rbd		1.4.2 - Remove Stop() calls, sounds are now 20ms. Much 
+//						better, smoother.
 //
 using System;
 using System.Collections.Generic;
@@ -88,7 +90,6 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-//			Thread.Sleep(_ditMs - _startLatency);
 			PreciseDelay.Wait(_ditMs - StartLatency);
 		}
 
@@ -98,10 +99,10 @@ namespace com.dc3.morse
 		//
 		public void PlayFor(int ms)
 		{
-			_spClack.Stop();														// In case previous mark's clack still playing
+			//_spClack.Stop();														// In case previous mark's clack still playing
 			_spClick.Play();														// Start the click playing then...
 			PreciseDelay.Wait(ms);
-			_spClick.Stop();														// ... stop the click in case the sound is too long
+			//_spClick.Stop();														// ... stop the click in case the sound is too long
 			_spClack.Play();														// Start the clack and return while playing
 		}
 
