@@ -30,7 +30,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpTones : ITone
+    public class SpTones : ITone
     {
 		private const int _sampleRate = 44100;
 		private const short _bitsPerSample = 16;

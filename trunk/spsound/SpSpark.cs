@@ -22,6 +22,7 @@
 // 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
 //						common IAudioWav interface. New PreciseDelay.
 // 05-May-10	rbd		1.4.2 - Attempt to seek/play-to-end, but fails ???
+// 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //
 //#define PLAY_FROM_END
 
@@ -35,7 +36,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpSpark : IAudioWav
+    public class SpSpark : IAudioWav
     {
 #if PLAY_TO_END
 		private const int _sampleRate = 44100;										// Parameters of spark WAV file resources

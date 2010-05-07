@@ -22,6 +22,7 @@
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
 // 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
 //						common IAudioWav interface. New PreciseDelay.
+// 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxSounder : IAudioWav
+    public class DxSounder : IAudioWav
     {
         private Device _deviceSound;
 		private int _sounder;

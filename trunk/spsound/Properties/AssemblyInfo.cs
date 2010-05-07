@@ -1,19 +1,15 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RSS Morse")]
-[assembly: AssemblyDescription("RSS to Morse code translator")]
-#if MONO_BUILD
-[assembly: AssemblyConfiguration("Mono 2.4 or later")]
-#else
+[assembly: AssemblyTitle("DC3.Morse.SoundPlayerSounds")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("Windows XP or later")]
-#endif
 [assembly: AssemblyCompany("Robert B. Denny, Mesa, AZ <rdenny@dc3.com>")]
-[assembly: AssemblyProduct("RSS Morse")]
+[assembly: AssemblyProduct("Morse Tools")]
 [assembly: AssemblyCopyright("Open Source Common Public Attribution License")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -24,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("573ac84d-0375-441b-95fc-35d32c27f62e")]
+[assembly: Guid("bf0683ca-a479-4f64-beb2-964399071962")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -36,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.0.0")]
-[assembly: AssemblyFileVersion("1.5.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

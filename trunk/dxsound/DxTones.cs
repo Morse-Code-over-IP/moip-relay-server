@@ -20,6 +20,7 @@
 // 28-Apr-10	rbd		Remove sync parameter from Tone()
 // 30-Apr-10	rbd		ITone interface
 // 03-May-10	rbd		1.3.2 -  New PreciseDelay
+// 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxTones : ITone
+    public class DxTones : ITone
     {
 		private const int _sampleRate = 44100;
 		private const short _bitsPerSample = 16;

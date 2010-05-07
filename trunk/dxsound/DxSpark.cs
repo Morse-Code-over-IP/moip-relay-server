@@ -22,6 +22,7 @@
 //						common IAudioWav interface. New PreciseDelay.
 // 05-May-10	rbd		1.4.2 - Seek to within ms of end of spark sound, play to
 //						and. Eliminates expensive Stop() call.
+// 07-May-10	rbd		1.5.0 Refactoring into separate assy, make class public.
 //
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    class DxSpark : IAudioWav
+    public class DxSpark : IAudioWav
     {
         private Device _deviceSound;
 		private int _sparkNum;

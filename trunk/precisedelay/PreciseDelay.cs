@@ -21,6 +21,8 @@
 // When			Who		What
 //----------	---		-------------------------------------------------------
 // 03-May-10	rbd		1.3.2 - Initial edit.
+// 07-May-10	rbd		1.5.0 - Refactoring into separate assy, make this class
+//						public.
 //
 using System;
 using System.Collections.Generic;
@@ -32,7 +34,7 @@ using System.Runtime.InteropServices;
 namespace com.dc3
 {
 
-	static class PreciseDelay
+	public static class PreciseDelay
 	{
 #if !MONO_BUILD
 		[StructLayout(LayoutKind.Sequential)]
