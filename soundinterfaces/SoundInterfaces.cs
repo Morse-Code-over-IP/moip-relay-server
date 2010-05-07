@@ -19,14 +19,16 @@
 //----------	---		-------------------------------------------------------
 // 03-May-10	rbd		1.3.2 - This was created a few days ago, and modified
 //						several times due to refactoring.
+// 07-May-10	rbd		1.5.0 - Refactoring into separate assy. Make interfaces
+//						public.
 //
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace com.dc3
+namespace com.dc3.morse
 {
-	interface ITone
+	public interface ITone
 	{
 		float Frequency { get; set; }
 		float Amplitude { get; set; }
@@ -39,7 +41,7 @@ namespace com.dc3
 		void Stop();
 	}
 
-	interface IAudioWav
+	public interface IAudioWav
 	{
 		
 		int SoundIndex { get; set; }

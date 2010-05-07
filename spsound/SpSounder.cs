@@ -25,6 +25,7 @@
 // 05-May-10	rbd		1.3.3 - Oops, forgot the delay in Space();
 // 05-May-10	rbd		1.4.2 - Remove Stop() calls, sounds are now 20ms. Much 
 //						better, smoother.
+// 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ using System.Threading;
 
 namespace com.dc3.morse
 {
-    class SpSounder : IAudioWav
+    public class SpSounder : IAudioWav
     {
 		private int _sounder;
 		private SoundPlayer _spClick;

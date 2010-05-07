@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ComPortCtrl.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -82,40 +81,33 @@
     <Compile Include="SoundCfgForm.Designer.cs">
       <DependentUpon>SoundCfgForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SpSounder.cs" />
-    <Compile Include="SpTones.cs" />
-    <Compile Include="PreciseDelay.cs" />
-    <Compile Include="SoundInterfaces.cs" />
-    <Compile Include="SpSpark.cs" />
-    <None Include="Sounds\Spark 1.wav" />
-    <None Include="Sounds\Spark 2.wav" />
-    <None Include="Sounds\Spark 3.wav" />
-    <None Include="Sounds\Spark 4.wav" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
-    <Content Include="Sounds\Clack 1.wav" />
     <EmbeddedResource Include="SoundCfgForm.resx">
       <DependentUpon>SoundCfgForm.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="Sounds\Clack 2.wav" />
-    <None Include="Sounds\Clack 3.wav" />
-    <None Include="Sounds\Clack 4.wav" />
-    <None Include="Sounds\Clack 5.wav" />
-    <None Include="Sounds\Clack 6.wav" />
-    <None Include="Sounds\Clack 7.wav" />
-    <Content Include="Sounds\Click 1.wav" />
-    <None Include="Sounds\Click 7.wav" />
-    <None Include="Sounds\Click 6.wav" />
-    <None Include="Sounds\Click 5.wav" />
-    <None Include="Sounds\Click 4.wav" />
-    <None Include="Sounds\Click 3.wav" />
-    <None Include="Sounds\Click 2.wav" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\comportctrl\comportctrl.csproj">
+      <Project>{AAE2923E-38E5-4C48-BA2D-3CA23B1717E2}</Project>
+      <Name>comportctrl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\morse\morse.csproj">
       <Project>{96FA3C3F-629B-489B-B451-7C64CF3FD6C5}</Project>
       <Name>morse</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\precisedelay\precisedelay.csproj">
+      <Project>{05188BFB-24A4-4B47-909E-7E7F035082A9}</Project>
+      <Name>precisedelay</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\soundinterfaces\soundinterfaces.csproj">
+      <Project>{CBA089A4-5496-408E-B49C-AA2852056F03}</Project>
+      <Name>soundinterfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\spsound\spsound.csproj">
+      <Project>{2C90B27A-9160-488B-A2A8-E40DEF101B28}</Project>
+      <Name>spsound</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
