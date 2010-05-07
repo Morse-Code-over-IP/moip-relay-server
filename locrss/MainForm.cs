@@ -336,9 +336,9 @@ namespace com.dc3
 #endif
 				for (int i = 0; i < 4; i++)										// 4 dits @ 20 WPM
 				{
-					S.RTS = true;
+					S.RtsEnable = true;
 					PreciseDelay.Wait(60);
-					S.RTS = false;
+					S.RtsEnable = false;
 					PreciseDelay.Wait(60);
 				}
 				S.Close();
@@ -742,9 +742,9 @@ namespace com.dc3
 				{
 					if (_useSerial)
 					{
-						_serialPort.RTS = true;
+						_serialPort.RtsEnable = true;
 						PreciseDelay.Wait(code[i]);
-						_serialPort.RTS = false;
+						_serialPort.RtsEnable = false;
 					}
 					else
 					{

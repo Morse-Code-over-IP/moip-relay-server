@@ -26,6 +26,7 @@
 // 05-May-10	rbd		1.4.2 - Remove Stop() calls, sounds are now 20ms. Much 
 //						better, smoother.
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
+//						Add Down() and Up().
 //
 using System;
 using System.Collections.Generic;
@@ -111,6 +112,17 @@ namespace com.dc3.morse
 		{
 			_spClick.Stop();
 			_spClack.Stop();
+		}
+
+		public void Down()
+		{
+			_spClick.Play();
+		}
+
+		public void Up()
+		{
+			_spClick.Stop();
+			_spClack.Play();
 		}
     }
 }

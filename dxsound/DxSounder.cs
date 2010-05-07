@@ -23,6 +23,7 @@
 // 03-May-10	rbd		1.3.2 - No loadables. Shipping DX assys. Refactor to new
 //						common IAudioWav interface. New PreciseDelay.
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
+//						Add Down() and Up().
 //
 using System;
 using System.Collections.Generic;
@@ -141,5 +142,19 @@ namespace com.dc3.morse
 			_bufClick.Stop();
 			_bufClack.Stop();
 		}
+
+		public void Down()
+		{
+			_bufClick.SetCurrentPosition(0);
+			_bufClick.Play(0, BufferPlayFlags.Default);
+		}
+
+		public void Up()
+		{
+			_bufClick.Stop();
+			_bufClack.SetCurrentPosition(0);
+			_bufClack.Play(0, BufferPlayFlags.Default);
+		}
+
     }
 }

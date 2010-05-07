@@ -23,6 +23,7 @@
 //						common IAudioWav interface. New PreciseDelay.
 // 05-May-10	rbd		1.4.2 - Attempt to seek/play-to-end, but fails ???
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
+//						Add Down() and Up().
 //
 //#define PLAY_FROM_END
 
@@ -145,6 +146,16 @@ namespace com.dc3.morse
 		public void Stop()
 		{
 			_player.Stop();
+		}
+
+		public void Down()
+		{
+			_player.Play();
+		}
+
+		public void Up()
+		{
+			this.Stop();
 		}
     }
 }
