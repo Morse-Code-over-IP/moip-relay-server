@@ -20,7 +20,7 @@
 // 03-May-10	rbd		1.3.2 - This was created a few days ago, and modified
 //						several times due to refactoring.
 // 07-May-10	rbd		1.5.0 - Refactoring into separate assy. Make interfaces
-//						public.
+//						public. Add Down() and Up().
 //
 using System;
 using System.Collections.Generic;
@@ -39,6 +39,8 @@ namespace com.dc3.morse
 		void Space();
 		void PlayFor(int ms);
 		void Stop();
+		void Down();
+		void Up();
 	}
 
 	public interface IAudioWav
@@ -52,5 +54,7 @@ namespace com.dc3.morse
 		void Space();
 		void PlayFor(int ms);
 		void Stop();
+		void Down();
+		void Up();
 	}
 }

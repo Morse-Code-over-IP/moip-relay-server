@@ -23,6 +23,7 @@
 // 05-May-10	rbd		1.4.2 - Seek to within ms of end of spark sound, play to
 //						and. Eliminates expensive Stop() call.
 // 07-May-10	rbd		1.5.0 Refactoring into separate assy, make class public.
+//						Add Down() and Up().
 //
 using System;
 using System.Collections.Generic;
@@ -112,5 +113,16 @@ namespace com.dc3.morse
 		{
 			_buf.Stop();
 		}
-    }
+
+		public void Down()
+		{
+			_buf.SetCurrentPosition(0);
+			_buf.Play(0, BufferPlayFlags.Default);
+		}
+
+		public void Up()
+		{
+			this.Stop();
+		}
+	}
 }

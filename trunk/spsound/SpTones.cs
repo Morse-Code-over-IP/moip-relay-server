@@ -200,5 +200,24 @@ namespace com.dc3.morse
 		{
 			_player.Stop();
 		}
+
+		public void Down()
+		{
+			_bWriter.Seek((int)_totalLengthPos, SeekOrigin.Begin);
+			_bWriter.Write(_totalLength);
+			_bWriter.Seek((int)_dataLengthPos, SeekOrigin.Begin);
+			_bWriter.Write(_dataLength);
+			//_wavStrm.Flush();
+			_wavStrm.Seek(0, SeekOrigin.Begin);
+			_player.SoundLocation = "x";											// Trick! Force the stream to be reloaded next
+			_player.Stream = _wavStrm;
+			//_player.Load();
+			_player.Play();															// TODO - PlaySync() and no Thread.Sleep?
+		}
+
+		public void Up()
+		{
+			this.Stop();
+		}
     }
 }

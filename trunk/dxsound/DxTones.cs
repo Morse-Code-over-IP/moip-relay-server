@@ -21,6 +21,7 @@
 // 30-Apr-10	rbd		ITone interface
 // 03-May-10	rbd		1.3.2 -  New PreciseDelay
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
+//						Add Down() and Up().
 //
 using System;
 using System.Collections.Generic;
@@ -190,5 +191,18 @@ namespace com.dc3.morse
 		{
 			_secBuf.Stop();
 		}
-    }
+
+		public void Down()
+		{
+			_secBuf.SetCurrentPosition(0);
+			//_secBuf.Play(0, BufferPlayFlags.Looping);		// Plenty long and loop sounds baaaad
+			_secBuf.Play(0, BufferPlayFlags.Default);
+		}
+
+		public void Up()
+		{
+			_secBuf.Stop();
+			_secBuf.SetCurrentPosition(0);
+		}
+	}
 }
