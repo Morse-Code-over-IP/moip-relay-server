@@ -1,18 +1,48 @@
-﻿//
+﻿//tabs=4
+//-----------------------------------------------------------------------------
+// TITLE:		frmMain.cs
+//
+// FACILITY:	Morse Code Practice Keyer
+//
+// ABSTRACT:	Program that will read either the lerf/right mouse buttons or 
+//				a key attached to a serial port's CTS/DSR pins and output CW 
+//				tones or telegraph sounnder sounds.
+//
+// IMPORTANT:	The Sender delegate must be synchronous, that is, it must not
+//				return until the symbol is actually sent (tone played, etc.).
+//
+// NOTE:		The .NET SerialPort class is too sluggish for high speed keyer
+//				operation. THe NEW_COM #define uses code to call the ComPortCtrl
+//				class, which uses low-level P/Invoke code to talk to the kernel
+//				serial I/O driver.
+//
+// ENVIRONMENT:	Microsoft.NET 2.0/3.5
+//				Developed under Visual Studio.NET 2008
+//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
+// AUTHOR:		Bob Denny, <rdenny@dc3.com>
+//
+// Edit Log:
+//
+// When			Who		What
+//----------	---		-------------------------------------------------------
+// ??-Apr-10	rbd		Initial development
+// 07-May-10	rbd		New ComPortCtrl class for low-level serial I/O
+// 07-May-10	rbd		Refactored IambicKeyer into a separate assembly. Other
+//						tweaks.
 //
 
-#define NEW_COM
+#define NEW_COM								// Define to use P/Invoke serial port I/O
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-
-using System.Diagnostics;
 
 namespace com.dc3.morse
 {
@@ -44,7 +74,7 @@ namespace com.dc3.morse
 #endif
 		private DxTones _dxTones;
 		private DxSounder _dxSounder;
-		private Paddle _paddle;
+		private IambicKeyer _iambicKeyer;
 		private int _ctime;					// Character dit time (ms)
 		private int _stime;					// Symbol space time (ms)
 		private int _cstime;				// Character space time (ms)
@@ -109,14 +139,14 @@ namespace com.dc3.morse
 					chkUseSerial.Checked = false;
 			}
 
-			_paddle = new Paddle(SendCallback);
+			_iambicKeyer = new IambicKeyer(SendCallback);
 		}
 
 		private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			Properties.Settings.Default.Save();
 			if (_serialPort != null) _serialPort.Close();
-			_paddle.Dispose();
+			_iambicKeyer.Dispose();
 		}
 
 		//
@@ -254,11 +284,11 @@ namespace com.dc3.morse
 				switch (e.Button)
 				{
 					case MouseButtons.Left:
-						_paddle.FireEvent(Paddle.PaddleEvent.DitPress);
+						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitPress);
 						break;
 
 					case MouseButtons.Right:
-						_paddle.FireEvent(Paddle.PaddleEvent.DahPress);
+						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
 						break;
 				}
 			}
@@ -278,11 +308,11 @@ namespace com.dc3.morse
 				switch (e.Button)
 				{
 					case MouseButtons.Left:
-						_paddle.FireEvent(Paddle.PaddleEvent.DitRelease);
+						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
 						break;
 
 					case MouseButtons.Right:
-						_paddle.FireEvent(Paddle.PaddleEvent.DahRelease);
+						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
 						break;
 				}
 			}
@@ -363,7 +393,7 @@ namespace com.dc3.morse
 									_dxSounder.Down();
 							}
 							else
-								_paddle.FireEvent(Paddle.PaddleEvent.DitPress);
+								_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitPress);
 					}
 					else //if (!curState && _prevDSR)
 					{
@@ -375,7 +405,7 @@ namespace com.dc3.morse
 								_dxSounder.Up();
 						}
 						else
-							_paddle.FireEvent(Paddle.PaddleEvent.DitRelease);
+							_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
 					}
 					_prevDSR = curState; // com.DsrHolding;
 					break;
@@ -398,7 +428,7 @@ namespace com.dc3.morse
 								_dxSounder.Down();
 						}
 						else
-							_paddle.FireEvent(Paddle.PaddleEvent.DahPress);
+							_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
 					}
 					else //if (!curState & _prevCTS)
 					{
@@ -410,7 +440,7 @@ namespace com.dc3.morse
 								_dxSounder.Up();
 						}
 						else
-							_paddle.FireEvent(Paddle.PaddleEvent.DahRelease);
+							_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
 					}
 					_prevCTS = curState; // com.CtsHolding;
 					break;
@@ -418,10 +448,10 @@ namespace com.dc3.morse
 			//com.BreakState = true;
 		}
 
-		private void SendCallback(Paddle.Symbol S)
+		private void SendCallback(IambicKeyer.MorseSymbol S)
 		{
 			//Debug.Print(DateTime.Now.Ticks.ToString() + " " + S.ToString());
-			if (S == Paddle.Symbol.Dit)
+			if (S == IambicKeyer.MorseSymbol.Dit)
 			{
 				switch (_soundMode)
 				{

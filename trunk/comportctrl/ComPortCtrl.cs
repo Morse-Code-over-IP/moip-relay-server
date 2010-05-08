@@ -208,7 +208,7 @@ namespace com.dc3
 			this.DtrEnable = true;
 			GetPinStatus();
 			_monitorThread = new Thread(new ThreadStart(MonitorThread));
-			_monitorThread.Priority = ThreadPriority.AboveNormal;
+			_monitorThread.Priority = ThreadPriority.AboveNormal;				// ==== HIGHER PRIORITY ====
 			_monitorThread.Name = "Monitor Thread";
 			_monitorThread.Start();
 			_portName = portName;

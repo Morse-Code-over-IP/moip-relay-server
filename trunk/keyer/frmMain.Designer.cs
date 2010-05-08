@@ -104,7 +104,7 @@
 			this.chkUseSerial.Size = new System.Drawing.Size(72, 17);
 			this.chkUseSerial.TabIndex = 13;
 			this.chkUseSerial.Text = "Use serial";
-			this.toolTip.SetToolTip(this.chkUseSerial, "Disable sounds and use real sounder via serial port");
+			this.toolTip.SetToolTip(this.chkUseSerial, "Enable serial port key and sounder (if selected)");
 			this.chkUseSerial.UseVisualStyleBackColor = true;
 			this.chkUseSerial.CheckedChanged += new System.EventHandler(this.chkUseSerial_CheckedChanged);
 			// 
