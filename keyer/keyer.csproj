@@ -50,7 +50,6 @@
     <Compile Include="frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="Paddle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="frmMain.resx">
@@ -91,6 +90,10 @@
     <ProjectReference Include="..\dxsound\dxsound.csproj">
       <Project>{3C6C71E0-479F-402C-A84D-3002B11AC7B9}</Project>
       <Name>dxsound</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\iambickeyer\iambickeyer.csproj">
+      <Project>{8ADD44A3-3786-426A-B94D-89E4D9C88DDC}</Project>
+      <Name>iambickeyer</Name>
     </ProjectReference>
     <ProjectReference Include="..\precisedelay\precisedelay.csproj">
       <Project>{05188BFB-24A4-4B47-909E-7E7F035082A9}</Project>
