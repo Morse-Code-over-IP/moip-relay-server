@@ -50,6 +50,7 @@
 //						multimedia timer. Make sounder test dits at 20WPM.
 // 04-May-10	rbd		1.3.3 - Low level serial control for physical sounder, 
 //						change test dits to 20WPM. Misc cleanups.
+// 11-May-10	rbd		1.5.1 - Volume control!
 //
 using System;
 using System.Collections.Generic;
@@ -317,6 +318,24 @@ namespace com.dc3
 			UpdateUI();
 		}
 
+		private void tbVolume_Scroll(object sender, EventArgs e)
+		{
+			_tones.Volume = _sounder.Volume = _spark.Volume = tbVolume.Value / 10.0F;
+			if (_run) return;
+			switch (_soundMode)
+			{
+				case SoundMode.Tone:
+					_tones.PlayFor(60);
+					break;
+				case SoundMode.Spark:
+					_spark.PlayFor(60);
+					break;
+				case SoundMode.Sounder:
+					_sounder.PlayFor(60);
+					break;
+			}
+		}
+
 		private void chkUseSerial_CheckedChanged(object sender, EventArgs e)
 		{
 			_useSerial = chkUseSerial.Checked;
@@ -447,10 +466,13 @@ namespace com.dc3
 			_spark = new SpSpark();
 #endif
 			_tones.Frequency = _toneFreq;
+			_tones.Volume = tbVolume.Value;
 			_tones.StartLatency = _timingComp;
 			_sounder.SoundIndex = _sounderNum;
+			_sounder.Volume = tbVolume.Value;
 			_sounder.StartLatency = _timingComp;
 			_spark.SoundIndex = _sparkNum;
+			_spark.Volume = tbVolume.Value;
 			_spark.StartLatency = _timingComp;
 		}
 

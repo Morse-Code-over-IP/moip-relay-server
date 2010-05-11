@@ -20,6 +20,7 @@
 // 30-Apr-10	rbd		ITone intervace
 // 02-May-10	rbd		Interface and ctor changes for loadable directx classes
 // 02-May-10	rbd		1.3.2 - New PreciseDelay
+// 11-May-10	rbd		1.5.0 - Stubbed out Volume property
 //
 using System;
 using System.Collections.Generic;
@@ -136,17 +137,10 @@ namespace com.dc3.morse
 			}
 		}
 
-		public float Amplitude
+		public float Volume
 		{
-			get { return _amplitude; }
-			set
-			{ 
-				_amplitude = value;
-				data = GenTone(_frequency, _amplitude, _duration);					// Make new data
-				_bWriter.Seek((int)_dataLengthPos + 4, SeekOrigin.Begin);			// Overwrite data (length will be same)
-				_bWriter.Write(data);												// Tone data
-				_bWriter.Flush();													// Flush to stream
-			}
+			get { return 1.0f; }
+			set { }
 		}
 
 		public int StartLatency
