@@ -30,6 +30,7 @@
 // 07-May-10	rbd		New ComPortCtrl class for low-level serial I/O
 // 07-May-10	rbd		Refactored IambicKeyer into a separate assembly. Other
 //						tweaks.
+// 11-May-10	rbd		1.1.0 - Volume Control!
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -110,11 +111,13 @@ namespace com.dc3.morse
 			_dxTones = new DxTones(this, 1000);
 			_dxTones.Frequency = _toneFreq;
 			_dxTones.DitMilliseconds = _ctime;
+			_dxTones.Volume = Properties.Settings.Default.Volume;
 
 			_sounderNum = (int)Properties.Settings.Default.SounderNumber;
 			_dxSounder = new DxSounder(this);
 			_dxSounder.SoundIndex = _sounderNum;
 			_dxSounder.DitMilliseconds = _ctime;
+			_dxTones.Volume = Properties.Settings.Default.Volume;
 
 			_keyerMode = Properties.Settings.Default.KeyerMode;
 			if (_keyerMode == 0)
@@ -224,6 +227,15 @@ namespace com.dc3.morse
 				Properties.Settings.Default.KeyerMode = 1;
 			}
 			UpdateUI();
+		}
+
+		private void tbVolume_Scroll(object sender, EventArgs e)
+		{
+			_dxTones.Volume = _dxSounder.Volume = tbVolume.Value / 10.0F;
+			if (_soundMode == 0)
+				_dxTones.PlayFor(60);
+			else if (_soundMode == 1)
+				_dxSounder.PlayFor(60);
 		}
 
 		private void nudSerialPort_ValueChanged(object sender, EventArgs e)
@@ -354,6 +366,7 @@ namespace com.dc3.morse
 			nudSounder.Enabled = rbSounder.Checked;
 			btnTestSerial.Enabled = nudSerialPort.Enabled = !chkUseSerial.Checked;
 			rbExtSounder.Enabled = chkUseSerial.Checked;
+			tbVolume.Enabled = !rbExtSounder.Checked;
 		}
 
 		static bool _prevDSR = false;
@@ -492,5 +505,6 @@ namespace com.dc3.morse
 				}
 			}
 		}
+
 	}
 }

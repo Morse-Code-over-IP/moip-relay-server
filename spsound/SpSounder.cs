@@ -27,6 +27,7 @@
 //						better, smoother.
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //						Add Down() and Up().
+// 11-May-10	rbd		1.5.0 - Stubbed out Volume property
 //
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,12 @@ namespace com.dc3.morse
 				_spClick = new SoundPlayer(Properties.Resources.ResourceManager.GetStream("Click_" + value));
 				_spClack = new SoundPlayer(Properties.Resources.ResourceManager.GetStream("Clack_" + value));
 			}
+		}
+
+		public float Volume
+		{
+			get { return 1.0f; }
+			set { }
 		}
 
 		public int StartLatency

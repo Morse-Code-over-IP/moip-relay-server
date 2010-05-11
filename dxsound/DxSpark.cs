@@ -24,6 +24,7 @@
 //						and. Eliminates expensive Stop() call.
 // 07-May-10	rbd		1.5.0 Refactoring into separate assy, make class public.
 //						Add Down() and Up().
+// 11-May-10	rbd		1.5.0 - Volume Control!
 //
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,8 @@ namespace com.dc3.morse
     public class DxSpark : IAudioWav
     {
         private Device _deviceSound;
+		private float _volume;
+		private int _rawVol;
 		private int _sparkNum;
 		private int _ditMs;
 		private int _startLatency;
@@ -48,6 +51,7 @@ namespace com.dc3.morse
 		{
 			_ditMs = 80;
 			_startLatency = 0;
+			this.Volume = 1.0F;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
@@ -55,6 +59,7 @@ namespace com.dc3.morse
 			_bufDesc = new BufferDescription();
 			_bufDesc.ControlEffects = false;									// Necessary because .wav file is so short (typ.)
 			_bufDesc.GlobalFocus = true;										// Enable audio when program is in background (typ.)
+			_bufDesc.ControlVolume = true;
 
 			this.SoundIndex = 1;												// Default to spark number #1
 		}
@@ -81,6 +86,16 @@ namespace com.dc3.morse
 			set { _startLatency = value; }
 		}
 
+		public float Volume
+		{
+			get { return _volume; }
+			set
+			{
+				_volume = value;
+				_rawVol = -(int)Math.Pow((60 * (value - 1.0F)), 2);
+			}
+		}
+
 		public int DitMilliseconds
 		{
 			get { return _ditMs; }
@@ -104,6 +119,7 @@ namespace com.dc3.morse
 
 		public void PlayFor(int ms)
 		{
+			_buf.Volume = _rawVol;
 			_buf.SetCurrentPosition(_bufDesc.BufferBytes - ((_bufDesc.Format.AverageBytesPerSecond * ms) / 1000));
 			_buf.Play(0, BufferPlayFlags.Default);
 			PreciseDelay.Wait(ms);
@@ -116,6 +132,7 @@ namespace com.dc3.morse
 
 		public void Down()
 		{
+			_buf.Volume = _rawVol;
 			_buf.SetCurrentPosition(0);
 			_buf.Play(0, BufferPlayFlags.Default);
 		}

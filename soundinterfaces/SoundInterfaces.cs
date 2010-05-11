@@ -1,6 +1,6 @@
 ﻿//tabs=4
 //-----------------------------------------------------------------------------
-// TITLE:		SOundInterfaces.cs
+// TITLE:		SoundInterfaces.cs
 //
 // FACILITY:	RSS to Morse tool
 //
@@ -21,6 +21,7 @@
 //						several times due to refactoring.
 // 07-May-10	rbd		1.5.0 - Refactoring into separate assy. Make interfaces
 //						public. Add Down() and Up().
+// 11-May-10	rbd		1.5.0 - Add Voume to both, remove Amplitude froom ITone.
 //
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace com.dc3.morse
 	public interface ITone
 	{
 		float Frequency { get; set; }
-		float Amplitude { get; set; }
+		float Volume { get; set; }
 		int StartLatency { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();
@@ -47,6 +48,7 @@ namespace com.dc3.morse
 	{
 		
 		int SoundIndex { get; set; }
+		float Volume { get; set; }
 		int StartLatency { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();

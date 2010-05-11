@@ -49,6 +49,7 @@
 			this.rbIambicB = new System.Windows.Forms.RadioButton();
 			this.rbStraightKey = new System.Windows.Forms.RadioButton();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.tbVolume = new System.Windows.Forms.TrackBar();
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
 			this.groupBox2.SuspendLayout();
@@ -56,12 +57,13 @@
 			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).BeginInit();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.tbVolume)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// pnlHotSpot
 			// 
 			this.pnlHotSpot.BackColor = System.Drawing.SystemColors.ActiveCaption;
-			this.pnlHotSpot.Location = new System.Drawing.Point(293, 17);
+			this.pnlHotSpot.Location = new System.Drawing.Point(314, 17);
 			this.pnlHotSpot.Name = "pnlHotSpot";
 			this.pnlHotSpot.Size = new System.Drawing.Size(94, 64);
 			this.pnlHotSpot.TabIndex = 0;
@@ -75,7 +77,7 @@
 			this.groupBox3.Controls.Add(this.chkUseSerial);
 			this.groupBox3.Controls.Add(this.label6);
 			this.groupBox3.Controls.Add(this.nudSerialPort);
-			this.groupBox3.Location = new System.Drawing.Point(293, 94);
+			this.groupBox3.Location = new System.Drawing.Point(314, 94);
 			this.groupBox3.Name = "groupBox3";
 			this.groupBox3.Size = new System.Drawing.Size(95, 93);
 			this.groupBox3.TabIndex = 16;
@@ -312,15 +314,29 @@
 			this.rbStraightKey.UseVisualStyleBackColor = true;
 			this.rbStraightKey.CheckedChanged += new System.EventHandler(this.rbStraightKey_CheckedChanged);
 			// 
+			// tbVolume
+			// 
+			this.tbVolume.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.morse.Properties.Settings.Default, "Volume", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.tbVolume.Location = new System.Drawing.Point(281, 94);
+			this.tbVolume.Name = "tbVolume";
+			this.tbVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.tbVolume.Size = new System.Drawing.Size(45, 101);
+			this.tbVolume.TabIndex = 21;
+			this.tbVolume.TickStyle = System.Windows.Forms.TickStyle.None;
+			this.toolTip.SetToolTip(this.tbVolume, "Adjust the sound volume");
+			this.tbVolume.Value = global::com.dc3.morse.Properties.Settings.Default.Volume;
+			this.tbVolume.Scroll += new System.EventHandler(this.tbVolume_Scroll);
+			// 
 			// frmMain
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(403, 203);
-			this.Controls.Add(this.groupBox1);
-			this.Controls.Add(this.groupBox2);
+			this.ClientSize = new System.Drawing.Size(426, 202);
 			this.Controls.Add(this.groupBox3);
 			this.Controls.Add(this.pnlHotSpot);
+			this.Controls.Add(this.groupBox1);
+			this.Controls.Add(this.groupBox2);
+			this.Controls.Add(this.tbVolume);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
@@ -340,7 +356,9 @@
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.tbVolume)).EndInit();
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 
@@ -365,6 +383,7 @@
 		private System.Windows.Forms.RadioButton rbStraightKey;
 		private System.Windows.Forms.ToolTip toolTip;
 		private System.Windows.Forms.RadioButton rbExtSounder;
+		private System.Windows.Forms.TrackBar tbVolume;
 	}
 }
 

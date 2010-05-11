@@ -24,6 +24,7 @@
 //						common IAudioWav interface. New PreciseDelay.
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //						Add Down() and Up().
+// 11-May-10	rbd		1.5.0 - Volume Control!
 //
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,8 @@ namespace com.dc3.morse
 		private int _sounder;
 		private int _ditMs;
 		private int _startLatency;
+		private float _volume;
+		private int _rawVol;
 
 		private BufferDescription _bufDescClick;
 		private BufferDescription _bufDescClack;
@@ -52,6 +55,7 @@ namespace com.dc3.morse
 		public DxSounder(System.Windows.Forms.Control Handle)
 		{
 			_ditMs = 80;
+			this.Volume = 1.0F;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
@@ -59,10 +63,12 @@ namespace com.dc3.morse
 			_bufDescClick = new BufferDescription();
 			_bufDescClick.ControlEffects = false;								// Necessary because .wav file is so short (typ.)
 			_bufDescClick.GlobalFocus = true;									// Enable audio when program is in background (typ.)
+			_bufDescClick.ControlVolume = true;
 
 			_bufDescClack = new BufferDescription();
 			_bufDescClack.ControlEffects = false;
 			_bufDescClack.GlobalFocus = true;
+			_bufDescClack.ControlVolume = true;
 
 			this.SoundIndex = 1;												// Default to sounder #1
 		}
@@ -93,6 +99,16 @@ namespace com.dc3.morse
 			set { _startLatency = value; }
 		}
 
+		public float Volume
+		{
+			get { return _volume; }
+			set
+			{
+				_volume = value;
+				_rawVol = -(int)Math.Pow((60 * (value - 1.0F)), 2);
+			}
+		}
+
 		public int DitMilliseconds
 		{
 			get { return _ditMs; }
@@ -121,6 +137,8 @@ namespace com.dc3.morse
 			// Every one of them is expensive in milliseconds.
 			//
 			//Debug.Print("A " + _bufClack.PlayPosition.ToString());			// Ideally this should be zero during operation
+			_bufClick.Volume = _rawVol;
+			_bufClack.Volume = _rawVol;
 			if (_sounder == 2)													// Special case, tone mix (long sound)
 			{
 				_bufClack.Stop();
@@ -145,6 +163,7 @@ namespace com.dc3.morse
 
 		public void Down()
 		{
+			_bufClick.Volume = _rawVol;
 			_bufClick.SetCurrentPosition(0);
 			_bufClick.Play(0, BufferPlayFlags.Default);
 		}
@@ -152,6 +171,7 @@ namespace com.dc3.morse
 		public void Up()
 		{
 			_bufClick.Stop();
+			_bufClack.Volume = _rawVol;
 			_bufClack.SetCurrentPosition(0);
 			_bufClack.Play(0, BufferPlayFlags.Default);
 		}

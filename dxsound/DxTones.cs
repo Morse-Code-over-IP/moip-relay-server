@@ -22,6 +22,7 @@
 // 03-May-10	rbd		1.3.2 -  New PreciseDelay
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //						Add Down() and Up().
+// 11-May-10	rbd		1.5.0 - Volume Control!
 //
 using System;
 using System.Collections.Generic;
@@ -40,7 +41,8 @@ namespace com.dc3.morse
         private Device _deviceSound;
 		private int _maxLen;														// Max length tone
 		private float _freq;
-		private float _ampl;
+		private float _volume;
+		private int _rawVol;
 		private int _ditMs;
 		private int _startLatency;
 
@@ -53,7 +55,7 @@ namespace com.dc3.morse
         {
 			_maxLen = MaxLenMs;
 			_freq = 880;															// Defaults (typ.)
-			_ampl = 0.3F;
+			this.Volume = 1.0F;															// Max volume
 			_ditMs = 80;
 			_startLatency = 0;
 
@@ -68,7 +70,7 @@ namespace com.dc3.morse
 		//
 		private void genWaveBuf()
 		{
-			_waveBuf = GenTone(_freq, _ampl, _maxLen);
+			_waveBuf = GenTone(_freq, 0.3, _maxLen);
 
 			_waveFmt = new WaveFormat();
 			_waveFmt.BitsPerSample = (short)_bitsPerSample;
@@ -84,6 +86,7 @@ namespace com.dc3.morse
 			_bufDesc.BufferBytes = _waveBuf.Length;
 			_bufDesc.ControlEffects = false;										// Necessary for short tones
 			_bufDesc.GlobalFocus = true;											// Enable audio when program is in background
+			_bufDesc.ControlVolume = true;
 
 			_secBuf = new SecondaryBuffer(_bufDesc, _deviceSound);
 			_secBuf.Write(0, _waveBuf, LockFlag.EntireBuffer);
@@ -143,13 +146,13 @@ namespace com.dc3.morse
 			}
 		}
 
-		public float Amplitude
+		public float Volume
 		{
-			get { return _ampl; }
+			get { return _volume; }
 			set
 			{ 
-				_ampl = value;
-				genWaveBuf();
+				_volume = value;
+				_rawVol = -(int)Math.Pow((60 * (value - 1.0F)), 2);
 			}
 		}
 
@@ -182,6 +185,7 @@ namespace com.dc3.morse
 
 		public void PlayFor(int ms)
 		{
+			_secBuf.Volume = _rawVol;
 			_secBuf.SetCurrentPosition((_sampleRate * (_maxLen - ms)) * 2 / 1000);
 			_secBuf.Play(0, BufferPlayFlags.Default);
 			PreciseDelay.Wait(ms);
@@ -194,6 +198,7 @@ namespace com.dc3.morse
 
 		public void Down()
 		{
+			_secBuf.Volume = _rawVol;
 			_secBuf.SetCurrentPosition(0);
 			//_secBuf.Play(0, BufferPlayFlags.Looping);		// Plenty long and loop sounds baaaad
 			_secBuf.Play(0, BufferPlayFlags.Default);
