@@ -51,6 +51,9 @@
 // 04-May-10	rbd		1.3.3 - Low level serial control for physical sounder, 
 //						change test dits to 20WPM. Misc cleanups.
 // 11-May-10	rbd		1.5.1 - Volume control!
+// 13-May-10	rbd		1.5.1 - Feedburner, CNN, others don't send Content-Length
+//						so no longer require it. Also, Feedburner sends EDT (daylight)
+//						pubDates during DST, handle that.
 //
 using System;
 using System.Collections.Generic;
@@ -466,13 +469,13 @@ namespace com.dc3
 			_spark = new SpSpark();
 #endif
 			_tones.Frequency = _toneFreq;
-			_tones.Volume = tbVolume.Value;
+			_tones.Volume = tbVolume.Value / 10.0F;
 			_tones.StartLatency = _timingComp;
 			_sounder.SoundIndex = _sounderNum;
-			_sounder.Volume = tbVolume.Value;
+			_sounder.Volume = tbVolume.Value / 10.0F;
 			_sounder.StartLatency = _timingComp;
 			_spark.SoundIndex = _sparkNum;
-			_spark.Volume = tbVolume.Value;
+			_spark.Volume = tbVolume.Value / 10.0F;
 			_spark.StartLatency = _timingComp;
 		}
 
@@ -650,9 +653,15 @@ namespace com.dc3
 			{
 				//
 				// Probably an RFC 822 time with text time zone other than 'GMT"
-				// Try FeedBurner's EST
+				// Try FeedBurner's EST/EDT
 				//
-				string buf = dateStr.Replace(" EST", "-0500");					// FeedBurner sends EST times :-(
+				string buf;
+				if (dateStr.Contains("EST"))									// FeedBurner sends EST/EDT times :-(
+					buf = dateStr.Replace(" EST", "-0500");
+				else if (dateStr.Contains("EDT"))
+					buf = dateStr.Replace(" EDT", "-0400");
+				else
+					return DateTime.MinValue;									// [sentinel] No luck
 				if (DateTime.TryParse(buf, out corrDate))
 				{
 					if (corrDate > DateTime.Now)								// If in future (e.g. Science News!)
@@ -662,7 +671,7 @@ namespace com.dc3
 				}
 				else
 				{
-					return DateTime.MinValue;									// [sentinel]
+					return DateTime.MinValue;									// [sentinel] No luck
 				}
 			}
 			else																// Converted successfully!
@@ -699,13 +708,16 @@ namespace com.dc3
 				rsp = (HttpWebResponse)req.GetResponse();
 				if (rsp.StatusCode != HttpStatusCode.OK)
 					throw new ApplicationException("RSS server returned " + rsp.StatusDescription + ", check the URL");
-				if (rsp.ContentLength <= 0)										// Yahoo! does this
-					throw new ApplicationException("RSS server can't return feed data, check the URL");
+				// Feedburner and some other feeds have 0 or -1 Content-Length. Sad but true.
+				//if (rsp.ContentLength <= 0)
+				//    throw new ApplicationException("RSS server can't return feed data, check the URL");
 				using (Stream rspStrm = rsp.GetResponseStream())
 				{
 					using (StreamReader rdr = new StreamReader(rspStrm))
 						xml = rdr.ReadToEnd();
 				}
+				if (xml.Length == 0)
+					throw new ApplicationException("RSS server can't return feed data, check the URL");
 				return xml;
 			}
 			finally
