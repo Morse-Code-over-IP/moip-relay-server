@@ -107,17 +107,17 @@ namespace com.dc3.morse
 			_ctime = _tbase / _codeSpeed;
 			_calcSpaceTime();
 
-			_toneFreq = (int)Properties.Settings.Default.ToneFreq;
+			_toneFreq = (int)nudToneFreq.Value;
 			_dxTones = new DxTones(this, 1000);
 			_dxTones.Frequency = _toneFreq;
 			_dxTones.DitMilliseconds = _ctime;
-			_dxTones.Volume = Properties.Settings.Default.Volume;
+			_dxTones.Volume = tbVolume.Value / 10.0F;
 
-			_sounderNum = (int)Properties.Settings.Default.SounderNumber;
+			_sounderNum = (int)nudSounder.Value;
 			_dxSounder = new DxSounder(this);
 			_dxSounder.SoundIndex = _sounderNum;
 			_dxSounder.DitMilliseconds = _ctime;
-			_dxTones.Volume = Properties.Settings.Default.Volume;
+			_dxSounder.Volume = tbVolume.Value / 10.0F;
 
 			_keyerMode = Properties.Settings.Default.KeyerMode;
 			if (_keyerMode == 0)
@@ -133,9 +133,8 @@ namespace com.dc3.morse
 			else
 				rbExtSounder.Checked = true;
 
-			_sounderNum = (int)Properties.Settings.Default.SounderNumber;
-			_serialPortNum = (int)Properties.Settings.Default.SerialPort;
-			_useSerial = Properties.Settings.Default.UseSerial;
+			_serialPortNum = (int)nudSerialPort.Value;
+			_useSerial = chkUseSerial.Checked;
 			if (_useSerial)
 			{
 				if (!OpenSerialPort())
