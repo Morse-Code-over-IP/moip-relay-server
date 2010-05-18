@@ -31,6 +31,7 @@
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
 			this.pnlHotSpot = new System.Windows.Forms.Panel();
+			this.label2 = new System.Windows.Forms.Label();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
 			this.btnTestSerial = new System.Windows.Forms.Button();
 			this.chkUseSerial = new System.Windows.Forms.CheckBox();
@@ -44,12 +45,14 @@
 			this.rbSounder = new System.Windows.Forms.RadioButton();
 			this.rbTone = new System.Windows.Forms.RadioButton();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
+			this.pnlModeB = new System.Windows.Forms.Panel();
 			this.label1 = new System.Windows.Forms.Label();
 			this.nudCodeSpeed = new System.Windows.Forms.NumericUpDown();
 			this.rbIambicB = new System.Windows.Forms.RadioButton();
 			this.rbStraightKey = new System.Windows.Forms.RadioButton();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
 			this.tbVolume = new System.Windows.Forms.TrackBar();
+			this.pnlHotSpot.SuspendLayout();
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
 			this.groupBox2.SuspendLayout();
@@ -62,7 +65,8 @@
 			// 
 			// pnlHotSpot
 			// 
-			this.pnlHotSpot.BackColor = System.Drawing.SystemColors.ActiveCaption;
+			this.pnlHotSpot.BackColor = System.Drawing.Color.Blue;
+			this.pnlHotSpot.Controls.Add(this.label2);
 			this.pnlHotSpot.Location = new System.Drawing.Point(314, 17);
 			this.pnlHotSpot.Name = "pnlHotSpot";
 			this.pnlHotSpot.Size = new System.Drawing.Size(94, 64);
@@ -70,6 +74,19 @@
 			this.toolTip.SetToolTip(this.pnlHotSpot, "Place mouse here for mouse keying");
 			this.pnlHotSpot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pnlHotSpot_MouseDown);
 			this.pnlHotSpot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pnlHotSpot_MouseUp);
+			// 
+			// label2
+			// 
+			this.label2.ForeColor = System.Drawing.Color.Yellow;
+			this.label2.Location = new System.Drawing.Point(12, 12);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(67, 39);
+			this.label2.TabIndex = 0;
+			this.label2.Text = "Mouse Keying Area";
+			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip.SetToolTip(this.label2, "Position cursor over this area for mouse keying");
+			this.label2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pnlHotSpot_MouseDown);
+			this.label2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pnlHotSpot_MouseUp);
 			// 
 			// groupBox3
 			// 
@@ -247,6 +264,7 @@
 			// 
 			// groupBox1
 			// 
+			this.groupBox1.Controls.Add(this.pnlModeB);
 			this.groupBox1.Controls.Add(this.label1);
 			this.groupBox1.Controls.Add(this.nudCodeSpeed);
 			this.groupBox1.Controls.Add(this.rbIambicB);
@@ -257,6 +275,15 @@
 			this.groupBox1.TabIndex = 18;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Keyer Mode";
+			// 
+			// pnlModeB
+			// 
+			this.pnlModeB.BackColor = System.Drawing.Color.Navy;
+			this.pnlModeB.Location = new System.Drawing.Point(233, 45);
+			this.pnlModeB.Name = "pnlModeB";
+			this.pnlModeB.Size = new System.Drawing.Size(10, 11);
+			this.pnlModeB.TabIndex = 6;
+			this.toolTip.SetToolTip(this.pnlModeB, "Flashes when trailing symbol added by Mode-B");
 			// 
 			// label1
 			// 
@@ -346,6 +373,7 @@
 			this.Text = "Morse Keyer";
 			this.Load += new System.EventHandler(this.frmMain_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
+			this.pnlHotSpot.ResumeLayout(false);
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox3.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).EndInit();
@@ -384,6 +412,8 @@
 		private System.Windows.Forms.ToolTip toolTip;
 		private System.Windows.Forms.RadioButton rbExtSounder;
 		private System.Windows.Forms.TrackBar tbVolume;
+		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Panel pnlModeB;
 	}
 }
 
