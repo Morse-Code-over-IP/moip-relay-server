@@ -32,6 +32,8 @@
 // 07-May-10	rbd		Refactored this into a separate assembly for multi-use.
 //						Wow, finally got the Iambic-B logic to act right. Setting
 //						the alt variable at the right time was the "key".
+// 17-May-10	rbd		Add DitB and DahB to MorseSymbol enum so client can tell
+//						when mode B trailing symbols are sent.
 //
 using System;
 using System.Collections.Generic;
@@ -65,7 +67,9 @@ namespace com.dc3.morse
 		public enum MorseSymbol
 		{
 			Dit,
-			Dah
+			Dah,
+			DitB,
+			DahB
 		}
 
 		public delegate void SendSymbol(MorseSymbol S);
@@ -126,7 +130,7 @@ namespace com.dc3.morse
 					if (alt && ModeB)
 					{
 						Debug.Print(lastDit ? " *dah!" : " *dit!");
-						_sender(lastDit ? MorseSymbol.Dah : MorseSymbol.Dit);
+						_sender(lastDit ? MorseSymbol.DahB : MorseSymbol.DitB);
 					}
 					//Debug.Print("");
 					alt = false;

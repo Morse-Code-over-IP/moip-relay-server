@@ -38,19 +38,25 @@ namespace com.dc3
 			this.label8 = new System.Windows.Forms.Label();
 			this.nudCharSpeed = new System.Windows.Forms.NumericUpDown();
 			this.label3 = new System.Windows.Forms.Label();
+			this.nudCodeSpeed = new System.Windows.Forms.NumericUpDown();
 			this.rbAmerican = new System.Windows.Forms.RadioButton();
 			this.rbInternational = new System.Windows.Forms.RadioButton();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label5 = new System.Windows.Forms.Label();
 			this.btnStartStop = new System.Windows.Forms.Button();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
+			this.nudSpark = new System.Windows.Forms.NumericUpDown();
 			this.rbSpark = new System.Windows.Forms.RadioButton();
+			this.nudSounder = new System.Windows.Forms.NumericUpDown();
 			this.label4 = new System.Windows.Forms.Label();
+			this.nudToneFreq = new System.Windows.Forms.NumericUpDown();
 			this.rbSounder = new System.Windows.Forms.RadioButton();
 			this.rbTone = new System.Windows.Forms.RadioButton();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
 			this.picTestSerial = new System.Windows.Forms.PictureBox();
+			this.chkUseSerial = new System.Windows.Forms.CheckBox();
 			this.label6 = new System.Windows.Forms.Label();
+			this.nudSerialPort = new System.Windows.Forms.NumericUpDown();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
 			this.btnClearCache = new System.Windows.Forms.Button();
 			this.llHelp = new System.Windows.Forms.LinkLabel();
@@ -59,36 +65,30 @@ namespace com.dc3
 			this.llRSSFeeds = new System.Windows.Forms.LinkLabel();
 			this.picSoundCfg = new System.Windows.Forms.PictureBox();
 			this.llSoundCfg = new System.Windows.Forms.LinkLabel();
+			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.mnuUrlResetToDefault = new System.Windows.Forms.ToolStripMenuItem();
-			this.tbVolume = new System.Windows.Forms.TrackBar();
-			this.chkUseSerial = new System.Windows.Forms.CheckBox();
-			this.nudSerialPort = new System.Windows.Forms.NumericUpDown();
-			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
-			this.nudSpark = new System.Windows.Forms.NumericUpDown();
-			this.nudSounder = new System.Windows.Forms.NumericUpDown();
-			this.nudToneFreq = new System.Windows.Forms.NumericUpDown();
 			this.nudStoryAge = new System.Windows.Forms.NumericUpDown();
 			this.nudPollInterval = new System.Windows.Forms.NumericUpDown();
-			this.nudCodeSpeed = new System.Windows.Forms.NumericUpDown();
+			this.tbVolume = new System.Windows.Forms.TrackBar();
 			this.statusStrip1.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudCharSpeed)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).BeginInit();
 			this.groupBox2.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.nudSpark)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).BeginInit();
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picTestSerial)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.picHelp)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.picRSS)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.picSoundCfg)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.tbVolume)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudSpark)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudStoryAge)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudPollInterval)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.tbVolume)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// statusStrip1
@@ -187,6 +187,27 @@ namespace com.dc3
 			this.label3.TabIndex = 11;
 			this.label3.Text = "Code speed (wpm)";
 			// 
+			// nudCodeSpeed
+			// 
+			this.nudCodeSpeed.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "CodeSpeed", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudCodeSpeed.Location = new System.Drawing.Point(215, 19);
+			this.nudCodeSpeed.Maximum = new decimal(new int[] {
+            35,
+            0,
+            0,
+            0});
+			this.nudCodeSpeed.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+			this.nudCodeSpeed.Name = "nudCodeSpeed";
+			this.nudCodeSpeed.Size = new System.Drawing.Size(43, 20);
+			this.nudCodeSpeed.TabIndex = 0;
+			this.toolTip.SetToolTip(this.nudCodeSpeed, "Code speed, words per minute");
+			this.nudCodeSpeed.Value = global::com.dc3.Properties.Settings.Default.CodeSpeed;
+			this.nudCodeSpeed.ValueChanged += new System.EventHandler(this.nudCodeSpeed_ValueChanged);
+			// 
 			// rbAmerican
 			// 
 			this.rbAmerican.AutoSize = true;
@@ -257,6 +278,27 @@ namespace com.dc3
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Sound Output";
 			// 
+			// nudSpark
+			// 
+			this.nudSpark.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SparkNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudSpark.Location = new System.Drawing.Point(216, 43);
+			this.nudSpark.Maximum = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+			this.nudSpark.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.nudSpark.Name = "nudSpark";
+			this.nudSpark.Size = new System.Drawing.Size(42, 20);
+			this.nudSpark.TabIndex = 1;
+			this.toolTip.SetToolTip(this.nudSpark, "Spark sound - change to hear sample");
+			this.nudSpark.Value = global::com.dc3.Properties.Settings.Default.SparkNumber;
+			this.nudSpark.ValueChanged += new System.EventHandler(this.nudSpark_ValueChanged);
+			// 
 			// rbSpark
 			// 
 			this.rbSpark.AutoSize = true;
@@ -270,6 +312,27 @@ namespace com.dc3
 			this.rbSpark.UseVisualStyleBackColor = true;
 			this.rbSpark.CheckedChanged += new System.EventHandler(this.rbSpark_CheckedChanged);
 			// 
+			// nudSounder
+			// 
+			this.nudSounder.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SounderNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudSounder.Location = new System.Drawing.Point(216, 66);
+			this.nudSounder.Maximum = new decimal(new int[] {
+            7,
+            0,
+            0,
+            0});
+			this.nudSounder.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.nudSounder.Name = "nudSounder";
+			this.nudSounder.Size = new System.Drawing.Size(42, 20);
+			this.nudSounder.TabIndex = 2;
+			this.toolTip.SetToolTip(this.nudSounder, "Sounder type - change to hear sample");
+			this.nudSounder.Value = global::com.dc3.Properties.Settings.Default.SounderNumber;
+			this.nudSounder.ValueChanged += new System.EventHandler(this.nudSounder_ValueChanged);
+			// 
 			// label4
 			// 
 			this.label4.AutoSize = true;
@@ -278,6 +341,32 @@ namespace com.dc3
 			this.label4.Size = new System.Drawing.Size(78, 13);
 			this.label4.TabIndex = 12;
 			this.label4.Text = "Tone Freq (Hz)";
+			// 
+			// nudToneFreq
+			// 
+			this.nudToneFreq.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "ToneFreq", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudToneFreq.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+			this.nudToneFreq.Location = new System.Drawing.Point(216, 20);
+			this.nudToneFreq.Maximum = new decimal(new int[] {
+            2000,
+            0,
+            0,
+            0});
+			this.nudToneFreq.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+			this.nudToneFreq.Name = "nudToneFreq";
+			this.nudToneFreq.Size = new System.Drawing.Size(42, 20);
+			this.nudToneFreq.TabIndex = 0;
+			this.toolTip.SetToolTip(this.nudToneFreq, "Tone frequency - change to hear sample");
+			this.nudToneFreq.Value = global::com.dc3.Properties.Settings.Default.ToneFreq;
+			this.nudToneFreq.ValueChanged += new System.EventHandler(this.nudToneFreq_ValueChanged);
 			// 
 			// rbSounder
 			// 
@@ -331,6 +420,21 @@ namespace com.dc3
 			this.toolTip.SetToolTip(this.picTestSerial, "Click to send 4 dots to the sounder");
 			this.picTestSerial.Click += new System.EventHandler(this.picTestSerial_Click);
 			// 
+			// chkUseSerial
+			// 
+			this.chkUseSerial.AutoSize = true;
+			this.chkUseSerial.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.chkUseSerial.Checked = global::com.dc3.Properties.Settings.Default.UseSerial;
+			this.chkUseSerial.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::com.dc3.Properties.Settings.Default, "UseSerial", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.chkUseSerial.Location = new System.Drawing.Point(10, 47);
+			this.chkUseSerial.Name = "chkUseSerial";
+			this.chkUseSerial.Size = new System.Drawing.Size(45, 17);
+			this.chkUseSerial.TabIndex = 1;
+			this.chkUseSerial.Text = "Use";
+			this.toolTip.SetToolTip(this.chkUseSerial, "Disable sounds and use real sounder");
+			this.chkUseSerial.UseVisualStyleBackColor = true;
+			this.chkUseSerial.CheckedChanged += new System.EventHandler(this.chkUseSerial_CheckedChanged);
+			// 
 			// label6
 			// 
 			this.label6.AutoSize = true;
@@ -339,6 +443,22 @@ namespace com.dc3
 			this.label6.Size = new System.Drawing.Size(26, 13);
 			this.label6.TabIndex = 12;
 			this.label6.Text = "Port";
+			// 
+			// nudSerialPort
+			// 
+			this.nudSerialPort.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SerialPort", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudSerialPort.Location = new System.Drawing.Point(43, 21);
+			this.nudSerialPort.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.nudSerialPort.Name = "nudSerialPort";
+			this.nudSerialPort.Size = new System.Drawing.Size(37, 20);
+			this.nudSerialPort.TabIndex = 0;
+			this.toolTip.SetToolTip(this.nudSerialPort, "Select serial port for real sounder");
+			this.nudSerialPort.Value = global::com.dc3.Properties.Settings.Default.SerialPort;
+			this.nudSerialPort.ValueChanged += new System.EventHandler(this.nudSerialPort_ValueChanged);
 			// 
 			// btnClearCache
 			// 
@@ -429,6 +549,21 @@ namespace com.dc3
 			this.toolTip.SetToolTip(this.llSoundCfg, "Click for sound output settings");
 			this.llSoundCfg.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llSoundCfg_LinkClicked);
 			// 
+			// cbFeedUrl
+			// 
+			this.cbFeedUrl.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+			this.cbFeedUrl.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+			this.cbFeedUrl.ContextMenuStrip = this.contextMenuStrip1;
+			this.cbFeedUrl.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::com.dc3.Properties.Settings.Default, "FeedURL", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.cbFeedUrl.FormattingEnabled = true;
+			this.cbFeedUrl.Location = new System.Drawing.Point(74, 14);
+			this.cbFeedUrl.Name = "cbFeedUrl";
+			this.cbFeedUrl.Size = new System.Drawing.Size(339, 21);
+			this.cbFeedUrl.TabIndex = 0;
+			this.cbFeedUrl.Text = global::com.dc3.Properties.Settings.Default.FeedURL;
+			this.toolTip.SetToolTip(this.cbFeedUrl, "RSS Feed URL - May be file or web feed. Right click to reset list.");
+			this.cbFeedUrl.TextChanged += new System.EventHandler(this.cbFeedUrl_TextChanged);
+			// 
 			// contextMenuStrip1
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -445,132 +580,6 @@ namespace com.dc3
 			this.mnuUrlResetToDefault.Size = new System.Drawing.Size(154, 22);
 			this.mnuUrlResetToDefault.Text = "Reset to original list";
 			this.mnuUrlResetToDefault.Click += new System.EventHandler(this.mnuUrlResetToDefault_Click);
-			// 
-			// tbVolume
-			// 
-			this.tbVolume.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "Volume", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.tbVolume.Location = new System.Drawing.Point(292, 162);
-			this.tbVolume.Name = "tbVolume";
-			this.tbVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.tbVolume.Size = new System.Drawing.Size(45, 107);
-			this.tbVolume.TabIndex = 17;
-			this.tbVolume.TickStyle = System.Windows.Forms.TickStyle.None;
-			this.tbVolume.Value = global::com.dc3.Properties.Settings.Default.Volume;
-			this.tbVolume.Scroll += new System.EventHandler(this.tbVolume_Scroll);
-			// 
-			// chkUseSerial
-			// 
-			this.chkUseSerial.AutoSize = true;
-			this.chkUseSerial.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.chkUseSerial.Checked = global::com.dc3.Properties.Settings.Default.UseSerial;
-			this.chkUseSerial.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::com.dc3.Properties.Settings.Default, "UseSerial", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.chkUseSerial.Location = new System.Drawing.Point(10, 47);
-			this.chkUseSerial.Name = "chkUseSerial";
-			this.chkUseSerial.Size = new System.Drawing.Size(45, 17);
-			this.chkUseSerial.TabIndex = 1;
-			this.chkUseSerial.Text = "Use";
-			this.toolTip.SetToolTip(this.chkUseSerial, "Disable sounds and use real sounder");
-			this.chkUseSerial.UseVisualStyleBackColor = true;
-			this.chkUseSerial.CheckedChanged += new System.EventHandler(this.chkUseSerial_CheckedChanged);
-			// 
-			// nudSerialPort
-			// 
-			this.nudSerialPort.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SerialPort", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudSerialPort.Location = new System.Drawing.Point(43, 21);
-			this.nudSerialPort.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.nudSerialPort.Name = "nudSerialPort";
-			this.nudSerialPort.Size = new System.Drawing.Size(37, 20);
-			this.nudSerialPort.TabIndex = 0;
-			this.toolTip.SetToolTip(this.nudSerialPort, "Select serial port for real sounder");
-			this.nudSerialPort.Value = global::com.dc3.Properties.Settings.Default.SerialPort;
-			this.nudSerialPort.ValueChanged += new System.EventHandler(this.nudSerialPort_ValueChanged);
-			// 
-			// cbFeedUrl
-			// 
-			this.cbFeedUrl.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-			this.cbFeedUrl.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-			this.cbFeedUrl.ContextMenuStrip = this.contextMenuStrip1;
-			this.cbFeedUrl.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::com.dc3.Properties.Settings.Default, "FeedURL", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.cbFeedUrl.FormattingEnabled = true;
-			this.cbFeedUrl.Location = new System.Drawing.Point(74, 14);
-			this.cbFeedUrl.Name = "cbFeedUrl";
-			this.cbFeedUrl.Size = new System.Drawing.Size(339, 21);
-			this.cbFeedUrl.TabIndex = 0;
-			this.cbFeedUrl.Text = global::com.dc3.Properties.Settings.Default.FeedURL;
-			this.toolTip.SetToolTip(this.cbFeedUrl, "RSS Feed URL - May be file or web feed. Right click to reset list.");
-			this.cbFeedUrl.TextChanged += new System.EventHandler(this.cbFeedUrl_TextChanged);
-			// 
-			// nudSpark
-			// 
-			this.nudSpark.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SparkNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudSpark.Location = new System.Drawing.Point(216, 43);
-			this.nudSpark.Maximum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-			this.nudSpark.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.nudSpark.Name = "nudSpark";
-			this.nudSpark.Size = new System.Drawing.Size(42, 20);
-			this.nudSpark.TabIndex = 1;
-			this.toolTip.SetToolTip(this.nudSpark, "Spark sound - change to hear sample");
-			this.nudSpark.Value = global::com.dc3.Properties.Settings.Default.SparkNumber;
-			this.nudSpark.ValueChanged += new System.EventHandler(this.nudSpark_ValueChanged);
-			// 
-			// nudSounder
-			// 
-			this.nudSounder.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "SounderNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudSounder.Location = new System.Drawing.Point(216, 66);
-			this.nudSounder.Maximum = new decimal(new int[] {
-            7,
-            0,
-            0,
-            0});
-			this.nudSounder.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.nudSounder.Name = "nudSounder";
-			this.nudSounder.Size = new System.Drawing.Size(42, 20);
-			this.nudSounder.TabIndex = 2;
-			this.toolTip.SetToolTip(this.nudSounder, "Sounder type - change to hear sample");
-			this.nudSounder.Value = global::com.dc3.Properties.Settings.Default.SounderNumber;
-			this.nudSounder.ValueChanged += new System.EventHandler(this.nudSounder_ValueChanged);
-			// 
-			// nudToneFreq
-			// 
-			this.nudToneFreq.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "ToneFreq", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudToneFreq.Increment = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-			this.nudToneFreq.Location = new System.Drawing.Point(216, 20);
-			this.nudToneFreq.Maximum = new decimal(new int[] {
-            2000,
-            0,
-            0,
-            0});
-			this.nudToneFreq.Minimum = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-			this.nudToneFreq.Name = "nudToneFreq";
-			this.nudToneFreq.Size = new System.Drawing.Size(42, 20);
-			this.nudToneFreq.TabIndex = 0;
-			this.toolTip.SetToolTip(this.nudToneFreq, "Tone frequency - change to hear sample");
-			this.nudToneFreq.Value = global::com.dc3.Properties.Settings.Default.ToneFreq;
-			this.nudToneFreq.ValueChanged += new System.EventHandler(this.nudToneFreq_ValueChanged);
 			// 
 			// nudStoryAge
 			// 
@@ -619,26 +628,17 @@ namespace com.dc3
 			this.nudPollInterval.Value = global::com.dc3.Properties.Settings.Default.PollInterval;
 			this.nudPollInterval.ValueChanged += new System.EventHandler(this.nudPollInterval_ValueChanged);
 			// 
-			// nudCodeSpeed
+			// tbVolume
 			// 
-			this.nudCodeSpeed.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "CodeSpeed", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudCodeSpeed.Location = new System.Drawing.Point(215, 19);
-			this.nudCodeSpeed.Maximum = new decimal(new int[] {
-            35,
-            0,
-            0,
-            0});
-			this.nudCodeSpeed.Minimum = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-			this.nudCodeSpeed.Name = "nudCodeSpeed";
-			this.nudCodeSpeed.Size = new System.Drawing.Size(43, 20);
-			this.nudCodeSpeed.TabIndex = 0;
-			this.toolTip.SetToolTip(this.nudCodeSpeed, "Code speed, words per minute");
-			this.nudCodeSpeed.Value = global::com.dc3.Properties.Settings.Default.CodeSpeed;
-			this.nudCodeSpeed.ValueChanged += new System.EventHandler(this.nudCodeSpeed_ValueChanged);
+			this.tbVolume.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "Volume", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.tbVolume.Location = new System.Drawing.Point(292, 162);
+			this.tbVolume.Name = "tbVolume";
+			this.tbVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.tbVolume.Size = new System.Drawing.Size(45, 107);
+			this.tbVolume.TabIndex = 17;
+			this.tbVolume.TickStyle = System.Windows.Forms.TickStyle.None;
+			this.tbVolume.Value = global::com.dc3.Properties.Settings.Default.Volume;
+			this.tbVolume.Scroll += new System.EventHandler(this.tbVolume_Scroll);
 			// 
 			// MainForm
 			// 
@@ -666,7 +666,7 @@ namespace com.dc3
 			this.Controls.Add(this.tbVolume);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-			this.MinimizeBox = false;
+			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.Text = "RSS to Morse V1.5";
@@ -677,23 +677,23 @@ namespace com.dc3
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudCharSpeed)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).EndInit();
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.nudSpark)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).EndInit();
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox3.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picTestSerial)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.picHelp)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.picRSS)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.picSoundCfg)).EndInit();
 			this.contextMenuStrip1.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)(this.tbVolume)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudSpark)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudStoryAge)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudPollInterval)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.nudCodeSpeed)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.tbVolume)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

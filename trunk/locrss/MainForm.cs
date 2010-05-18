@@ -54,6 +54,10 @@
 // 13-May-10	rbd		1.5.1 - Feedburner, CNN, others don't send Content-Length
 //						so no longer require it. Also, Feedburner sends EDT (daylight)
 //						pubDates during DST, handle that.
+// 17-May-10	rbd		1.5.1 - FOx sends EST on EDT times, detect and subtract an
+//						hour. Add Unknown Char Handler so prevent error code being
+//						send for unknown chars (usually unicode stuff) that isn't 
+//						caught by the fixup code.
 //
 using System;
 using System.Collections.Generic;
@@ -653,7 +657,8 @@ namespace com.dc3
 			{
 				//
 				// Probably an RFC 822 time with text time zone other than 'GMT"
-				// Try FeedBurner's EST/EDT
+				// Try FeedBurner's EST/EDT. FOx sends EST with EDT time so can
+				// get times in future :-( Try subtracting an hour as a guess.
 				//
 				string buf;
 				if (dateStr.Contains("EST"))									// FeedBurner sends EST/EDT times :-(
@@ -664,8 +669,14 @@ namespace com.dc3
 					return DateTime.MinValue;									// [sentinel] No luck
 				if (DateTime.TryParse(buf, out corrDate))
 				{
-					if (corrDate > DateTime.Now)								// If in future (e.g. Science News!)
-						return DateTime.MinValue;
+					if (corrDate > DateTime.Now)								// If in future (e.g. Fox/Science)
+					{
+						corrDate = corrDate.AddHours(-1);
+						if (corrDate > DateTime.Now)
+							return DateTime.MinValue;
+						else
+							return corrDate;
+					}
 					else
 						return corrDate;
 				}
@@ -799,8 +810,25 @@ namespace com.dc3
 				else
 					PreciseDelay.Wait(_useSerial ? -code[i] : -code[i] - _timingComp);
 			}
-			string ct = Regex.Replace(text, "\\s", " ");
+			string ct = Regex.Replace(text, "\\s+", " ");						// Remove running spaces from crawler
 			AddToCrawler(ct);
+		}
+		//
+		// Unknown character handler delegate. When this is active, a
+		// space will be sent instead of the error code. Here we just
+		// put the character into the crawler in [] so it will show.
+		// for debugging, send extra stuff that will help us ID the
+		// character for possible inclusion into the cleanup code.
+		//
+		private void HandleUnkChar(char ch)
+		{
+#if DEBUG
+			string msg = " ['" + ch + "'";
+			msg += " U+" + ((int)ch).ToString("X4") + "]";
+#else
+			string msg = " [" + ch + "] ";
+#endif
+			AddToCrawler(msg);
 		}
 
 		private void Run()
@@ -811,6 +839,7 @@ namespace com.dc3
 				M.Mode = (_codeMode == CodeMode.International ? Morse.CodeMode.International : Morse.CodeMode.American);
 				M.CharacterWpm = _charSpeed;
 				M.WordWpm = _codeSpeed;
+				M.UnknownCharacter = HandleUnkChar;
 
 				_msgNr = 1;														// Start with message #1
 
@@ -909,10 +938,10 @@ namespace com.dc3
 						}
 						_msgNr += 1;
 
-						MorseMessage m = new MorseMessage();
-						m.Title = title;
-						m.Contents = msg;
-						messages.Add(m);
+						MorseMessage mMsg = new MorseMessage();
+						mMsg.Title = title;
+						mMsg.Contents = msg;
+						messages.Add(mMsg);
 					}
 
 					if (messages.Count > 0)

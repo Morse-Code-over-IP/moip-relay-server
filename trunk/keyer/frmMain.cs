@@ -31,6 +31,7 @@
 // 07-May-10	rbd		Refactored IambicKeyer into a separate assembly. Other
 //						tweaks.
 // 11-May-10	rbd		1.1.0 - Volume Control!
+// 17-May-10	rbd		1.1.0 - Flashing mode B indicator light
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -428,7 +429,7 @@ namespace com.dc3.morse
 				case SerialPinChange.CtsChanged:
 #endif
 					lock (lockObj) { curState = com.CtsHolding; }
-					Debug.Print("CTS -> " + curState.ToString() + " (prev = " + _prevCTS.ToString() + ")");
+					//Debug.Print("CTS -> " + curState.ToString() + " (prev = " + _prevCTS.ToString() + ")");
 					if (curState == _prevCTS) return;
 					if (curState)// && !_prevCTS)
 					{
@@ -463,8 +464,10 @@ namespace com.dc3.morse
 		private void SendCallback(IambicKeyer.MorseSymbol S)
 		{
 			//Debug.Print(DateTime.Now.Ticks.ToString() + " " + S.ToString());
-			if (S == IambicKeyer.MorseSymbol.Dit)
+			if (S == IambicKeyer.MorseSymbol.Dit || S == IambicKeyer.MorseSymbol.DitB)
 			{
+				if (S == IambicKeyer.MorseSymbol.DitB)
+					pnlModeB.BackColor = Color.Yellow;
 				switch (_soundMode)
 				{
 					case 0:
@@ -482,9 +485,13 @@ namespace com.dc3.morse
 						PreciseDelay.Wait(_ctime);
 						break;
 				}
+				if (S == IambicKeyer.MorseSymbol.DitB)
+					pnlModeB.BackColor = Color.Navy;
 			}
 			else
 			{
+				if (S == IambicKeyer.MorseSymbol.DahB)
+					pnlModeB.BackColor = Color.Yellow;
 				switch (_soundMode)
 				{
 					case 0:
@@ -502,6 +509,8 @@ namespace com.dc3.morse
 						PreciseDelay.Wait(_ctime);
 						break;
 				}
+				if (S == IambicKeyer.MorseSymbol.DahB)
+					pnlModeB.BackColor = Color.Navy;
 			}
 		}
 
