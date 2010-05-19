@@ -24,6 +24,9 @@
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //						Major upgrade, add members for reading physical key
 //						input.
+// 18-May-10	rbd		1.6.0 - CreateFile on port may return -1 on error. Check
+//						this as well as IntPtr.Zero and make it IntPtr.Zero which
+//						is the sentinel used elsewhere.
 //
 using System;
 using System.Collections.Generic;
@@ -203,8 +206,11 @@ namespace com.dc3
 			_portHandle = CreateFile(portName, (GENERIC_READ | GENERIC_WRITE), 0, IntPtr.Zero, 
 							OPEN_EXISTING, (FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED), 
 							IntPtr.Zero);
-			if (_portHandle == IntPtr.Zero)
+			if (_portHandle == IntPtr.Zero || (int)_portHandle == -1)
+			{
+				_portHandle = IntPtr.Zero;
 				throw new ApplicationException("Failed to open " + portName + ". Doesn't exist or may be in use.");
+			}
 			this.DtrEnable = true;
 			GetPinStatus();
 			_monitorThread = new Thread(new ThreadStart(MonitorThread));

@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Morse Keyer")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Software morse code keyer with iambic-B and serial port keying output")]
 [assembly: AssemblyConfiguration("Windows XP or later")]
 [assembly: AssemblyCompany("Robert B. Denny, Mesa, AZ <rdenny@dc3.com>")]
-[assembly: AssemblyProduct("RSS Morse")]
+[assembly: AssemblyProduct("Morse Keyer")]
 [assembly: AssemblyCopyright("Open Source Common Public Attribution License")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

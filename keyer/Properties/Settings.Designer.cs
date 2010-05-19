@@ -118,5 +118,29 @@ namespace com.dc3.morse.Properties {
                 this["Volume"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IambicA {
+            get {
+                return ((bool)(this["IambicA"]));
+            }
+            set {
+                this["IambicA"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SwapPaddles {
+            get {
+                return ((bool)(this["SwapPaddles"]));
+            }
+            set {
+                this["SwapPaddles"] = value;
+            }
+        }
     }
 }
