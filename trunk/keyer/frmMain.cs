@@ -32,6 +32,11 @@
 //						tweaks.
 // 11-May-10	rbd		1.1.0 - Volume Control!
 // 17-May-10	rbd		1.1.0 - Flashing mode B indicator light
+// 18-May-10	rbd		1.1.0 - Always send via serial port if "Use" checked.
+//						Fix serial sending in straight-key mode. Add new mode
+//						Semi-Auto (bug). Remove Physical Sounder sound mode, 
+//						can just turn volume down to 0 if don't want sound.
+//						Make slider value 0 mean no sound at all.
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -45,6 +50,7 @@ using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.IO;
 
 namespace com.dc3.morse
 {
@@ -65,6 +71,8 @@ namespace com.dc3.morse
 		private int _codeSpeed;				// Character WPM
 		private int _serialPortNum;
 		private bool _useSerial;
+		private bool _iambicA;
+		private bool _swapPaddles;
 
 		//
 		// State Variables
@@ -76,7 +84,7 @@ namespace com.dc3.morse
 #endif
 		private DxTones _dxTones;
 		private DxSounder _dxSounder;
-		private IambicKeyer _iambicKeyer;
+		private IambicKeyer _iambicKeyer = null;		// [sentinel]
 		private int _ctime;					// Character dit time (ms)
 		private int _stime;					// Symbol space time (ms)
 		private int _cstime;				// Character space time (ms)
@@ -123,16 +131,19 @@ namespace com.dc3.morse
 			_keyerMode = Properties.Settings.Default.KeyerMode;
 			if (_keyerMode == 0)
 				rbStraightKey.Checked = true;
+			else if (_keyerMode == 1)
+				rbBug.Checked = true;
 			else
-				rbIambicB.Checked = true;
+				rbIambic.Checked = true;
+
+			_iambicA = chkModeA.Checked;
+			_swapPaddles = chkSwapPaddles.Checked;
 
 			_soundMode = Properties.Settings.Default.SoundMode;
 			if (_soundMode == 0)
 				rbTone.Checked = true;
-			else if (_soundMode == 1)
-				rbSounder.Checked = true;
 			else
-				rbExtSounder.Checked = true;
+				rbSounder.Checked = true;
 
 			_serialPortNum = (int)nudSerialPort.Value;
 			_useSerial = chkUseSerial.Checked;
@@ -143,6 +154,7 @@ namespace com.dc3.morse
 			}
 
 			_iambicKeyer = new IambicKeyer(SendCallback);
+			_iambicKeyer.ModeB = !_iambicA;
 		}
 
 		private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -199,16 +211,6 @@ namespace com.dc3.morse
 			UpdateUI();
 		}
 
-		private void rbExtSounder_CheckedChanged(object sender, EventArgs e)
-		{
-			if (rbExtSounder.Checked)
-			{
-				_soundMode = 2;
-				Properties.Settings.Default.SoundMode = 2;
-			}
-			UpdateUI();
-		}
-
 		private void rbStraightKey_CheckedChanged(object sender, EventArgs e)
 		{
 			if (rbStraightKey.Checked)
@@ -219,13 +221,36 @@ namespace com.dc3.morse
 			UpdateUI();
 		}
 
-		private void rbIambicB_CheckedChanged(object sender, EventArgs e)
+		private void rbBug_CheckedChanged(object sender, EventArgs e)
 		{
-			if (rbIambicB.Checked)
+			if (rbBug.Checked)
 			{
 				_keyerMode = 1;
 				Properties.Settings.Default.KeyerMode = 1;
 			}
+			UpdateUI();
+		}
+
+		private void rbIambic_CheckedChanged(object sender, EventArgs e)
+		{
+			if (rbIambic.Checked)
+			{
+				_keyerMode = 2;
+				Properties.Settings.Default.KeyerMode = 2;
+			}
+			UpdateUI();
+		}
+
+		private void chkModeA_CheckedChanged(object sender, EventArgs e)
+		{
+			_iambicA = chkModeA.Checked;
+			if (_iambicKeyer != null) _iambicKeyer.ModeB = !_iambicA;
+			UpdateUI();
+		}
+
+		private void chkSwapPaddles_CheckedChanged(object sender, EventArgs e)
+		{
+			_swapPaddles = chkSwapPaddles.Checked;
 			UpdateUI();
 		}
 
@@ -236,6 +261,16 @@ namespace com.dc3.morse
 				_dxTones.PlayFor(60);
 			else if (_soundMode == 1)
 				_dxSounder.PlayFor(60);
+		}
+
+		private void llHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			picHelp_Click(sender, new EventArgs());
+		}
+
+		private void picHelp_Click(object sender, EventArgs e)
+		{
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
 		}
 
 		private void nudSerialPort_ValueChanged(object sender, EventArgs e)
@@ -251,15 +286,7 @@ namespace com.dc3.morse
 				_serialPort.Close();
 				_serialPort = null;
 			}
-			if (_useSerial)
-			{
-				OpenSerialPort();
-			}
-			else
-			{
-				if (rbExtSounder.Checked)
-					rbTone.Checked = true;
-			}
+			if (_useSerial) OpenSerialPort();
 			UpdateUI();
 		}
 
@@ -282,51 +309,148 @@ namespace com.dc3.morse
 			btnTestSerial.Enabled = true;
 		}
 
-		private void pnlHotSpot_MouseDown(object sender, MouseEventArgs e)
+		//
+		// Common functions for mouse and serial keying inputs (4)
+		//
+		private void LeftDown()
 		{
 			if (_keyerMode == 0)
 			{
+				if (_serialPort != null) _serialPort.RtsEnable = true;
 				if (_soundMode == 0)
 					_dxTones.Down();
 				else
 					_dxSounder.Down();
+				return;															// FINISHED
+			}
+			if (_swapPaddles)
+			{
+				if (_keyerMode == 1)
+				{
+					//_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
+					if (_serialPort != null) _serialPort.RtsEnable = true;
+					if (_soundMode == 0)
+						_dxTones.Down();
+					else
+						_dxSounder.Down();
+				}
+				else
+					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
 			}
 			else
-			{
-				switch (e.Button)
-				{
-					case MouseButtons.Left:
-						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitPress);
-						break;
+				_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitPress);
+		}
 
-					case MouseButtons.Right:
-						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
-						break;
+		private void LeftUp()
+		{
+			if (_keyerMode == 0)
+			{
+				if (_serialPort != null) _serialPort.RtsEnable = false;
+				if (_soundMode == 0)
+					_dxTones.Up();
+				else
+					_dxSounder.Up();
+				return;															// FINISHED
+			}
+			if (_swapPaddles)
+			{
+				if (_keyerMode == 1)
+				{
+					if (_serialPort != null) _serialPort.RtsEnable = false;
+					if (_soundMode == 0)
+						_dxTones.Up();
+					else
+						_dxSounder.Up();
 				}
+				else
+					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
+			}
+			else
+				_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
+		}
+
+		private void RightDown()
+		{
+			if (_keyerMode == 0)
+			{
+				if (_serialPort != null) _serialPort.RtsEnable = true;
+				if (_soundMode == 0)
+					_dxTones.Down();
+				else
+					_dxSounder.Down();
+				return;															// FINISHED
+			}
+			if (!_swapPaddles)
+			{
+				if (_keyerMode == 1)
+				{
+					//_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
+					if (_serialPort != null) _serialPort.RtsEnable = true;
+					if (_soundMode == 0)
+						_dxTones.Down();
+					else
+						_dxSounder.Down();
+				}
+				else
+					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
+			}
+			else
+				_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitPress);
+		}
+
+		private void RightUp()
+		{
+			if (_keyerMode == 0)
+			{
+				if (_serialPort != null) _serialPort.RtsEnable = false;
+				if (_soundMode == 0)
+					_dxTones.Up();
+				else
+					_dxSounder.Up();
+				return;															// FINISHED
+			}
+			if (!_swapPaddles)
+			{
+				if (_keyerMode == 1)
+				{
+					if (_serialPort != null) _serialPort.RtsEnable = false;
+					if (_soundMode == 0)
+						_dxTones.Up();
+					else
+						_dxSounder.Up();
+				}
+				else
+					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
+			}
+			else
+				_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
+		}
+
+		private void pnlHotSpot_MouseDown(object sender, MouseEventArgs e)
+		{
+			switch (e.Button)
+			{
+				case MouseButtons.Left:
+					LeftDown();
+					break;
+
+				case MouseButtons.Right:
+					RightDown();
+					break;
 			}
 		}
 
 		private void pnlHotSpot_MouseUp(object sender, MouseEventArgs e)
 		{
-			if (_keyerMode == 0)
+			switch (e.Button)
 			{
-				if (_soundMode == 0)
-					_dxTones.Up();
-				else
-					_dxSounder.Up();
-			}
-			else
-			{
-				switch (e.Button)
-				{
-					case MouseButtons.Left:
-						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
-						break;
+				case MouseButtons.Left:
+					LeftUp();
+					break;
 
-					case MouseButtons.Right:
-						_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
-						break;
-				}
+				case MouseButtons.Right:
+					RightUp();
+					break;
 			}
 		}
 
@@ -361,12 +485,12 @@ namespace com.dc3.morse
 
 		private void UpdateUI()
 		{
-			nudCodeSpeed.Enabled = rbIambicB.Checked;
+			nudCodeSpeed.Enabled = chkSwapPaddles.Enabled = (rbIambic.Checked || rbBug.Checked);
+			chkModeA.Enabled = rbIambic.Checked;
+			pnlModeB.Visible = rbIambic.Checked && !chkModeA.Checked;
 			nudToneFreq.Enabled = rbTone.Checked;
 			nudSounder.Enabled = rbSounder.Checked;
 			btnTestSerial.Enabled = nudSerialPort.Enabled = !chkUseSerial.Checked;
-			rbExtSounder.Enabled = chkUseSerial.Checked;
-			tbVolume.Enabled = !rbExtSounder.Checked;
 		}
 
 		static bool _prevDSR = false;
@@ -394,33 +518,13 @@ namespace com.dc3.morse
 				case SerialPinChange.DsrChanged:
 #endif
 					lock (lockObj) { curState = com.DsrHolding; }
-					Debug.Print("DSR -> " + curState.ToString() + " (prev = " + _prevDSR.ToString() + ")");
+					//Debug.Print("DSR -> " + curState.ToString() + " (prev = " + _prevDSR.ToString() + ")");
 					if (curState == _prevDSR) return;							// Simple debouncing (typ.)
-					if (curState)// && !_prevDSR)
-					{
-							if (_keyerMode == 0)
-							{
-								if (_soundMode == 0)
-									_dxTones.Down();
-								else
-									_dxSounder.Down();
-							}
-							else
-								_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitPress);
-					}
-					else //if (!curState && _prevDSR)
-					{
-						if (_keyerMode == 0)
-						{
-							if (_soundMode == 0)
-								_dxTones.Up();
-							else
-								_dxSounder.Up();
-						}
-						else
-							_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
-					}
-					_prevDSR = curState; // com.DsrHolding;
+					if (curState)
+						LeftDown();
+					else
+						LeftUp();
+					_prevDSR = curState;
 					break;
 
 #if NEW_COM
@@ -431,31 +535,11 @@ namespace com.dc3.morse
 					lock (lockObj) { curState = com.CtsHolding; }
 					//Debug.Print("CTS -> " + curState.ToString() + " (prev = " + _prevCTS.ToString() + ")");
 					if (curState == _prevCTS) return;
-					if (curState)// && !_prevCTS)
-					{
-						if (_keyerMode == 0)
-						{
-							if (_soundMode == 0)
-								_dxTones.Down();
-							else
-								_dxSounder.Down();
-						}
-						else
-							_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
-					}
-					else //if (!curState & _prevCTS)
-					{
-						if (_keyerMode == 0)
-						{
-							if (_soundMode == 0)
-								_dxTones.Up();
-							else
-								_dxSounder.Up();
-						}
-						else
-							_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
-					}
-					_prevCTS = curState; // com.CtsHolding;
+					if (curState)
+						RightDown();
+					else
+						RightUp();
+					_prevCTS = curState;
 					break;
 			}
 			//com.BreakState = true;
@@ -471,22 +555,20 @@ namespace com.dc3.morse
 				switch (_soundMode)
 				{
 					case 0:
+						if (_serialPort != null) _serialPort.RtsEnable = true;
 						_dxTones.Dit();
+						if (_serialPort != null) _serialPort.RtsEnable = false;
 						_dxTones.Space();
 						break;
 					case 1:
+						if (_serialPort != null) _serialPort.RtsEnable = true;
 						_dxSounder.Dit();
+						if (_serialPort != null) _serialPort.RtsEnable = false;
 						_dxSounder.Space();
-						break;
-					case 2:
-						_serialPort.RtsEnable = true;
-						PreciseDelay.Wait(_ctime);
-						_serialPort.RtsEnable = false;
-						PreciseDelay.Wait(_ctime);
 						break;
 				}
 				if (S == IambicKeyer.MorseSymbol.DitB)
-					pnlModeB.BackColor = Color.Navy;
+					pnlModeB.BackColor = Color.Black;
 			}
 			else
 			{
@@ -495,22 +577,20 @@ namespace com.dc3.morse
 				switch (_soundMode)
 				{
 					case 0:
+						if (_serialPort != null) _serialPort.RtsEnable = true;
 						_dxTones.Dah();
+						if (_serialPort != null) _serialPort.RtsEnable = false;
 						_dxTones.Space();
 						break;
 					case 1:
+						if (_serialPort != null) _serialPort.RtsEnable = true;
 						_dxSounder.Dah();
+						if (_serialPort != null) _serialPort.RtsEnable = false;
 						_dxSounder.Space();
-						break;
-					case 2:
-						_serialPort.RtsEnable = true;
-						PreciseDelay.Wait(_ctime * 3);
-						_serialPort.RtsEnable = false;
-						PreciseDelay.Wait(_ctime);
 						break;
 				}
 				if (S == IambicKeyer.MorseSymbol.DahB)
-					pnlModeB.BackColor = Color.Navy;
+					pnlModeB.BackColor = Color.Black;
 			}
 		}
 

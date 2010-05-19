@@ -25,6 +25,7 @@
 // 07-May-10	rbd		1.5.0 - Refactor into separate assy, make class public.
 //						Add Down() and Up().
 // 11-May-10	rbd		1.5.0 - Volume Control!
+// 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
 //
 using System;
 using System.Collections.Generic;
@@ -105,7 +106,10 @@ namespace com.dc3.morse
 			set
 			{
 				_volume = value;
-				_rawVol = -(int)Math.Pow((60 * (value - 1.0F)), 2);
+				if (value == 0.0F)
+					_rawVol = -9000;
+				else
+					_rawVol = -(int)Math.Pow((60 * (value - 1.0F)), 2);
 			}
 		}
 
