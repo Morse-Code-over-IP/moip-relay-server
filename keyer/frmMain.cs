@@ -2,11 +2,14 @@
 //-----------------------------------------------------------------------------
 // TITLE:		frmMain.cs
 //
-// FACILITY:	Morse Code Practice Keyer
+// FACILITY:	Morse Code Keyer
 //
-// ABSTRACT:	Program that will read either the lerf/right mouse buttons or 
+// ABSTRACT:	Program that will read either the left/right mouse buttons or 
 //				a key attached to a serial port's CTS/DSR pins and output CW 
-//				tones or telegraph sounnder sounds.
+//				tones or telegraph sounder sounds. It will also drive the 
+//				DTR pin on the serial port for external telegraph loop or
+//				ham rig. Supports manual/straight keying, semi-auto (bug)
+//				keying, and iambic A/B mode automatic keying.
 //
 // IMPORTANT:	The Sender delegate must be synchronous, that is, it must not
 //				return until the symbol is actually sent (tone played, etc.).
@@ -36,7 +39,12 @@
 //						Fix serial sending in straight-key mode. Add new mode
 //						Semi-Auto (bug). Remove Physical Sounder sound mode, 
 //						can just turn volume down to 0 if don't want sound.
-//						Make slider value 0 mean no sound at all.
+//						Make slider value 0 mean no sound at all. Refactoring
+//						of sound logic.
+// 19-May-10	rbd		More refactoring of sound logic. Add lock to ensure
+//						competion of dit, including trailing space, before 
+//						(manual) dah in semi-auto mode, and force inter-
+//						symbol space after manual dah in semi-auto.
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -89,6 +97,8 @@ namespace com.dc3.morse
 		private int _stime;					// Symbol space time (ms)
 		private int _cstime;				// Character space time (ms)
 		private int _wstime;				// Word space time (ms)
+		private object _semiAutoLock;
+		private object _serialPortLock;
 
 		//
 		// Form construction, load, closing
@@ -112,6 +122,9 @@ namespace com.dc3.morse
 
 		private void frmMain_Load(object sender, EventArgs e)
 		{
+			_semiAutoLock = new object();
+			_serialPortLock = new object();
+
 			_codeSpeed = (int)Properties.Settings.Default.CodeSpeed;
 			_ctime = _tbase / _codeSpeed;
 			_calcSpaceTime();
@@ -310,30 +323,52 @@ namespace com.dc3.morse
 		}
 
 		//
-		// Common functions for mouse and serial keying inputs (4)
+		// Common functions for mouse and serial keying inputs
 		//
-		private void LeftDown()
+
+		//
+		// These two start and end manual sounds (straight key and semi-suto dahs)
+		//
+		private void StartSound()
 		{
-			if (_keyerMode == 0)
+			_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);			// Force semi auto dits to stop before locking!
+			lock (_semiAutoLock)
 			{
 				if (_serialPort != null) _serialPort.RtsEnable = true;
 				if (_soundMode == 0)
 					_dxTones.Down();
 				else
 					_dxSounder.Down();
+			}
+		}
+
+		private void EndSound()
+		{
+			lock (_semiAutoLock)
+			{
+				if (_serialPort != null) _serialPort.RtsEnable = false;
+				if (_soundMode == 0)
+					_dxTones.Up();
+				else
+					_dxSounder.Up();
+				if (_keyerMode == 1) PreciseDelay.Wait(_ctime);					// Force inter-symbol space after (manual) Dah
+			}
+		}
+
+		//
+		// These four handle left and right mouse and (serial) paddle/swiper/key presses
+		//
+		private void LeftDown()
+		{
+			if (_keyerMode == 0)
+			{
+				StartSound();
 				return;															// FINISHED
 			}
 			if (_swapPaddles)
 			{
 				if (_keyerMode == 1)
-				{
-					//_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
-					if (_serialPort != null) _serialPort.RtsEnable = true;
-					if (_soundMode == 0)
-						_dxTones.Down();
-					else
-						_dxSounder.Down();
-				}
+					StartSound();
 				else
 					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
 			}
@@ -345,23 +380,13 @@ namespace com.dc3.morse
 		{
 			if (_keyerMode == 0)
 			{
-				if (_serialPort != null) _serialPort.RtsEnable = false;
-				if (_soundMode == 0)
-					_dxTones.Up();
-				else
-					_dxSounder.Up();
+				EndSound();
 				return;															// FINISHED
 			}
 			if (_swapPaddles)
 			{
 				if (_keyerMode == 1)
-				{
-					if (_serialPort != null) _serialPort.RtsEnable = false;
-					if (_soundMode == 0)
-						_dxTones.Up();
-					else
-						_dxSounder.Up();
-				}
+					EndSound();
 				else
 					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
 			}
@@ -373,24 +398,13 @@ namespace com.dc3.morse
 		{
 			if (_keyerMode == 0)
 			{
-				if (_serialPort != null) _serialPort.RtsEnable = true;
-				if (_soundMode == 0)
-					_dxTones.Down();
-				else
-					_dxSounder.Down();
+				StartSound();
 				return;															// FINISHED
 			}
 			if (!_swapPaddles)
 			{
 				if (_keyerMode == 1)
-				{
-					//_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DitRelease);
-					if (_serialPort != null) _serialPort.RtsEnable = true;
-					if (_soundMode == 0)
-						_dxTones.Down();
-					else
-						_dxSounder.Down();
-				}
+					StartSound();
 				else
 					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahPress);
 			}
@@ -402,23 +416,13 @@ namespace com.dc3.morse
 		{
 			if (_keyerMode == 0)
 			{
-				if (_serialPort != null) _serialPort.RtsEnable = false;
-				if (_soundMode == 0)
-					_dxTones.Up();
-				else
-					_dxSounder.Up();
+				EndSound();
 				return;															// FINISHED
 			}
 			if (!_swapPaddles)
 			{
 				if (_keyerMode == 1)
-				{
-					if (_serialPort != null) _serialPort.RtsEnable = false;
-					if (_soundMode == 0)
-						_dxTones.Up();
-					else
-						_dxSounder.Up();
-				}
+					EndSound();
 				else
 					_iambicKeyer.KeyEvent(IambicKeyer.KeyEventType.DahRelease);
 			}
@@ -497,14 +501,13 @@ namespace com.dc3.morse
 		static bool _prevCTS = false;
 
 		//
-		// TODO need real debouncing! Also this logic needs reduction...
+		// TODO need real debouncing! 
 		//
 #if NEW_COM
 		private void comPort_PinChanged(Object sender, ComPortEventArgs e)
 		{
 			ComPortCtrl com = (ComPortCtrl)sender;
 			bool curState;
-			object lockObj = new object();
 #else
 		private void comPort_PinChanged(Object sender, SerialPinChangedEventArgs e)
 		{
@@ -517,7 +520,7 @@ namespace com.dc3.morse
 #else
 				case SerialPinChange.DsrChanged:
 #endif
-					lock (lockObj) { curState = com.DsrHolding; }
+					lock (_serialPortLock) { curState = com.DsrHolding; }
 					//Debug.Print("DSR -> " + curState.ToString() + " (prev = " + _prevDSR.ToString() + ")");
 					if (curState == _prevDSR) return;							// Simple debouncing (typ.)
 					if (curState)
@@ -532,7 +535,7 @@ namespace com.dc3.morse
 #else
 				case SerialPinChange.CtsChanged:
 #endif
-					lock (lockObj) { curState = com.CtsHolding; }
+					lock (_serialPortLock) { curState = com.CtsHolding; }
 					//Debug.Print("CTS -> " + curState.ToString() + " (prev = " + _prevCTS.ToString() + ")");
 					if (curState == _prevCTS) return;
 					if (curState)
@@ -547,50 +550,53 @@ namespace com.dc3.morse
 
 		private void SendCallback(IambicKeyer.MorseSymbol S)
 		{
-			//Debug.Print(DateTime.Now.Ticks.ToString() + " " + S.ToString());
-			if (S == IambicKeyer.MorseSymbol.Dit || S == IambicKeyer.MorseSymbol.DitB)
+			lock (_semiAutoLock)
 			{
-				if (S == IambicKeyer.MorseSymbol.DitB)
-					pnlModeB.BackColor = Color.Yellow;
-				switch (_soundMode)
+				//Debug.Print(DateTime.Now.Ticks.ToString() + " " + S.ToString());
+				if (S == IambicKeyer.MorseSymbol.Dit || S == IambicKeyer.MorseSymbol.DitB)
 				{
-					case 0:
-						if (_serialPort != null) _serialPort.RtsEnable = true;
-						_dxTones.Dit();
-						if (_serialPort != null) _serialPort.RtsEnable = false;
-						_dxTones.Space();
-						break;
-					case 1:
-						if (_serialPort != null) _serialPort.RtsEnable = true;
-						_dxSounder.Dit();
-						if (_serialPort != null) _serialPort.RtsEnable = false;
-						_dxSounder.Space();
-						break;
+					if (S == IambicKeyer.MorseSymbol.DitB)
+						pnlModeB.BackColor = Color.Yellow;
+					switch (_soundMode)
+					{
+						case 0:
+							if (_serialPort != null) _serialPort.RtsEnable = true;
+							_dxTones.Dit();
+							if (_serialPort != null) _serialPort.RtsEnable = false;
+							_dxTones.Space();
+							break;
+						case 1:
+							if (_serialPort != null) _serialPort.RtsEnable = true;
+							_dxSounder.Dit();
+							if (_serialPort != null) _serialPort.RtsEnable = false;
+							_dxSounder.Space();
+							break;
+					}
+					if (S == IambicKeyer.MorseSymbol.DitB)
+						pnlModeB.BackColor = Color.Black;
 				}
-				if (S == IambicKeyer.MorseSymbol.DitB)
-					pnlModeB.BackColor = Color.Black;
-			}
-			else
-			{
-				if (S == IambicKeyer.MorseSymbol.DahB)
-					pnlModeB.BackColor = Color.Yellow;
-				switch (_soundMode)
+				else // Dah or DahB
 				{
-					case 0:
-						if (_serialPort != null) _serialPort.RtsEnable = true;
-						_dxTones.Dah();
-						if (_serialPort != null) _serialPort.RtsEnable = false;
-						_dxTones.Space();
-						break;
-					case 1:
-						if (_serialPort != null) _serialPort.RtsEnable = true;
-						_dxSounder.Dah();
-						if (_serialPort != null) _serialPort.RtsEnable = false;
-						_dxSounder.Space();
-						break;
+					if (S == IambicKeyer.MorseSymbol.DahB)
+						pnlModeB.BackColor = Color.Yellow;
+					switch (_soundMode)
+					{
+						case 0:
+							if (_serialPort != null) _serialPort.RtsEnable = true;
+							_dxTones.Dah();
+							if (_serialPort != null) _serialPort.RtsEnable = false;
+							_dxTones.Space();
+							break;
+						case 1:
+							if (_serialPort != null) _serialPort.RtsEnable = true;
+							_dxSounder.Dah();
+							if (_serialPort != null) _serialPort.RtsEnable = false;
+							_dxSounder.Space();
+							break;
+					}
+					if (S == IambicKeyer.MorseSymbol.DahB)
+						pnlModeB.BackColor = Color.Black;
 				}
-				if (S == IambicKeyer.MorseSymbol.DahB)
-					pnlModeB.BackColor = Color.Black;
 			}
 		}
 

@@ -5,13 +5,13 @@
 #define MyAppVerName "Morse Keyer 1.1"
 #define MyAppPublisher "Robert B. Denny"
 #define MyAppURL "https://sourceforge.net/projects/morse-rss-news/"
-#define MyAppExeName "MorseKeyer.exe"
+#define MyAppExeName "Morse Keyer.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{CAAD9283-ECBB-4809-B176-5EAAB4745144}
+AppId={{D704F72C-A452-4067-900F-E4FCB693C33C}
 AppName={#MyAppName}
 AppVerName={#MyAppVerName}
 AppPublisher={#MyAppPublisher}
@@ -37,10 +37,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "D:\dev\misc\MorseTools\keyer\bin\Release\Morse Keyer.exe"; DestDir: "{app}";
 Source: "D:\dev\misc\MorseTools\keyer\bin\Release\Morse Keyer.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\dev\misc\MorseTools\keyer\bin\Release\*.dll"; DestDir: "{app}";
+Source: "D:\dev\misc\MorseTools\keyer\doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\dev\misc\MorseTools\keyer\Setup\DirectX Assemblies\*"; DestDir: "{app}";
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Morse Keyer Help"; Filename: "{app}\doc\index.html"; IconFilename: "{app}\doc\Help.ico"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]

@@ -26,6 +26,7 @@
 //						Add Down() and Up().
 // 11-May-10	rbd		1.5.0 - Volume Control!
 // 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
+// 19-May-10	rbd		1.5.0 - Stop clack before Down, prevent stuttering
 //
 using System;
 using System.Collections.Generic;
@@ -167,6 +168,7 @@ namespace com.dc3.morse
 
 		public void Down()
 		{
+			_bufClack.Stop();
 			_bufClick.Volume = _rawVol;
 			_bufClick.SetCurrentPosition(0);
 			_bufClick.Play(0, BufferPlayFlags.Default);
