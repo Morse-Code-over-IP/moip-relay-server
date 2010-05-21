@@ -24,6 +24,7 @@
 //						Add Down() and Up().
 // 11-May-10	rbd		1.5.0 - Volume Control!
 // 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
+// 19-May-10	rbd		1.5.0 - Stop before Down, prevent stuttering
 //
 using System;
 using System.Collections.Generic;
@@ -202,9 +203,10 @@ namespace com.dc3.morse
 
 		public void Down()
 		{
+			_secBuf.Stop();														// In case a dit or dah is playing
 			_secBuf.Volume = _rawVol;
 			_secBuf.SetCurrentPosition(0);
-			//_secBuf.Play(0, BufferPlayFlags.Looping);		// Plenty long and loop sounds baaaad
+			//_secBuf.Play(0, BufferPlayFlags.Looping);							// Plenty long and loop sounds baaaad
 			_secBuf.Play(0, BufferPlayFlags.Default);
 		}
 

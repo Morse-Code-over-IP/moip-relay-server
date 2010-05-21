@@ -27,6 +27,8 @@
 // 18-May-10	rbd		1.6.0 - CreateFile on port may return -1 on error. Check
 //						this as well as IntPtr.Zero and make it IntPtr.Zero which
 //						is the sentinel used elsewhere.
+// 19-May-10	rbd		1.6.0 - Lame attempt to detect changes on pins while 
+//						handling previous change. Really lame!
 //
 using System;
 using System.Collections.Generic;
@@ -162,21 +164,44 @@ namespace com.dc3
 			uint eventMask = 0;
 			IntPtr unmanagedEvMask = Marshal.AllocHGlobal(Marshal.SizeOf(eventMask));
 
+			GetPinStatus();
+			bool prevCTS = _CTS;
+			bool prevDSR = _DSR;
 			try
 			{
 				while (true)
 				{
-					if (!SetCommMask(_portHandle, (EV_CTS | EV_DSR)))
-						throw new ApplicationException("Failed to set comm event mask");
-					Marshal.WriteInt32(unmanagedEvMask, 0);
-					if (!WaitCommEvent(_portHandle, unmanagedEvMask, unmanagedOv))
-					{
-						if (Marshal.GetLastWin32Error() != ERROR_IO_PENDING)
-							throw new ApplicationException("WaitCommEvent() failed");
-						sg.WaitOne();
-					}
-					eventMask = (uint)Marshal.ReadInt32(unmanagedEvMask);
+					//
+					// Lameness here. Try to detect changes that happened during
+					// the OnComPortPinChanged() call.
+					//
 					GetPinStatus();
+					if (_CTS != prevCTS)
+					{
+					    eventMask = EV_CTS;
+					    prevCTS = _CTS;
+					}
+					else if (_DSR != prevDSR)
+					{
+					    eventMask = EV_DSR;
+					    prevDSR = _DSR;
+					}
+					else
+					{
+						if (!SetCommMask(_portHandle, (EV_CTS | EV_DSR)))
+							throw new ApplicationException("Failed to set comm event mask");
+						Marshal.WriteInt32(unmanagedEvMask, 0);
+						if (!WaitCommEvent(_portHandle, unmanagedEvMask, unmanagedOv))
+						{
+							if (Marshal.GetLastWin32Error() != ERROR_IO_PENDING)
+								throw new ApplicationException("WaitCommEvent() failed");
+							sg.WaitOne();
+						}
+						eventMask = (uint)Marshal.ReadInt32(unmanagedEvMask);
+						GetPinStatus();
+						prevCTS = _CTS;
+						prevDSR = _DSR;
+					}
 					ComPortEventArgs e = new ComPortEventArgs(eventMask);
 					OnComPortPinChanged(e);
 				}

@@ -129,7 +129,7 @@ namespace com.dc3.morse
 					//Debug.Print("alt=" + alt.ToString() + " lastSent=" + (lastDit ? "Dit" : "Dah"));
 					if (alt && ModeB)
 					{
-						Debug.Print(lastDit ? " *dah!" : " *dit!");
+						//Debug.Print(lastDit ? " *dah!" : " *dit!");
 						_sender(lastDit ? MorseSymbol.DahB : MorseSymbol.DitB);
 					}
 					//Debug.Print("");
