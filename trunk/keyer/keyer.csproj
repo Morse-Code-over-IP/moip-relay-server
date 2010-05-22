@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>com.dc3.morse</RootNamespace>
-    <AssemblyName>Morse Keyer</AssemblyName>
+    <AssemblyName>MorseKeyer</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>AppIcon.ico</ApplicationIcon>

@@ -45,6 +45,10 @@
 //						competion of dit, including trailing space, before 
 //						(manual) dah in semi-auto mode, and force inter-
 //						symbol space after manual dah in semi-auto.
+// 21-May-10	rbd		1.5.0 - Match version with RSSMorse, these will be 
+//						combined into a single installer. Change doc root
+//						from index.html to keyer.html so can share same doc
+//						folder in end-user install.
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -283,7 +287,7 @@ namespace com.dc3.morse
 
 		private void picHelp_Click(object sender, EventArgs e)
 		{
-			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\keyer.html");
 		}
 
 		private void nudSerialPort_ValueChanged(object sender, EventArgs e)

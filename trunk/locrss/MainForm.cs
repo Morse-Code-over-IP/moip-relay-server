@@ -54,10 +54,12 @@
 // 13-May-10	rbd		1.5.1 - Feedburner, CNN, others don't send Content-Length
 //						so no longer require it. Also, Feedburner sends EDT (daylight)
 //						pubDates during DST, handle that.
-// 17-May-10	rbd		1.5.1 - FOx sends EST on EDT times, detect and subtract an
+// 17-May-10	rbd		1.5.1 - Fox sends EST on EDT times, detect and subtract an
 //						hour. Add Unknown Char Handler so prevent error code being
 //						send for unknown chars (usually unicode stuff) that isn't 
 //						caught by the fixup code.
+// 21-May-10	rbd		1.5.0 - Change doc root	from index.html to keyer.html so 
+//						can share same doc folder with keyer in end-user install.
 //
 using System;
 using System.Collections.Generic;
@@ -439,7 +441,7 @@ namespace com.dc3
 
 		private void picHelp_Click(object sender, EventArgs e)
 		{
-			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\index.html");
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\rssmorse.html");
 		}
 
 		private void llRSSFeeds_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
