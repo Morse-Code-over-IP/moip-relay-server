@@ -5,7 +5,7 @@ Released for free under a Creative Commons Attribution 2.5 License
 */
 
 body {
-	margin-top: 50px;
+	margin-top: 40px;
 	padding: 0;
 	background: #000000 url(images/img01.png) repeat-x center top;
 	font-family: Arial, Helvetica, sans-serif;
@@ -27,7 +27,7 @@ h3 { }
 
 p, ul, ol {
 	margin-top: 0;
-	line-height: 150%;
+	line-height: 16px;
 	text-align: justify;
 }
 
@@ -133,48 +133,6 @@ hr { display: none; }
 
 #menu .first {
 }
-/* Search */
-
-#search {
-	float: right;
-	width: 240px;
-	padding: 10px 10px 0px 0px;
-}
-
-#search form {
-	float: right;
-	margin: 0;
-	padding: 4px 0px 0 0;
-}
-
-#search fieldset {
-	margin: 0;
-	padding: 0;
-	border: none;
-}
-
-#search input {
-	float: left;
-	font: 12px Georgia, "Times New Roman", Times, serif;
-}
-
-#search-text {
-	width: 150px;
-	height: 18px;
-	padding: 3px 0 0 5px;
-	border: 1px solid #333333;
-	background: #ECF9E4;
-	color: #000000;
-}
-
-#search-submit {
-	height: 21px;
-	margin-left: 10px;
-	padding: 0px 5px;
-	background: #2A4345;
-	border: 1px solid #5F817E;
-	color: #FFFFFF;
-}
 
 /* Page */
 
@@ -238,7 +196,7 @@ hr { display: none; }
 /* Post */
 
 .post {
-	margin-bottom: 45px;
+	margin-bottom: 25px;
 }
 
 .post .title {
@@ -330,8 +288,8 @@ hr { display: none; }
 }
 
 #sidebar li {
-	margin-bottom: 30px;
-	padding: 0 0 10px 0px;
+	margin-bottom: 10px;
+	padding: 0 0 0px 0px;
 }
 
 #sidebar li ul {
@@ -340,12 +298,12 @@ hr { display: none; }
 
 #sidebar li li {
 	margin: 0;
-	padding: 10px 0px;
+	padding: 8px 0px;
 	background: url(images/img03.gif) no-repeat left 16px;
 }
 
 #sidebar li li p {
-	padding: 0px 0px 0px 20px;
+	padding: 0px 14px 0px 14px;
 	font-weight: normal;
 	line-height: normal;
 }
@@ -361,79 +319,28 @@ hr { display: none; }
 
 #sidebar h2 {
 	height: 30px;
-	margin: 0 0 10px 0px;
-	padding: 6px 0 2px 0px;
 	text-transform: capitalize;
 	font-size: 18px;
 	font-weight: normal;
 	color: #FFFFFF;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	padding-top: 6px;
+	padding-right: 0;
+	padding-bottom: 0px;
+	padding-left: 0px;
 }
 
 
-#sidebar p { line-height: 110%; 
+#sidebar p { line-height: 16px; 
 }
 
 #sidebar a {
 	text-align: left;
 	text-decoration: none;
 	font-weight: bold;
-}
-
-/* Calendar */
-
-#calendar {
-}
-
-#calendar caption {
-	padding-bottom: 5px;
-	font-weight: bold;
-}
-
-#calendar table {
-	width: 100%;
-	border-collapse: collapse;
-	border-bottom: 1px solid #24130F;
-	border-left: 1px solid #24130F;
-	border-right: 1px solid #24130F;
-}
-
-#calendar thead th {
-	padding: 5px 0;
-	text-align: center;
-	border-top: 1px solid #24130F;
-	border-left: 1px solid #24130F;
-	background: #24130F;
-}
-
-#calendar tbody td {
-	padding: 5px 0;
-	text-align: center;
-	border-top: 1px solid #24130F;
-	border-left: 1px solid #24130F;
-	border-bottom: 1px solid #24130F;
-}
-
-#calendar tfoot td {
-	padding: 5px;
-	border-left: 1px solid #24130F;
-	border-bottom: 1px solid #24130F;
-}
-
-#calendar tfoot #next {
-	border-top: 1px solid #24130F;
-	text-align: right;
-}
-
-#calendar tfoot #prev {
-	border-top: 1px solid #24130F;
-}
-
-#calendar .pad {
-	border-bottom: 1px solid #24130F;
-}
-
-#calendar #today {
-	background: #24130F;
 }
 
 /* Footer */
