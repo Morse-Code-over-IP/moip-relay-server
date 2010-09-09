@@ -25,6 +25,8 @@
 // 11-May-10	rbd		1.5.0 - Volume Control!
 // 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
 // 19-May-10	rbd		1.5.0 - Stop before Down, prevent stuttering
+// 03-Sep-10	rbd		1.6.0 - Generate tone on the fly for shaping, add LPF and
+//						envelope shaping for clean tones.
 //
 using System;
 using System.Collections.Generic;
@@ -43,6 +45,7 @@ namespace com.dc3.morse
         private Device _deviceSound;
 		private int _maxLen;														// Max length tone
 		private float _freq;
+		private double _filtCoeff;
 		private float _volume;
 		private int _rawVol;
 		private int _ditMs;
@@ -56,23 +59,21 @@ namespace com.dc3.morse
 		public DxTones(System.Windows.Forms.Control Handle, int MaxLenMs)
         {
 			_maxLen = MaxLenMs;
-			_freq = 880;															// Defaults (typ.)
-			this.Volume = 1.0F;															// Max volume
+			this.Frequency = 880;													// Defaults (typ.)
+			this.Volume = 1.0F;														// Max volume
 			_ditMs = 80;
 			_startLatency = 0;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
-
-			genWaveBuf();
 		}
 
 		//
 		// Generate the tone data
 		//
-		private void genWaveBuf()
+		private void genWaveBuf(int duration)
 		{
-			_waveBuf = GenTone(_freq, 0.3, _maxLen);
+			_waveBuf = GenTone(_freq, 0.3, duration);
 
 			_waveFmt = new WaveFormat();
 			_waveFmt.BitsPerSample = (short)_bitsPerSample;
@@ -104,23 +105,22 @@ namespace com.dc3.morse
             byte[] wavedata = new byte[length * 2];
 			double timeScale = frequency * 2 * Math.PI / (double)_sampleRate;
 
-            int waveformPeriod = (int)(_sampleRate / frequency);
+            int envelopeSamples = (int)(2.0 * (_sampleRate / frequency));			// Two cycles linear attack/decay
+			double xo = 0;
+			double yo = 0;
             for (int i = 0; i < length; i++)
             {
-                if (i <= waveformPeriod)
-                {
-					double dbl = Math.Sin(i * timeScale);
-                    short sh = (short)(dbl * amp * short.MaxValue);
+				double a0 = amp * Math.Min((double)i / envelopeSamples, 1.0);	// Envelope
+				a0 = a0 * Math.Min((double)(length - i) / envelopeSamples, 1.0);
 
-                    wavedata[i * 2] = (byte)(sh & 0x00FF); // low byte
-                    wavedata[i * 2 + 1] = (byte)(sh >> 8); // high byte
-                }
-                else  // we have already computed the wave, it is periodic. Good optimization!
-                {
-                    int prevspot = i % waveformPeriod;
-                    wavedata[i * 2] = wavedata[prevspot * 2];
-                    wavedata[i * 2 + 1] = wavedata[prevspot * 2 + 1];
-                }
+				double xn = Math.Sin(i * timeScale);
+
+				double yn = xn - (_filtCoeff * yo);									// Low pass filter
+				xo = xn;
+				yo = yn;
+                short sh = (short)(yn * a0 * short.MaxValue);
+                wavedata[i * 2] = (byte)(sh & 0x00FF); // low byte
+                wavedata[i * 2 + 1] = (byte)(sh >> 8); // high byte
             }
             return wavedata;
         }
@@ -131,20 +131,15 @@ namespace com.dc3.morse
 		public int MaxLenMs
 		{
 			get { return _maxLen; }
-			set
-			{
-				_maxLen = value;
-				genWaveBuf();
-			}
+			set { _maxLen = value; }
 		}
 
 		public float Frequency
 		{
 			get { return _freq; }
-			set 
-			{ 
+			set { 
 				_freq = value;
-				genWaveBuf();
+				_filtCoeff = Math.Exp((-Math.PI * _freq / (10.0 * _sampleRate)));	// Rolloff at freq / 10
 			}
 		}
 
@@ -190,8 +185,8 @@ namespace com.dc3.morse
 
 		public void PlayFor(int ms)
 		{
+			genWaveBuf(ms);
 			_secBuf.Volume = _rawVol;
-			_secBuf.SetCurrentPosition((_sampleRate * (_maxLen - ms)) * 2 / 1000);
 			_secBuf.Play(0, BufferPlayFlags.Default);
 			PreciseDelay.Wait(ms);
 		}
@@ -203,10 +198,9 @@ namespace com.dc3.morse
 
 		public void Down()
 		{
+			genWaveBuf(_maxLen);
 			_secBuf.Stop();														// In case a dit or dah is playing
 			_secBuf.Volume = _rawVol;
-			_secBuf.SetCurrentPosition(0);
-			//_secBuf.Play(0, BufferPlayFlags.Looping);							// Plenty long and loop sounds baaaad
 			_secBuf.Play(0, BufferPlayFlags.Default);
 		}
 
