@@ -100,6 +100,7 @@
 //						config for message class (American). Change service 
 //						info to reflect that this is now a general purpose
 //						RSS/Morse robot. Fix up comments in several places.
+// 29-Sep-10	rbd		0.8.2 - Prevent recursion in Last-Chance error handler.
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -951,7 +952,11 @@ namespace com.dc3.cwcom
 			LogMessageS("*** FATAL EXCEPTION ***");
 			LogMessageS(ex.ToString());
 			LogMessageS("***********************");
-			ShutdownBots();
+			try																	// Prevent recursion here
+			{
+				ShutdownBots();
+			}
+			catch (Exception) { }
 		}
 
 		//

@@ -39,6 +39,9 @@
 //						Don't log re-connect and unknown messages (commented out
 //						for possible later debugging. Increase dead stn rate
 //						10 0.1Hz.
+// 12-Oct-10	rbd		1.0.6 - Prevent recursion in last chance handler. Restore
+//						unknown station disconnect message in log. Fix log rotation
+//						and change it to once per week.
 //-----------------------------------------------------------------------------
 //
 
@@ -95,9 +98,10 @@ namespace com.dc3.cwcom
 		private static byte[] s_recvBuf;
 		private static WebServer s_webServer;
 		private static int s_webServerPort = 80;
+		private static int s_logRotateDays = 7;
 		private static string logPath = s_appPath + "\\Web\\log.txt";
 		private static string prevPath = s_appPath + "\\Web\\prevlog.txt";
-		private static DateTime s_curLogDate = DateTime.Now.Date;
+		private static DateTime s_curLogStartDate = DateTime.Now.Date;
 
 		//
 		// Used by web server for substitution
@@ -134,7 +138,11 @@ namespace com.dc3.cwcom
 			LogMessage("*** FATAL EXCEPTION ***");
 			LogMessage(ex.ToString());
 			LogMessage("***********************");
-			CleanShutdown();
+			try
+			{
+				CleanShutdown();
+			}
+			catch (Exception) { ; }
 		}
 
 		//
@@ -152,13 +160,14 @@ namespace com.dc3.cwcom
 
 			string timestamp = "[" + DateTime.Now.ToUniversalTime().ToString("s") + "] ";
 
-			if (DateTime.Now.Date != s_curLogDate)								// Time to rotate log
+			if (DateTime.Now.Date > s_curLogStartDate.AddDays(s_logRotateDays)) // Time to rotate log
 			{
 				if (File.Exists(prevPath))
 					File.Delete(prevPath);
 				File.WriteAllText(logPath, timestamp + "Log closed for rotation\r\n");
 				File.Move(logPath, prevPath);
 				File.WriteAllText(logPath, timestamp + "Log opened - times in UTC\r\n");
+				s_curLogStartDate = DateTime.Now.Date;
 			}
 
 			File.AppendAllText(logPath, timestamp + msg + "\r\n");
@@ -239,7 +248,7 @@ namespace com.dc3.cwcom
 			Station S = FindStation(Ep.Address, Ep.Port);
 			if (S == null)
 			{
-				//LogMessage("Unknown station at " + Ep.Address.ToString() + ":" + Ep.Port + " sent Disconnect");
+				LogMessage("Unknown station at " + Ep.Address.ToString() + ":" + Ep.Port + " sent Disconnect");
 				return;
 			}
 			lock (s_stationList) s_stationList.Remove(S);
