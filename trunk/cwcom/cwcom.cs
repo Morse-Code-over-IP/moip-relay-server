@@ -37,6 +37,10 @@
 // 05-Apr-10	rbd		0.7.2 - Add real receive loop, no more blind connect.
 // 07-Apr-10	rbd		0.7.2 - No more local TxStatus, client determines.
 // 09-Apr-10	rbd		0.7.2 - Fix 30 second delay on reconnect receiver.
+// 29-Sep-10	rbd		0.8.1 - Make reconnect delay grow exponentially up
+//						to 1920 sec. Catch UDP connect failures and log.
+// 12-Oct-10	rbd		0.8.2 - Fix exponential reconnect delay. Log UDP receive
+//						failures unless disconnecting.
 //-----------------------------------------------------------------------------
 //
 
@@ -70,9 +74,12 @@ namespace com.dc3.cwcom
 		private MessageReceiver _receiver; 
 		private MessageLogger _logger;
 		private bool _disconnecting = false;
+		private const int _minReconnSecs = 30;
+		private const int _maxReconnSecs = 64 * _minReconnSecs;
+		private int _reconnSecs = _minReconnSecs;
 
 		public delegate void MessageReceiver(byte[] rcvMsg);
-		public delegate void MessageLogger(string msg);							// Cliant's logging function must be like this
+		public delegate void MessageLogger(string msg);							// Client's logging function must be like this
 
 		public CwCom(MessageReceiver receiver, MessageLogger logger)
 		{
@@ -93,6 +100,7 @@ namespace com.dc3.cwcom
 		public void Connect(string Host, int Port, short Channel, string Ident, bool Blind)
 		{
 			bool justCon;
+			int ticks;
 
 			lock (_objLock)
 			{
@@ -116,12 +124,32 @@ namespace com.dc3.cwcom
 					{
 						_logger("Opening UDP");
 						_udp = new UdpClient();
-						_udp.Connect(_remHost, _remPort);
+						try
+						{
+							_udp.Connect(_remHost, _remPort);
+						}
+						catch (Exception e)
+						{
+							_udp = null;
+							_logger("UDP connect fail: " + e.Message);
+							_logger("Wait " + _reconnSecs + ", then try again...");
+							ticks = _reconnSecs;
+							if (_reconnSecs < _maxReconnSecs) _reconnSecs *= 2;
+							while (!_disconnecting && ticks > 0) 				// Wait _reconnSecs before reconnect
+							{
+								Thread.Sleep(1000);
+								ticks--;
+							}
+							if (_disconnecting)
+								break;
+							else
+								continue;
+						}
 						_receiverThread = new Thread(new ThreadStart(ReceiverThread));
 						_receiverThread.Name = "Receiver thread";
 						_receiverThread.Start();
 						justCon = true;
-						Thread.Sleep(1000);										// Important for reliability
+						Thread.Sleep(2000);										// Important for reliability
 					}
 					else
 						justCon = false;
@@ -137,16 +165,18 @@ namespace com.dc3.cwcom
 						if (_lastAckTime.AddSeconds(5) > DateTime.Now)			// If got a recent ack
 						{
 							if (justCon) _logger("Connected to " + _remIP.Address.ToString());
+							_reconnSecs = _minReconnSecs;						// Finally, reset reconn interval
 							return;												// GOOD!
 						}
 						Thread.Sleep(100);										// Wait then try again
 					}
-					_logger("No ACK from server. Close, wait 30, then reopen...");
+					_logger("No ACK from server. Close, wait " + _reconnSecs + ", then reopen...");
 					_udp.Close();												// This will cause ReceiverThread to exit
 					_receiverThread.Join(1000);
 					_udp = null;
-					int ticks = 30;
-					while (!_disconnecting && ticks > 0) 						// Wait 30 sec before reconnect
+					ticks = _reconnSecs;
+					if (_reconnSecs < _maxReconnSecs) _reconnSecs *= 2;
+					while (!_disconnecting && ticks > 0) 						// Wait _reconnSecs before reconnect
 					{
 						Thread.Sleep(1000);
 						ticks--;
@@ -180,7 +210,12 @@ namespace com.dc3.cwcom
 			while (true)
 			{
 				try { recvBuf = _udp.Receive(ref _remIP); }
-				catch (SocketException) { break; }								// Break this on _udp.Close()
+				catch (SocketException ex)
+				{
+					if (!_disconnecting)
+						_logger("**Receive failed: " + ex.Message);
+					break; 
+				}
 				if (recvBuf.Length == CtrlMessage.Length - 2)					// This is an ack!
 					_lastAckTime = DateTime.Now;
 				else if (_receiver != null)
