@@ -21,6 +21,7 @@
 // 03-Mar-10	rbd		1.0.2 - For Mono, need path separator
 // 04-Mar-09	rbd		1.0.3 - SF Artifact 2963796: Make domain and port dynamic, 
 //						from server config
+// 13-Oct-10	rbd		1.0.4 - Add support for Morse Info Robot log
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -39,14 +40,16 @@ namespace com.dc3.cwcom
 	public class WebResponder
 	{
 		string _webRoot;
+		string _botLogPath;
 		TcpClient _client;
 		NetworkStream _clientStream;
 		byte[] _buf = new byte[8192];
 
-		public WebResponder(TcpClient Client, string WebRoot)
+		public WebResponder(TcpClient Client, string WebRoot, string botLogPath)
 		{
 			_client = Client;
 			_webRoot = WebRoot;
+			_botLogPath = botLogPath;
 		}
 
 		private void SendResponseHeader(string Status, string ContentType, int ContentLength)
@@ -152,6 +155,10 @@ namespace com.dc3.cwcom
 						try { text = text.Replace("##LOGTXT##", File.ReadAllText(filePath.Replace(".html", ".txt"))); }
 						catch (Exception) { text = text.Replace("##LOGTXT##", "No log available"); }
 						break;
+					case "botlog.html":
+						try { text = text.Replace("##LOGTXT##", File.ReadAllText(_botLogPath)); }
+						catch (Exception) { text = text.Replace("##LOGTXT##", "No log available"); }
+						break;
 				}
 				SendResponseHtml("200 OK", text);
 			}
@@ -173,6 +180,7 @@ namespace com.dc3.cwcom
 	{
 		private int _port;
 		private string _webRoot;
+		private string _botLogPath;
 		private TcpListener _listener;
 		private Thread _svrThread;
 
@@ -189,9 +197,10 @@ namespace com.dc3.cwcom
 			{ ".ico",   "image/x-icon" }
 		};
 
-		public WebServer(int Port)
+		public WebServer(int Port, string botLogPath)
 		{
 			_port = Port;
+			_botLogPath = botLogPath;
 			_webRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + 
 						Path.DirectorySeparatorChar + "Web";
 		}
@@ -224,7 +233,7 @@ namespace com.dc3.cwcom
 				//
 				// Each incoming request is handled in its own thread.
 				//
-				WebResponder resp = new WebResponder(client, _webRoot);
+				WebResponder resp = new WebResponder(client, _webRoot, _botLogPath);
 				Thread respThread = new Thread(new ThreadStart(resp.ProcessRequest));
 				respThread.Start();
 			}

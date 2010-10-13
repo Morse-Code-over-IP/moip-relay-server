@@ -42,6 +42,7 @@
 // 12-Oct-10	rbd		1.0.6 - Prevent recursion in last chance handler. Restore
 //						unknown station disconnect message in log. Fix log rotation
 //						and change it to once per week.
+// 13-Oct-10	rbd		1.0.7 - Add support for Morse Info Robot log (config)
 //-----------------------------------------------------------------------------
 //
 
@@ -93,6 +94,7 @@ namespace com.dc3.cwcom
 		private static UdpClient s_udp = null;
 		private static string s_udpDomain = "your.domain.here";
 		private static int s_udpPort = 7890;
+		private static string s_botLogPath = "..\\..\\log.txt";					// Default, read from config file
 		private static bool s_serviceMode = false;
 		//private static DateTime s_startTime = DateTime.Now;
 		private static byte[] s_recvBuf;
@@ -355,6 +357,9 @@ namespace com.dc3.cwcom
 					case "domain":
 						s_udpDomain = bits[1].Trim();
 						break;
+					case "botlogpath":
+						s_botLogPath = bits[1].Trim();
+						break;
 					default:
 						LogMessage("Bad config line: " + cfgLines[i]);
 						break ;
@@ -388,7 +393,7 @@ namespace com.dc3.cwcom
 			ReadConfig();
 
 			s_udp = new UdpClient(s_udpPort);
-			s_webServer = new WebServer(s_webServerPort);
+			s_webServer = new WebServer(s_webServerPort, s_botLogPath);
 			s_webServer.Start();
 
 			// --------------

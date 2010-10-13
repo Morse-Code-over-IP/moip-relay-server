@@ -41,6 +41,7 @@
 //						to 1920 sec. Catch UDP connect failures and log.
 // 12-Oct-10	rbd		0.8.2 - Fix exponential reconnect delay. Log UDP receive
 //						failures unless disconnecting.
+// 13-Oct-10	rbd		0.8.3 - Don't log "CancelBlockingCall" receive errors.
 //-----------------------------------------------------------------------------
 //
 
@@ -212,7 +213,7 @@ namespace com.dc3.cwcom
 				try { recvBuf = _udp.Receive(ref _remIP); }
 				catch (SocketException ex)
 				{
-					if (!_disconnecting)
+					if (!_disconnecting && !ex.Message.Contains("CancelBlockingCall"))
 						_logger("**Receive failed: " + ex.Message);
 					break; 
 				}
