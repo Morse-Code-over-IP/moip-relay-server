@@ -43,6 +43,8 @@
 //						unknown station disconnect message in log. Fix log rotation
 //						and change it to once per week.
 // 13-Oct-10	rbd		1.0.7 - Add support for Morse Info Robot log (config)
+// 28-Oct-10	rbd		1.0.8 - Recover from station disappearing without sending
+//						a disconnect messasge, and other UDP receive problems.
 //-----------------------------------------------------------------------------
 //
 
@@ -140,10 +142,7 @@ namespace com.dc3.cwcom
 			LogMessage("*** FATAL EXCEPTION ***");
 			LogMessage(ex.ToString());
 			LogMessage("***********************");
-			try
-			{
-				CleanShutdown();
-			}
+			try { CleanShutdown(); }
 			catch (Exception) { ; }
 		}
 
@@ -245,7 +244,7 @@ namespace com.dc3.cwcom
 		//
 		// Received Disconnect message
 		//
-		private static void DisconnectClient(CtrlMessage CtrlMsg, IPEndPoint Ep)
+		private static void DisconnectClient(IPEndPoint Ep)
 		{
 			Station S = FindStation(Ep.Address, Ep.Port);
 			if (S == null)
@@ -400,11 +399,52 @@ namespace com.dc3.cwcom
 			// Receiving Loop
 			// --------------
 
+			int rxErrs = 0;
 			while (true)
 			{
 				IPEndPoint recvEp = epRecv;
-				try { s_recvBuf = s_udp.Receive(ref recvEp); }
-				catch (SocketException) { break; }
+				try
+				{
+					s_recvBuf = s_udp.Receive(ref recvEp);
+					rxErrs = 0;
+				}
+				catch (SocketException ex)
+				{
+					//
+					// If a station vaporizes, we'll get receive errors
+					//
+					//      An existing connection was forcibly closed by the remote host
+					//
+					// until the dead station harvester deletes it. I'm not sure what the
+					// dead station harvester has to do with it, but I found that simply 
+					// ignoring these, they eventually stop happening for the vaporized 
+					// remote station. 
+					//
+					if (ex.Message.Contains("closed by the remote host"))
+					{
+						continue;
+					}
+					else
+					{
+						rxErrs += 1;
+						LogMessage("UDP receive rrror (" + rxErrs + "):");
+						LogMessage("  " + ex.Message);
+						if (rxErrs > 10)
+						{
+							LogMessage("**More than 10 consecutive UDP receive errors, exiting...");
+							break;
+						}
+						else
+							continue;
+					}
+				}
+				catch (ObjectDisposedException)
+				{
+					//
+					// This is a result of the shutdown process, the socket was closed.
+					//
+					break;
+				}
 				if (s_recvBuf.Length == CtrlMessage.Length)
 				{
 					//
@@ -418,7 +458,7 @@ namespace com.dc3.cwcom
 							ConnectClient(ctrlMsg, recvEp);
 							break;
 						case CtrlMessage.MessageTypes.Disconnect:
-							DisconnectClient(ctrlMsg, recvEp);
+							DisconnectClient(recvEp);
 							break;
 						default:
 							LogMessage("Unrecognized control message from " + recvEp.Address.ToString());
@@ -431,7 +471,9 @@ namespace com.dc3.cwcom
 					Station Sender = FindStation(recvEp.Address, recvEp.Port);
 					if (Sender == null)
 					{
-						//LogMessage("Unknown station at " + recvEp.Address.ToString() + ":" + recvEp.Port + " sent data message");
+						// *** TESTING ***
+						LogMessage("Unknown station at " + recvEp.Address.ToString() + ":" + recvEp.Port + " sent data message");
+						// ***************
 						continue;												// Ignore message
 					}
 					Sender.LastRecvTime = DateTime.Now;
@@ -482,9 +524,21 @@ namespace com.dc3.cwcom
 				AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 				s_serviceMode = false;
 				Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlCHandler);	// Trap control-c
-				try { Run(args); }
+				bool badExit = false;
+				try
+				{ 
+					Run(args);			// Should only ever exit on ThreadInterruptedException
+					badExit = true;
+				}
 				catch (ThreadInterruptedException) { }
-				LogMessage("Main thread exited...");
+				if (badExit)
+				{
+					LogMessage("*** UNEXPECTED EXIT FROM MAIN THREAD ***");
+					try { CleanShutdown(); }
+					catch (Exception) { ; }
+				}
+				else
+					LogMessage("Main thread exited...");
 #if !MONO_BUILD
 			}
 #endif
@@ -501,9 +555,21 @@ namespace com.dc3.cwcom
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LastChanceHandler);
 			string[] a = { };
 			s_serviceMode = true;
-			try { Run(a); }
+			bool badExit = false;
+			try
+			{
+				Run(a);					// Should only ever exit on ThreadInterruptedException
+				badExit = true;
+			}
 			catch (ThreadInterruptedException) { }
-			LogMessage("Main thread exited...");
+			if (badExit)
+			{
+				LogMessage("*** UNEXPECTED EXIT FROM MAIN THREAD ***");
+				try { CleanShutdown(); }
+				catch (Exception) { ; }
+			}
+			else
+				LogMessage("Main thread exited...");
 		}
 
 		//
