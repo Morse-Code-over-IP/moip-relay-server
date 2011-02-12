@@ -27,6 +27,10 @@
 // 19-May-10	rbd		1.5.0 - Stop before Down, prevent stuttering
 // 03-Sep-10	rbd		1.6.0 - Generate tone on the fly for shaping, add LPF and
 //						envelope shaping for clean tones.
+// 03-Feb-11	rbd		1.7.0 - Soften tones more via additional envelope smoothing.
+//						Increase the amplitude, was too weak requiring maxing out
+//						of audio settings, especially for recording via "Stereo mix"
+//						bus on Windows.
 //
 using System;
 using System.Collections.Generic;
@@ -73,7 +77,7 @@ namespace com.dc3.morse
 		//
 		private void genWaveBuf(int duration)
 		{
-			_waveBuf = GenTone(_freq, 0.3, duration);
+			_waveBuf = GenTone(_freq, 0.9, duration);
 
 			_waveFmt = new WaveFormat();
 			_waveFmt.BitsPerSample = (short)_bitsPerSample;
@@ -105,12 +109,13 @@ namespace com.dc3.morse
             byte[] wavedata = new byte[length * 2];
 			double timeScale = frequency * 2 * Math.PI / (double)_sampleRate;
 
-            int envelopeSamples = (int)(2.0 * (_sampleRate / frequency));			// Two cycles linear attack/decay
+			// int envelopeSamples = (int)(2.0 * (_sampleRate / frequency));		// Two cycles linear attack/decay
+			int envelopeSamples = (int)(_sampleRate * 0.005);						// 5ms constant attack/decay (1.7)
 			double xo = 0;
 			double yo = 0;
             for (int i = 0; i < length; i++)
             {
-				double a0 = amp * Math.Min((double)i / envelopeSamples, 1.0);	// Envelope
+				double a0 = amp * Math.Min((double)i / envelopeSamples, 1.0);		// Envelope
 				a0 = a0 * Math.Min((double)(length - i) / envelopeSamples, 1.0);
 
 				double xn = Math.Sin(i * timeScale);

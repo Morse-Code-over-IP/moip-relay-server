@@ -571,13 +571,13 @@ namespace com.dc3
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
 			this.contextMenuStrip1.ShowImageMargin = false;
 			this.contextMenuStrip1.ShowItemToolTips = false;
-			this.contextMenuStrip1.Size = new System.Drawing.Size(155, 26);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(153, 26);
 			// 
 			// mnuUrlResetToDefault
 			// 
 			this.mnuUrlResetToDefault.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
 			this.mnuUrlResetToDefault.Name = "mnuUrlResetToDefault";
-			this.mnuUrlResetToDefault.Size = new System.Drawing.Size(154, 22);
+			this.mnuUrlResetToDefault.Size = new System.Drawing.Size(152, 22);
 			this.mnuUrlResetToDefault.Text = "Reset to original list";
 			this.mnuUrlResetToDefault.Click += new System.EventHandler(this.mnuUrlResetToDefault_Click);
 			// 
@@ -669,7 +669,7 @@ namespace com.dc3
 			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "RSS to Morse V1.5";
+			this.Text = "RSS to Morse V1.7";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.statusStrip1.ResumeLayout(false);
