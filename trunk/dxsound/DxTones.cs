@@ -33,7 +33,8 @@
 //						bus on Windows.
 // 02-Jun-11	rbd		1.8.0 - Massive memory leaks in sound generation. Changes in
 //						version 1.6.0 (above) moved things into procs so can get rid
-//						of globals and dispose of resources properly.
+//						of globals and dispose of resources properly. Use StartLatency
+//						property for variable envelope shaping (aferthought + laziness).
 //
 using System;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace com.dc3.morse
 		private float _volume;
 		private int _rawVol;
 		private int _ditMs;
-		private int _startLatency;
+		private int _riseFallTime;
 
 		private SecondaryBuffer _secBuf = null;										// [sentinel]
 
@@ -66,7 +67,7 @@ namespace com.dc3.morse
 			this.Frequency = 880;													// Defaults (typ.)
 			this.Volume = 1.0F;														// Max volume
 			_ditMs = 80;
-			_startLatency = 0;
+			_riseFallTime = 10;
 
 			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
@@ -121,8 +122,7 @@ namespace com.dc3.morse
             byte[] wavedata = new byte[length * 2];
 			double timeScale = frequency * 2 * Math.PI / (double)_sampleRate;
 
-			// int envelopeSamples = (int)(2.0 * (_sampleRate / frequency));		// Two cycles linear attack/decay
-			int envelopeSamples = (int)(_sampleRate * 0.005);						// 5ms constant attack/decay (1.7)
+			int envelopeSamples = (int)(_sampleRate * _riseFallTime / 1000.0 );		// Linear attack/decay from "StartLatency" (1.8)
 			double xo = 0;
 			double yo = 0;
             for (int i = 0; i < length; i++)
@@ -173,10 +173,10 @@ namespace com.dc3.morse
 			}
 		}
 
-		public int StartLatency
+		public int StartLatency														// Misnomer for DX but I was lazy
 		{
-			get { return _startLatency; }
-			set { _startLatency = value; }
+			get { return _riseFallTime; }
+			set { _riseFallTime = value; }
 		}
 
 		public int DitMilliseconds

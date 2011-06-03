@@ -23,6 +23,8 @@
 // 01-Apr-10	rbd		0.7.1 - Tests for American Morse Code
 // 05-Apr-10	rbd		0.7.2 - Additional punctuation for American Morse
 // 15-Apr-10	rbd		0.7.2 - Unknown chars are put into [] in DotDash() output.
+// 03-Jun-11	rbd		1.8.0 - Remove '-' from category Pre-Requisite (no
+//						longer legal for NUnit 2.5.8 or later)
 //-----------------------------------------------------------------------------
 //
 
@@ -39,7 +41,7 @@ namespace test.morse
 	[TestFixture]
 	public class morse_test
 	{
-		[Test, Category("Pre-Requisite"), Description("Verifies the Morse code itself as well as 'dotscii' output")]
+		[Test, Category("PreRequisite"), Description("Verifies the Morse code itself as well as 'dotscii' output")]
 		public void Test_1_DotDash()
 		{
 			Morse M = new Morse();
@@ -62,7 +64,7 @@ namespace test.morse
 			Assert.AreEqual("...._.-.. ....._..", M.DotDash("-%"));
 		}
 
-		[Test, Category("Pre-Requisite"), Description("Tests the WPM properties")]
+		[Test, Category("PreRequisite"), Description("Tests the WPM properties")]
 		public void Test_2_Wpm()
 		{
 			Morse M = new Morse();

@@ -32,7 +32,7 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SoundCfgForm));
 			this.cmdOK = new System.Windows.Forms.Button();
 			this.cmdCancel = new System.Windows.Forms.Button();
-			this.label7 = new System.Windows.Forms.Label();
+			this.lblTiming = new System.Windows.Forms.Label();
 			this.chkDirectX = new System.Windows.Forms.CheckBox();
 			this.nudTimingComp = new System.Windows.Forms.NumericUpDown();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
@@ -59,14 +59,14 @@
 			this.cmdCancel.Text = "Cancel";
 			this.cmdCancel.UseVisualStyleBackColor = true;
 			// 
-			// label7
+			// lblTiming
 			// 
-			this.label7.AutoSize = true;
-			this.label7.Location = new System.Drawing.Point(10, 41);
-			this.label7.Name = "label7";
-			this.label7.Size = new System.Drawing.Size(89, 13);
-			this.label7.TabIndex = 15;
-			this.label7.Text = "Timing comp (ms)";
+			this.lblTiming.AutoSize = true;
+			this.lblTiming.Location = new System.Drawing.Point(10, 41);
+			this.lblTiming.Name = "lblTiming";
+			this.lblTiming.Size = new System.Drawing.Size(89, 13);
+			this.lblTiming.TabIndex = 15;
+			this.lblTiming.Text = "Timing comp (ms)";
 			// 
 			// chkDirectX
 			// 
@@ -78,12 +78,13 @@
 			this.chkDirectX.Text = "Use DirectX for sound";
 			this.toolTip.SetToolTip(this.chkDirectX, "Use Microsoft DirectX for sound output");
 			this.chkDirectX.UseVisualStyleBackColor = true;
+			this.chkDirectX.CheckedChanged += new System.EventHandler(this.chkDirectX_CheckedChanged);
 			// 
 			// nudTimingComp
 			// 
 			this.nudTimingComp.Location = new System.Drawing.Point(101, 39);
 			this.nudTimingComp.Maximum = new decimal(new int[] {
-            20,
+            30,
             0,
             0,
             0});
@@ -100,7 +101,7 @@
 			this.CancelButton = this.cmdCancel;
 			this.ClientSize = new System.Drawing.Size(189, 113);
 			this.Controls.Add(this.chkDirectX);
-			this.Controls.Add(this.label7);
+			this.Controls.Add(this.lblTiming);
 			this.Controls.Add(this.nudTimingComp);
 			this.Controls.Add(this.cmdCancel);
 			this.Controls.Add(this.cmdOK);
@@ -119,7 +120,7 @@
 
 		private System.Windows.Forms.Button cmdOK;
 		private System.Windows.Forms.Button cmdCancel;
-		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.Label lblTiming;
 		private System.Windows.Forms.NumericUpDown nudTimingComp;
 		private System.Windows.Forms.CheckBox chkDirectX;
 		private System.Windows.Forms.ToolTip toolTip;

@@ -49,6 +49,8 @@
 //						combined into a single installer. Change doc root
 //						from index.html to keyer.html so can share same doc
 //						folder in end-user install.
+// 02-Jun-11	rbd		1.8.0 - DXTones now use StartLatency for envelope
+//						rise/fall. Set a nice (fixed) falue for keying.
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -138,6 +140,7 @@ namespace com.dc3.morse
 			_dxTones.Frequency = _toneFreq;
 			_dxTones.DitMilliseconds = _ctime;
 			_dxTones.Volume = tbVolume.Value / 10.0F;
+			_dxTones.StartLatency = 5;					// Actually rise/fall time
 
 			_sounderNum = (int)nudSounder.Value;
 			_dxSounder = new DxSounder(this);

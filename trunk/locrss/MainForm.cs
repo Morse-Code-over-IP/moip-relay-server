@@ -17,7 +17,7 @@
 //				event fires, and needs to increase the code speed to match
 //				char speed cannot be less then code speed!), a complex series
 //				of events takes plaace, including re-binding all of the settings
-//				which resets the CodeSpeed bopx back to its pre-spin value. 
+//				which resets the CodeSpeed box back to its pre-spin value. 
 //				Making a long story short, manually binding the CharSpeed spinbox
 //				avoids this problem. Weird.
 //
@@ -60,6 +60,8 @@
 //						caught by the fixup code.
 // 21-May-10	rbd		1.5.0 - Change doc root	from index.html to keyer.html so 
 //						can share same doc folder with keyer in end-user install.
+// 02-Jun-10	rbd		1.8.0 - TimingComp is now dual-purpose, used for rise/fall
+//						time when running in DirectX sound mode.
 //
 using System;
 using System.Collections.Generic;
@@ -151,7 +153,10 @@ namespace com.dc3
 			_charSpeed = (int)nudCharSpeed.Value;
 			// -------------------------------------
 			_directX = Properties.Settings.Default.DirectX;
-			_timingComp = (int)Properties.Settings.Default.TimingComp;
+			if (_directX)
+				_timingComp = Properties.Settings.Default.RiseFall;
+			else
+				_timingComp = (int)Properties.Settings.Default.TimingComp;
 			_toneFreq = (int)nudToneFreq.Value;
 			_sounderNum = (int)nudSounder.Value;
 			_sparkNum = (int)nudSpark.Value;
@@ -414,15 +419,17 @@ namespace com.dc3
 		private void picSoundCfg_Click(object sender, EventArgs e)
 		{
 			SoundCfgForm sf = new SoundCfgForm();
-			sf.TimingComp = (int)Properties.Settings.Default.TimingComp;
 			sf.UseDirectX = Properties.Settings.Default.DirectX;
+			if (sf.UseDirectX)
+				sf.TimingComp = Properties.Settings.Default.RiseFall;
+			else
+				sf.TimingComp = (int)Properties.Settings.Default.TimingComp;
 			if (sf.ShowDialog(this) == DialogResult.OK)
 			{
 				_timingComp = sf.TimingComp;
 				_tones.StartLatency = _timingComp;
 				_sounder.StartLatency = _timingComp;
 				_spark.StartLatency = _timingComp;
-				Properties.Settings.Default.TimingComp = (decimal)_timingComp;
 				if (_directX != sf.UseDirectX)									// Switching sound technology
 				{
 					_directX = sf.UseDirectX;
@@ -430,6 +437,10 @@ namespace com.dc3
 				}
 				else
 					_directX = sf.UseDirectX;
+				if (_directX)
+					Properties.Settings.Default.RiseFall = _timingComp;
+				else
+					Properties.Settings.Default.TimingComp = (decimal)_timingComp;
 				Properties.Settings.Default.DirectX = _directX;
 			}
 		}
