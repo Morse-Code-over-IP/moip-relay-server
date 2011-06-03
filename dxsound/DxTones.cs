@@ -31,6 +31,9 @@
 //						Increase the amplitude, was too weak requiring maxing out
 //						of audio settings, especially for recording via "Stereo mix"
 //						bus on Windows.
+// 02-Jun-11	rbd		1.8.0 - Massive memory leaks in sound generation. Changes in
+//						version 1.6.0 (above) moved things into procs so can get rid
+//						of globals and dispose of resources properly.
 //
 using System;
 using System.Collections.Generic;
@@ -46,7 +49,7 @@ namespace com.dc3.morse
 		private const short _bitsPerSample = 16;
 		private const short _bytesPerSample = 2;
 
-        private Device _deviceSound;
+		private Device _deviceSound = null;
 		private int _maxLen;														// Max length tone
 		private float _freq;
 		private double _filtCoeff;
@@ -55,10 +58,7 @@ namespace com.dc3.morse
 		private int _ditMs;
 		private int _startLatency;
 
-		private byte[] _waveBuf;
-		private WaveFormat _waveFmt;
-		private BufferDescription _bufDesc;
-		private SecondaryBuffer _secBuf;
+		private SecondaryBuffer _secBuf = null;										// [sentinel]
 
 		public DxTones(System.Windows.Forms.Control Handle, int MaxLenMs)
         {
@@ -77,26 +77,38 @@ namespace com.dc3.morse
 		//
 		private void genWaveBuf(int duration)
 		{
-			_waveBuf = GenTone(_freq, 0.9, duration);
+			BufferDescription bufDesc = null;
 
-			_waveFmt = new WaveFormat();
-			_waveFmt.BitsPerSample = (short)_bitsPerSample;
-			_waveFmt.Channels = 1;
-			_waveFmt.BlockAlign = _bytesPerSample;
+			try
+			{
+				byte[] waveBuf = GenTone(_freq, 0.9, duration);
+				WaveFormat waveFmt = new WaveFormat();
 
-			_waveFmt.FormatTag = WaveFormatTag.Pcm;
-			_waveFmt.SamplesPerSecond = _sampleRate; 
-			_waveFmt.AverageBytesPerSecond = _sampleRate * _bytesPerSample;
+				waveFmt.BitsPerSample = (short)_bitsPerSample;
+				waveFmt.Channels = 1;
+				waveFmt.BlockAlign = _bytesPerSample;
 
-			_bufDesc = new BufferDescription(_waveFmt);
-			_bufDesc.DeferLocation = true;
-			_bufDesc.BufferBytes = _waveBuf.Length;
-			_bufDesc.ControlEffects = false;										// Necessary for short tones
-			_bufDesc.GlobalFocus = true;											// Enable audio when program is in background
-			_bufDesc.ControlVolume = true;
+				waveFmt.FormatTag = WaveFormatTag.Pcm;
+				waveFmt.SamplesPerSecond = _sampleRate;
+				waveFmt.AverageBytesPerSecond = _sampleRate * _bytesPerSample;
 
-			_secBuf = new SecondaryBuffer(_bufDesc, _deviceSound);
-			_secBuf.Write(0, _waveBuf, LockFlag.EntireBuffer);
+				bufDesc = new BufferDescription(waveFmt);
+				bufDesc.DeferLocation = true;
+				bufDesc.BufferBytes = waveBuf.Length;
+				bufDesc.ControlEffects = false;										// Necessary for short tones
+				bufDesc.GlobalFocus = true;											// Enable audio when program is in background
+				bufDesc.ControlVolume = true;
+				if (_secBuf != null)												// If any previous buffer
+					_secBuf.Dispose();												// Dispose of it now!
+				_secBuf = new SecondaryBuffer(bufDesc, _deviceSound);
+				_secBuf.Write(0, waveBuf, LockFlag.EntireBuffer);
+			}
+			finally
+			{
+				if (bufDesc != null)
+					bufDesc.Dispose();
+			}
+
 
 		}
 
@@ -198,7 +210,8 @@ namespace com.dc3.morse
 
 		public void Stop()
 		{
-			_secBuf.Stop();
+			if (_secBuf != null)
+				_secBuf.Stop();
 		}
 
 		public void Down()
@@ -211,8 +224,11 @@ namespace com.dc3.morse
 
 		public void Up()
 		{
-			_secBuf.Stop();
-			_secBuf.SetCurrentPosition(0);
+			if (_secBuf != null)
+			{
+				_secBuf.Stop();
+				_secBuf.SetCurrentPosition(0);
+			}
 		}
 	}
 }

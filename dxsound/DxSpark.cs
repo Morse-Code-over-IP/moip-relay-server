@@ -27,6 +27,7 @@
 // 11-May-10	rbd		1.5.0 - Volume Control!
 // 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
 // 19-May-10	rbd		1.5.0 - Stop before Down, prevent stuttering
+// 02-Jun-11	rbd		1.8.0 - Disposals to prevent memory leaks
 //
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    public class DxSpark : IAudioWav
+    public class DxSpark : IAudioWav, IDisposable
     {
         private Device _deviceSound;
 		private float _volume;
@@ -47,7 +48,7 @@ namespace com.dc3.morse
 		private int _startLatency;
 
 		private BufferDescription _bufDesc;
-		private Microsoft.DirectX.DirectSound.Buffer _buf;
+		private Microsoft.DirectX.DirectSound.Buffer _buf = null;				// [sentinel]
 
 		public DxSpark(System.Windows.Forms.Control Handle)
 		{
@@ -77,6 +78,8 @@ namespace com.dc3.morse
 				if (value < 1 || value > 4)
 					throw new ApplicationException("Spark number out of range");
 				_sparkNum = value;
+				if (_buf != null)
+					_buf.Dispose();
 				_buf = new Microsoft.DirectX.DirectSound.Buffer(Properties.Resources.ResourceManager.GetStream("Spark_" + value), 
 							_bufDesc, _deviceSound);
 			}
@@ -147,5 +150,17 @@ namespace com.dc3.morse
 		{
 			this.Stop();
 		}
+
+		#region IDisposable Members
+
+		public void Dispose()
+		{
+			_deviceSound.Dispose();
+			_bufDesc.Dispose();
+			if (_buf != null)
+				_buf.Dispose();
+		}
+
+		#endregion
 	}
 }
