@@ -27,6 +27,7 @@
 // 11-May-10	rbd		1.5.0 - Volume Control!
 // 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
 // 19-May-10	rbd		1.5.0 - Stop clack before Down, prevent stuttering
+// 02-Jun-11	rbd		1.8.0 - Disposals to prevent memory leaks
 //
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
-    public class DxSounder : IAudioWav
+    public class DxSounder : IAudioWav, IDisposable
     {
         private Device _deviceSound;
 		private int _sounder;
@@ -49,8 +50,8 @@ namespace com.dc3.morse
 
 		private BufferDescription _bufDescClick;
 		private BufferDescription _bufDescClack;
-		private SecondaryBuffer _bufClick;
-		private SecondaryBuffer _bufClack;
+		private SecondaryBuffer _bufClick = null;								// [sentinel] (typ.)
+		private SecondaryBuffer _bufClack = null;
 		private int _clickLenMs;
 		private int _clackLenMs;
 
@@ -86,9 +87,13 @@ namespace com.dc3.morse
 				if (value < 1 || value > 7)
 					throw new ApplicationException("Sounder number out of range");
 				_sounder = value;
+				if (_bufClick != null)
+					_bufClick.Dispose();
 				_bufClick = new SecondaryBuffer(Properties.Resources.ResourceManager.GetStream("Click_" + value), 
 							_bufDescClick, _deviceSound);
 				_clickLenMs = (_bufDescClick.BufferBytes * 1000 /_bufDescClick.Format.AverageBytesPerSecond);
+				if (_bufClack != null)
+					_bufClack.Dispose();
 				_bufClack = new SecondaryBuffer(Properties.Resources.ResourceManager.GetStream("Clack_" + value), 
 							_bufDescClack, _deviceSound);
 				_clackLenMs = (_bufDescClack.BufferBytes * 1000 /_bufDescClack.Format.AverageBytesPerSecond);
@@ -182,5 +187,20 @@ namespace com.dc3.morse
 			_bufClack.Play(0, BufferPlayFlags.Default);
 		}
 
-    }
+
+		#region IDisposable Members
+
+		public void Dispose()
+		{
+			_deviceSound.Dispose();
+			_bufDescClick.Dispose();
+			_bufDescClack.Dispose();
+			if (_bufClick != null)
+				_bufClick.Dispose();
+			if (_bufClack != null)
+				_bufClack.Dispose();
+		}
+
+		#endregion
+	}
 }
