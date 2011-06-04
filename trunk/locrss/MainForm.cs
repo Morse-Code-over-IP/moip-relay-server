@@ -60,8 +60,9 @@
 //						caught by the fixup code.
 // 21-May-10	rbd		1.5.0 - Change doc root	from index.html to keyer.html so 
 //						can share same doc folder with keyer in end-user install.
-// 02-Jun-10	rbd		1.8.0 - TimingComp is now dual-purpose, used for rise/fall
+// 02-Jun-11	rbd		1.8.0 - TimingComp is now dual-purpose, used for rise/fall
 //						time when running in DirectX sound mode.
+// 03-Jun-11	rbd		2.0.0 - Start addition of Twitter feed sourcing. 
 //
 using System;
 using System.Collections.Generic;
@@ -79,6 +80,8 @@ using System.Web;
 using System.Windows.Forms;
 using System.Xml;
 
+using TwitterVB2;
+
 using com.dc3.morse;
 
 namespace com.dc3
@@ -88,12 +91,21 @@ namespace com.dc3
 		public enum CodeMode { International, American }
 		public enum SoundMode { Tone, Spark, Sounder }
 		//
-		// Represents an RSS item with a correct pubDate
+		// Represents an RSS or Twitter item with a correct pubDate
 		//
-		private class datedRssItem
+		private class DatedItem
 		{
+			public DatedItem()
+			{
+				rssItem = null;												// [sentinel] (typ.)
+				twScreenName = null;
+				twRawText = null;
+				pubDate = DateTime.MinValue;
+			}
 			public DateTime pubDate { get; set; }
 			public XmlNode rssItem { get; set; }
+			public string twScreenName { get; set; }
+			public string twRawText { get; set; }
 		}
 
 		private class MorseMessage
@@ -844,6 +856,10 @@ namespace com.dc3
 			AddToCrawler(msg);
 		}
 
+		// =================
+		// MAIN SENDING LOOP
+		// =================
+
 		private void Run()
 		{
 			try
@@ -869,32 +885,60 @@ namespace com.dc3
 				// Remember the state of the title cache, we have a clear button!
 				//lock (_titleCache) { _titleCache.Clear(); }					// Clear title cache on start
 
+				List<DatedItem> stories;
 				while (true)
 				{
+
 					_lastPollTime = DateTime.Now;
+					stories = new List<DatedItem>();
 
-					SetStatus("Getting RSS feed data...");
-					XmlDocument feedXml = new XmlDocument();
-					//feedXml.Load(_feedUrl);
-					feedXml.LoadXml(GetAuthFeedXml(_feedUrl));
-
-					XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
-					if (items.Count == 0)
-						throw new ApplicationException("This does not look like an RSS feed");
-
-					List<datedRssItem> stories = new List<datedRssItem>();
-					foreach (XmlNode item in items)
+					if (_feedUrl == "twitter")										// TODO - Make smarter, selectable feeds, trends, etc.
 					{
-						DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
-						if (pubUtc == DateTime.MinValue)
-							continue;											// Bad pubDate, skip this story
 						//
-						// OK we have a story we can use, as we were able to parse the date.
+						// Sending a Twitter feed
 						//
-						datedRssItem ni = new datedRssItem();
-						ni.pubDate = pubUtc;
-						ni.rssItem = item;
-						stories.Add(ni);
+						TwitterAPI twConn = new TwitterAPI();
+						twConn.AuthenticateWith("TP4s16loEhiwF6H4xmLPg",			// TODO UI for auth/login, saving oAuth keypair of user
+												"w8TRJ0lGGUXJ88rCopfpLRiTuh91r6vYtsK4Fr5kAIA",
+												"310349678-bBEf711iMuzkZDWyz7hwNSMtuCesFWAEKYNfizO4",
+												"W3P2YjYXnCj1yAQUVVHOkK5IBguzITrNiywWYJm2Ek");
+
+						foreach (TwitterStatus tw in twConn.HomeTimeline())
+						{
+							DatedItem ni = new DatedItem();
+							ni.pubDate = tw.CreatedAtLocalTime;
+							ni.twScreenName = tw.User.ScreenName;
+							ni.twRawText = tw.Text;
+							stories.Add(ni);
+						}
+					}
+					else
+					{
+						//
+						// Sending an RSS feed
+						//
+						SetStatus("Getting RSS feed data...");
+						XmlDocument feedXml = new XmlDocument();
+						//feedXml.Load(_feedUrl);
+						feedXml.LoadXml(GetAuthFeedXml(_feedUrl));
+
+						XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
+						if (items.Count == 0)
+							throw new ApplicationException("This does not look like an RSS feed");
+
+						foreach (XmlNode item in items)
+						{
+							DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
+							if (pubUtc == DateTime.MinValue)
+								continue;											// Bad pubDate, skip this story
+							//
+							// OK we have a story we can use, as we were able to parse the date.
+							//
+							DatedItem ni = new DatedItem();
+							ni.pubDate = pubUtc;
+							ni.rssItem = item;
+							stories.Add(ni);
+						}
 					}
 
 					if (stories.Count == 0)
@@ -904,31 +948,46 @@ namespace com.dc3
 					// Create a list of strings which are the final messages to be send in Morse
 					//
 					List<MorseMessage> messages = new List<MorseMessage>();
-					foreach (datedRssItem story in stories)
+					foreach (DatedItem story in stories)
 					{
-						string title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
+						string title;
+						string time;
+						string detail;
+						string msg;
+
+						if (story.rssItem == null)								// This one is from Twitter
+							title = GetMorseInputText(story.twRawText);			// Entire tweet is title
+						else
+							title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
+
 						lock (_titleCache)
 						{
 							if (_titleCache.ContainsKey(title))
 								continue;										// Recently sent, skip
 						}
 
-						// ?? SHOULD I DO THIS ??
-						//if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))
-						//    continue;
-						//
-						// May be headline-only article, or a weird feed where the detail is much
-						// shorter than the title (Quote of the day, title is quote, detail is author)
-						//
-						string time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
-						XmlNode detNode = story.rssItem.SelectSingleNode("description");	// Try for description
-						string detail;
-						if (detNode != null)
-							detail = GetMorseInputText(detNode.InnerText);
-						else
-							detail = "";
 
-						string msg;
+						time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
+						if (story.rssItem == null)								// This one is from Twitter
+						{
+							detail = "";										// Entire tweet is title
+						}
+						else
+						{
+							// ?? SHOULD I DO THIS ??
+							//if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))
+							//    continue;
+							//
+							// May be headline-only article, or a weird feed where the detail is much
+							// shorter than the title (Quote of the day, title is quote, detail is author)
+							//
+							XmlNode detNode = story.rssItem.SelectSingleNode("description");	// Try for description
+							if (detNode != null)
+								detail = GetMorseInputText(detNode.InnerText);
+							else
+								detail = "";
+						}
+
 						if (M.Mode == Morse.CodeMode.International)				// Radiotelegraphy
 						{
 							msg = "NR " + _msgNr.ToString() + " DE RSS " + time + " \\BT\\";
