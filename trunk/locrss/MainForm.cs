@@ -142,6 +142,7 @@ namespace com.dc3
 		//
 		private Thread _runThread = null;
 		private bool _run;
+		private bool _soundOK;
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
@@ -150,6 +151,7 @@ namespace com.dc3
 		private IAudioWav _spark;
 		private DateTime _lastPollTime;
 		private ComPortCtrl _serialPort;
+
 
 		//
 		// Form ctor and event methods
@@ -183,6 +185,7 @@ namespace com.dc3
 			_useSerial = chkUseSerial.Checked;
 			_serialPort = null;
 			_run = false;
+			_soundOK = false;
 
 			if (Properties.Settings.Default.CodeMode == 0)
 				rbInternational.Checked = true;									// Triggers CheckedChanged (typ.)
@@ -238,6 +241,17 @@ namespace com.dc3
 			foreach (string uri in cbFeedUrl.Items)
 				Properties.Settings.Default.LRU.Add(uri);
 			Properties.Settings.Default.Save();
+		}
+
+		private void btnFeedList_Click(object sender, EventArgs e)
+		{
+			if (ofnDlg.ShowDialog() == DialogResult.OK)
+			{
+				Uri furi = new Uri(ofnDlg.FileName);
+				int index = cbFeedUrl.Items.Add(furi.AbsoluteUri);
+				cbFeedUrl.SelectedIndex = index;
+			}
+
 		}
 
 		private void cbFeedUrl_TextChanged(object sender, EventArgs e)
@@ -405,8 +419,16 @@ namespace com.dc3
 
 		private void btnClearCache_Click(object sender, EventArgs e)
 		{
-			TitleExpire();
+			lock (_titleCache)
+			{
+				_titleCache.Clear();
+			}
 			MessageBox.Show("Seen stories have been forgotten", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+
+		private void mnuRemoveFromList_Click(object sender, EventArgs e)
+		{
+			cbFeedUrl.Items.RemoveAt(cbFeedUrl.SelectedIndex);
 		}
 
 		private void mnuUrlResetToDefault_Click(object sender, EventArgs e)
@@ -517,6 +539,7 @@ namespace com.dc3
 		{
 			bool enable = !_run;
 			btnStartStop.Enabled = (cbFeedUrl.Text != "");
+			btnFeedList.Enabled = enable;
 			cbFeedUrl.Enabled = enable;
 			nudCodeSpeed.Enabled = enable;
 			nudCharSpeed.Enabled = enable;
@@ -804,7 +827,7 @@ namespace com.dc3
 		}
 
 		//
-		// Worker logic, also used by manual expire button
+		// Worker logic for title cache expiry
 		//
 		private void TitleExpire()
 		{
@@ -953,153 +976,197 @@ namespace com.dc3
 				// Remember the state of the title cache, we have a clear button!
 				//lock (_titleCache) { _titleCache.Clear(); }					// Clear title cache on start
 
-				List<DatedItem> stories;
-				while (true)
+				//
+				// Look for a file:// URI with a .txt extension (as opposed to .xml)
+				// If so, then it should be a list of feed URIs. Read it into a list.
+				//
+				List<string> feedUrls = new List<String>();
+				Uri uri = new Uri(_feedUrl);
+				if (uri.IsFile)
 				{
-
-					_lastPollTime = DateTime.Now;
-					stories = new List<DatedItem>();
-					Uri uri = new Uri(_feedUrl);
-					if (uri.Scheme == "twitter")
+					string p = uri.LocalPath;
+					if (Path.GetExtension(p) == ".txt")							// Assume this is a feed URI list
 					{
-						//
-						// Using the TwitterVB library, which puts an API on Twitter's "xml" 
-						// format. Yes, we could just use Twitter's RSS, but this gives us
-						// more flexibility.
-						//
-						TwitterAPI twConn = LoginTwitter();
-						List<TwitterStatus> sts = null;
-						string screen_name = null;
-						NameValueCollection opts = HttpUtility.ParseQueryString(uri.Query);
-						if (uri.Host == "search")
+						string[] lines = File.ReadAllLines(p);
+						foreach (string l in lines)
 						{
-						    string srch = opts.Get("query");							// Either query= or q=
-							if (srch == null)
-								srch = opts.Get("q");
-							//
-							// THis strange logic handles the case where the search is for a hashtag
-							// In this case the search string will be in the URI "Fragment" and the 
-							// query will be "query=", resulting in "" for srch below.
-							//
-						    if (srch == null || (srch == "" && uri.Fragment == ""))
-						        throw new ApplicationException("twitter://search requires ?query=xxx to qualify the search");
-							if (srch == "")
-							{
-								srch = Regex.Replace(uri.Fragment, "&.*", "");			// Remove following query elements
-								string rq = Regex.Replace(uri.Fragment, "#[^&]*&", "");	//Get remaining query elements
-								NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
-								opts.Add(opts2);
-							}
-							string mode = opts.Get("result_type");
-							if (mode == null)
-								mode = "popular";
-							TwitterSearchParameters tsp = new TwitterSearchParameters();
-							tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
-							tsp.Add(TwitterSearchParameterNames.ResultType, mode);		// Custom add-on to TwitterVB by me! (popular, mixed, recent)
-							tsp.Add(TwitterSearchParameterNames.Rpp, 20);
-							List<TwitterSearchResult> resList = twConn.Search(tsp);
-							foreach (TwitterSearchResult res in resList)
-							{
-								DatedItem ni = new DatedItem();
-								ni.pubDate = res.CreatedAtLocalTime;					// TODO - Get this right, including user's time zone, etc.
-								ni.twType = "PUB";
-								ni.twScreenName = res.AuthorName;
-								ni.twRawText = res.Title;
-								stories.Add(ni);
-							}
+							string line = Regex.Replace(l, ";.*", "").Trim();	// Remove comment
+							if (line == "") continue;
+							feedUrls.Add(line);									// Live line, add the feed URI
 						}
-						else if (uri.Host == "messages")
-						{
-							foreach (TwitterDirectMessage msg in twConn.DirectMessages())
-							{
-								DatedItem ni = new DatedItem();
-								ni.pubDate = msg.CreatedAtLocalTime;					// TODO - Get this right, including user's time zone, etc.
-								ni.twType = "PVT";
-								ni.twScreenName = msg.SenderScreenName;
-								ni.twRawText = msg.Text;
-								stories.Add(ni);
-							}
-						}
-						else
-						{
-							// TODO add parameter decoding here
-							switch (uri.Host)
-							{
-								case "timeline":										// Auth user's home timeline
-									sts = twConn.HomeTimeline();
-									break;
-
-								case "user":
-									screen_name = opts.Get("screen_name");
-									if (screen_name == null)
-										sts = twConn.UserTimeline();					// Tweets by auth user
-									else
-										sts = twConn.UserTimeline(screen_name);			// Tweets by given user
-									break;
-
-								case "public":											// Tweets mentioning auth user
-									sts = twConn.PublicTimeline();
-									break;
-
-								case "mentions":										// Tweets mentioning auth user
-									sts = twConn.Mentions();
-									break;
-
-								case "list":											// Tweets from give user's list (or auth user if not given)
-									screen_name = opts.Get("screen_name");
-									if (screen_name == null)
-										screen_name = twConn.AccountInformation().ScreenName;
-									string listName = opts.Get("slug");
-									if (listName == null)
-										throw new ApplicationException("twitter://list requires ?slug=xxx to identify the list");
-									sts = twConn.ListStatuses(screen_name, listName, 20);
-									break;
-
-								default:
-									throw new ApplicationException("Unknown twitter:// uri '" + uri.Host + "'");
-							}
-							foreach (TwitterStatus tw in sts)
-							{
-								DatedItem ni = new DatedItem();
-								ni.pubDate = tw.CreatedAtLocalTime;						// TODO - Get this right, including user's time zone, etc.
-								ni.twType = "PUB";
-								ni.twScreenName = tw.User.ScreenName;
-								ni.twRawText = tw.Text;
-								stories.Add(ni);
-							}
-						}
-						if (stories.Count == 0)
-							throw new ApplicationException(_feedUrl + " resulted in no tweets!");
+					}
+					else if (Path.GetExtension(p) == "xml")						// Local RSS file
+					{
+						feedUrls.Add(_feedUrl);									// File path to RSS or 
 					}
 					else
 					{
-						//
-						// Sending an RSS feed
-						//
-						SetStatus("Getting RSS feed data...");
-						XmlDocument feedXml = new XmlDocument();
-						//feedXml.Load(_feedUrl);
-						feedXml.LoadXml(GetAuthFeedXml(_feedUrl));
+						throw new ApplicationException("file:// can only be .txt (feed list) or .xml (local RSS file)");
+					}
+				}
+				else
+				{
+					feedUrls.Add(_feedUrl);										// Just this one feed
+				}
 
-						XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
-						if (items.Count == 0)
-							throw new ApplicationException("This does not look like an RSS feed");
+				// =======================================
+				// MAIN LOOP FOR READING AND SENDING MORSE
+				// =======================================
 
-						foreach (XmlNode item in items)
+				List<DatedItem> stories = new List<DatedItem>();
+				while (true)
+				{
+					stories.Clear();											// Start fresh
+
+					//
+					// Feed list support
+					//
+					foreach (string feedUri in feedUrls)
+					{
+						_lastPollTime = DateTime.Now;
+						uri = new Uri(feedUri);
+						if (uri.Scheme == "twitter")
 						{
-							DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
-							if (pubUtc == DateTime.MinValue)
-								continue;											// Bad pubDate, skip this story
 							//
-							// OK we have a story we can use, as we were able to parse the date.
+							// Using the TwitterVB library, which puts an API on Twitter's "xml" 
+							// format. Yes, we could just use Twitter's RSS, but this gives us
+							// more flexibility.
 							//
-							DatedItem ni = new DatedItem();
-							ni.pubDate = pubUtc;
-							ni.rssItem = item;
-							stories.Add(ni);
+							SetStatus("Getting Twitter feed data...");
+							TwitterAPI twConn = LoginTwitter();
+							List<TwitterStatus> sts = null;
+							string screen_name = null;
+							NameValueCollection opts = HttpUtility.ParseQueryString(uri.Query);
+							if (uri.Host == "search")
+							{
+								string srch = opts.Get("query");							// Either query= or q=
+								if (srch == null)
+									srch = opts.Get("q");
+								//
+								// THis strange logic handles the case where the search is for a hashtag
+								// In this case the search string will be in the URI "Fragment" and the 
+								// query will be "query=", resulting in "" for srch below.
+								//
+								if (srch == null || (srch == "" && uri.Fragment == ""))
+									throw new ApplicationException("twitter://search requires ?query=xxx to qualify the search");
+								if (srch == "")
+								{
+									srch = Regex.Replace(uri.Fragment, "&.*", "");			// Remove following query elements
+									string rq = Regex.Replace(uri.Fragment, "#[^&]*&", "");	//Get remaining query elements
+									NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
+									opts.Add(opts2);
+								}
+								string mode = opts.Get("result_type");
+								if (mode == null)
+									mode = "popular";
+								TwitterSearchParameters tsp = new TwitterSearchParameters();
+								tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
+								tsp.Add(TwitterSearchParameterNames.ResultType, mode);		// Custom add-on to TwitterVB by me! (popular, mixed, recent)
+								tsp.Add(TwitterSearchParameterNames.Rpp, 20);
+								List<TwitterSearchResult> resList = twConn.Search(tsp);
+								foreach (TwitterSearchResult res in resList)
+								{
+									DatedItem ni = new DatedItem();
+									ni.pubDate = res.CreatedAtLocalTime;
+									ni.twType = ""; // "PUB ";
+									ni.twScreenName = res.AuthorName;
+									ni.twRawText = res.Title;
+									stories.Add(ni);
+								}
+							}
+							else if (uri.Host == "messages")
+							{
+								foreach (TwitterDirectMessage msg in twConn.DirectMessages())
+								{
+									DatedItem ni = new DatedItem();
+									ni.pubDate = msg.CreatedAtLocalTime;
+									ni.twType = "PVT ";
+									ni.twScreenName = msg.SenderScreenName;
+									ni.twRawText = msg.Text;
+									stories.Add(ni);
+								}
+							}
+							else
+							{
+								// TODO add parameter decoding here
+								switch (uri.Host)
+								{
+									case "timeline":										// Auth user's home timeline
+										sts = twConn.HomeTimeline();
+										break;
+
+									case "user":
+										screen_name = opts.Get("screen_name");
+										if (screen_name == null)
+											sts = twConn.UserTimeline();					// Tweets by auth user
+										else
+											sts = twConn.UserTimeline(screen_name);			// Tweets by given user
+										break;
+
+									case "public":											// Tweets mentioning auth user
+										sts = twConn.PublicTimeline();
+										break;
+
+									case "mentions":										// Tweets mentioning auth user
+										sts = twConn.Mentions();
+										break;
+
+									case "list":											// Tweets from give user's list (or auth user if not given)
+										screen_name = opts.Get("screen_name");
+										if (screen_name == null)
+											screen_name = twConn.AccountInformation().ScreenName;
+										string listName = opts.Get("slug");
+										if (listName == null)
+											throw new ApplicationException("twitter://list requires ?slug=xxx to identify the list");
+										sts = twConn.ListStatuses(screen_name, listName, 20);
+										break;
+
+									default:
+										throw new ApplicationException("Unknown twitter:// uri '" + uri.Host + "'");
+								}
+								foreach (TwitterStatus tw in sts)
+								{
+									DatedItem ni = new DatedItem();
+									ni.pubDate = tw.CreatedAtLocalTime;
+									ni.twType = ""; // "PUB ";
+									ni.twScreenName = tw.User.ScreenName;
+									ni.twRawText = tw.Text;
+									stories.Add(ni);
+								}
+							}
+							//if (stories.Count == 0)
+							//    throw new ApplicationException(feedUri + " resulted in no tweets!");
 						}
-						if (stories.Count == 0)
-							throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
+						else
+						{
+							//
+							// Sending an RSS feed
+							//
+							SetStatus("Getting RSS feed data...");
+							XmlDocument feedXml = new XmlDocument();
+							//feedXml.Load(feedUri);
+							feedXml.LoadXml(GetAuthFeedXml(feedUri));
+
+							XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
+							if (items.Count == 0)
+								throw new ApplicationException("This does not look like an RSS feed");
+
+							foreach (XmlNode item in items)
+							{
+								DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
+								if (pubUtc == DateTime.MinValue)
+									continue;											// Bad pubDate, skip this story
+								//
+								// OK we have a story we can use, as we were able to parse the date.
+								//
+								DatedItem ni = new DatedItem();
+								ni.pubDate = pubUtc;
+								ni.rssItem = item;
+								stories.Add(ni);
+							}
+							if (stories.Count == 0)
+								throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
+						}
 					}
 
 					//
@@ -1139,7 +1206,7 @@ namespace com.dc3
 						if (story.rssItem == null)								// This one is from Twitter
 						{
 							detail = "";										// Entire tweet is title
-							typ = "TWT " + story.twType + " " +  story.twScreenName;	// From includes screen name
+							typ = "TWT " + story.twType + story.twScreenName;	// From includes screen name
 						}
 						else
 						{
@@ -1167,7 +1234,7 @@ namespace com.dc3
 								msg += detail;
 							msg += " \\AR\\";
 						}
-						else														// American telegraph
+						else													// American telegraph
 						{
 							// TODO - Make time zone name adapt to station TZ and DST
 							string date = story.pubDate.ToUniversalTime().ToString("MMM d h mm tt") + " GMT";
@@ -1186,6 +1253,10 @@ namespace com.dc3
 						messages.Add(mMsg);
 					}
 
+					//
+					// If we're still sending and the poll interval expires, force
+					// a re-poll for new stories.
+					//
 					if (messages.Count > 0)
 					{
 						//
@@ -1201,7 +1272,13 @@ namespace com.dc3
 							{
 								_titleCache.Add(msg.Title, DateTime.Now);
 							}
-							Thread.Sleep(5000);
+							if (DateTime.Now > _lastPollTime.AddMinutes(_pollInterval))
+							{
+								_msgNr = n;										// We're forgetting the rest
+								break;
+							}
+							else
+								Thread.Sleep(5000);
 						}
 					}
 					else
@@ -1234,6 +1311,7 @@ namespace com.dc3
 				return;
 			}
 		}
+
 
 	}
 }
