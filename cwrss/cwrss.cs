@@ -4,7 +4,7 @@
 //
 // FACILITY:	RSS-Fed Morse Code News Robot 
 //
-// ABSTRACT:	Reads news from Yahoo! RSS feeds and sends the stories out over 
+// ABSTRACT:	Reads news from RSS and Twitter feeds and sends the stories out over 
 //				the CwCom Morse Code Service via the Ionosphere server.
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5

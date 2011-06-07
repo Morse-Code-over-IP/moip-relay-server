@@ -129,6 +129,7 @@ namespace com.dc3.Properties {
   <string>http://rss.news.yahoo.com/rss/tech</string>
   <string>http://rss.news.yahoo.com/rss/oped</string>
   <string>http://rss.news.yahoo.com/rss/oddlyenough</string>
+  <string>twitter://timeline</string>
   <string>http://solo.dc3.com/rss/top100words.asp</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection LRU {
@@ -233,6 +234,30 @@ namespace com.dc3.Properties {
             }
             set {
                 this["RiseFall"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string oAuthToken {
+            get {
+                return ((string)(this["oAuthToken"]));
+            }
+            set {
+                this["oAuthToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string oAuthTokenSecret {
+            get {
+                return ((string)(this["oAuthTokenSecret"]));
+            }
+            set {
+                this["oAuthTokenSecret"] = value;
             }
         }
     }

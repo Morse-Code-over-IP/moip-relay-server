@@ -2,9 +2,9 @@
 //-----------------------------------------------------------------------------
 // TITLE:		MainForm.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
-// ABSTRACT:	Reads news from Yahoo! RSS feeds and generates Morse code tones
+// ABSTRACT:	Reads news from RSS and Twitter feeds and generates Morse code tones
 //				or telegraph sounds. This is the main form for the app.
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
@@ -63,9 +63,12 @@
 // 02-Jun-11	rbd		1.8.0 - TimingComp is now dual-purpose, used for rise/fall
 //						time when running in DirectX sound mode.
 // 03-Jun-11	rbd		2.0.0 - Start addition of Twitter feed sourcing. 
+// 06-Jun-11	rbd		2.0.0 - Much more logic changes. Too numerous for description here.
+//
 //
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -98,12 +101,14 @@ namespace com.dc3
 			public DatedItem()
 			{
 				rssItem = null;												// [sentinel] (typ.)
+				twType = null;
 				twScreenName = null;
 				twRawText = null;
 				pubDate = DateTime.MinValue;
 			}
 			public DateTime pubDate { get; set; }
 			public XmlNode rssItem { get; set; }
+			public string twType { get; set; }
 			public string twScreenName { get; set; }
 			public string twRawText { get; set; }
 		}
@@ -401,7 +406,7 @@ namespace com.dc3
 		private void btnClearCache_Click(object sender, EventArgs e)
 		{
 			TitleExpire();
-			MessageBox.Show("Seen stories have been forgotten", "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show("Seen stories have been forgotten", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
 		private void mnuUrlResetToDefault_Click(object sender, EventArgs e)
@@ -638,19 +643,36 @@ namespace com.dc3
 			}
 		}
 
-		//
+		delegate void StopOnErrorCallback();
+
+		private void StopOnError()
+		{
+			if (this.btnStartStop.InvokeRequired)
+			{
+				StopOnErrorCallback d = new StopOnErrorCallback(StopOnError);
+				this.Invoke(d, new object[] { });
+			}
+			else
+			{
+				if (_run)
+					btnStartStop_Click(new object(), new EventArgs());
+			}
+		}
+
+		// ===========
 		// Other Logic
-		//
+		// ===========
 
 		//
-		// Strip stuff from text that cannot be sent by Morse Code
-		// HTML-decodes, then removes HTML tags and non-Morse characters,
+		// Strip stuff from text that can/should not be sent by Morse Code
+		// HTML-decodes, then removes URLs, HTML tags, and non-Morse characters,
 		// and finally removes runs of more than one whitespace character,
-		// replacing with a single space and uppercases it.
+		// replacing with a single space and UPPERcases it. 
 		//
 		private string GetMorseInputText(string stuff)
 		{
 			string buf = HttpUtility.HtmlDecode(stuff);							// Decode HTML entities, etc.
+			buf = Regex.Replace(buf, "http://[\\S]*", "", RegexOptions.IgnoreCase); // Remove URLs
 			buf = Regex.Replace(buf, "<[^>]*>", " ");							// Remove HTML tags completely
 			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>\\*\\u00A0]", " ");	// Some characters we don't have translations for => space
 			buf = Regex.Replace(buf, "[\\‘\\’\\`]", "'");						// Unicode left/right single quote, backtick -> ASCII single quote
@@ -856,6 +878,52 @@ namespace com.dc3
 			AddToCrawler(msg);
 		}
 
+		//
+		// Log into Twitter, with OAuth. Saves the Twitter username and OAuth keypair in Settings. 
+		//
+		private TwitterAPI LoginTwitter()
+		{
+			TwitterAPI twConn = new TwitterAPI();
+
+			if (Properties.Settings.Default.oAuthToken == "" ||
+				Properties.Settings.Default.oAuthTokenSecret == "")
+			{
+				string sUrl = twConn.GetAuthenticationLink("TP4s16loEhiwF6H4xmLPg",
+										"w8TRJ0lGGUXJ88rCopfpLRiTuh91r6vYtsK4Fr5kAIA");
+				Process.Start(sUrl);
+
+				string sPin = "";
+				TwitterPin pinForm = new TwitterPin();
+				do
+				{
+					DialogResult ans = pinForm.ShowDialog();
+					if (ans == DialogResult.Cancel) return null;
+					sPin = pinForm.txtPin.Text;
+				} while (!twConn.ValidatePIN(sPin));
+				//
+				// Got a good Pin, so the oAuth keypair is good!
+				//
+				Properties.Settings.Default.oAuthToken = twConn.OAuth_Token;
+				Properties.Settings.Default.oAuthTokenSecret = twConn.OAuth_TokenSecret;
+			}
+
+			try
+			{
+				twConn.AuthenticateWith("TP4s16loEhiwF6H4xmLPg",
+										"w8TRJ0lGGUXJ88rCopfpLRiTuh91r6vYtsK4Fr5kAIA",
+										Properties.Settings.Default.oAuthToken,
+										Properties.Settings.Default.oAuthTokenSecret);
+			}
+			catch (Exception ex)
+			{
+				throw new ApplicationException("Twitter authentication failed:\r\n" + ex.Message);
+			}
+
+			return twConn;
+
+		}
+
+
 		// =================
 		// MAIN SENDING LOOP
 		// =================
@@ -891,26 +959,117 @@ namespace com.dc3
 
 					_lastPollTime = DateTime.Now;
 					stories = new List<DatedItem>();
-
-					if (_feedUrl == "twitter")										// TODO - Make smarter, selectable feeds, trends, etc.
+					Uri uri = new Uri(_feedUrl);
+					if (uri.Scheme == "twitter")
 					{
 						//
-						// Sending a Twitter feed
+						// Using the TwitterVB library, which puts an API on Twitter's "xml" 
+						// format. Yes, we could just use Twitter's RSS, but this gives us
+						// more flexibility.
 						//
-						TwitterAPI twConn = new TwitterAPI();
-						twConn.AuthenticateWith("TP4s16loEhiwF6H4xmLPg",			// TODO UI for auth/login, saving oAuth keypair of user
-												"w8TRJ0lGGUXJ88rCopfpLRiTuh91r6vYtsK4Fr5kAIA",
-												"310349678-bBEf711iMuzkZDWyz7hwNSMtuCesFWAEKYNfizO4",
-												"W3P2YjYXnCj1yAQUVVHOkK5IBguzITrNiywWYJm2Ek");
-
-						foreach (TwitterStatus tw in twConn.HomeTimeline())
+						TwitterAPI twConn = LoginTwitter();
+						List<TwitterStatus> sts = null;
+						string screen_name = null;
+						NameValueCollection opts = HttpUtility.ParseQueryString(uri.Query);
+						if (uri.Host == "search")
 						{
-							DatedItem ni = new DatedItem();
-							ni.pubDate = tw.CreatedAtLocalTime;
-							ni.twScreenName = tw.User.ScreenName;
-							ni.twRawText = tw.Text;
-							stories.Add(ni);
+						    string srch = opts.Get("query");							// Either query= or q=
+							if (srch == null)
+								srch = opts.Get("q");
+							//
+							// THis strange logic handles the case where the search is for a hashtag
+							// In this case the search string will be in the URI "Fragment" and the 
+							// query will be "query=", resulting in "" for srch below.
+							//
+						    if (srch == null || (srch == "" && uri.Fragment == ""))
+						        throw new ApplicationException("twitter://search requires ?query=xxx to qualify the search");
+							if (srch == "")
+							{
+								srch = Regex.Replace(uri.Fragment, "&.*", "");			// Remove following query elements
+								string rq = Regex.Replace(uri.Fragment, "#[^&]*&", "");	//Get remaining query elements
+								NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
+								opts.Add(opts2);
+							}
+							string mode = opts.Get("result_type");
+							if (mode == null)
+								mode = "popular";
+							TwitterSearchParameters tsp = new TwitterSearchParameters();
+							tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
+							tsp.Add(TwitterSearchParameterNames.ResultType, mode);		// Custom add-on to TwitterVB by me! (popular, mixed, recent)
+							tsp.Add(TwitterSearchParameterNames.Rpp, 20);
+							List<TwitterSearchResult> resList = twConn.Search(tsp);
+							foreach (TwitterSearchResult res in resList)
+							{
+								DatedItem ni = new DatedItem();
+								ni.pubDate = res.CreatedAtLocalTime;					// TODO - Get this right, including user's time zone, etc.
+								ni.twType = "PUB";
+								ni.twScreenName = res.AuthorName;
+								ni.twRawText = res.Title;
+								stories.Add(ni);
+							}
 						}
+						else if (uri.Host == "messages")
+						{
+							foreach (TwitterDirectMessage msg in twConn.DirectMessages())
+							{
+								DatedItem ni = new DatedItem();
+								ni.pubDate = msg.CreatedAtLocalTime;					// TODO - Get this right, including user's time zone, etc.
+								ni.twType = "PVT";
+								ni.twScreenName = msg.SenderScreenName;
+								ni.twRawText = msg.Text;
+								stories.Add(ni);
+							}
+						}
+						else
+						{
+							// TODO add parameter decoding here
+							switch (uri.Host)
+							{
+								case "timeline":										// Auth user's home timeline
+									sts = twConn.HomeTimeline();
+									break;
+
+								case "user":
+									screen_name = opts.Get("screen_name");
+									if (screen_name == null)
+										sts = twConn.UserTimeline();					// Tweets by auth user
+									else
+										sts = twConn.UserTimeline(screen_name);			// Tweets by given user
+									break;
+
+								case "public":											// Tweets mentioning auth user
+									sts = twConn.PublicTimeline();
+									break;
+
+								case "mentions":										// Tweets mentioning auth user
+									sts = twConn.Mentions();
+									break;
+
+								case "list":											// Tweets from give user's list (or auth user if not given)
+									screen_name = opts.Get("screen_name");
+									if (screen_name == null)
+										screen_name = twConn.AccountInformation().ScreenName;
+									string listName = opts.Get("slug");
+									if (listName == null)
+										throw new ApplicationException("twitter://list requires ?slug=xxx to identify the list");
+									sts = twConn.ListStatuses(screen_name, listName, 20);
+									break;
+
+								default:
+									throw new ApplicationException("Unknown twitter:// uri '" + uri.Host + "'");
+							}
+							foreach (TwitterStatus tw in sts)
+							{
+								DatedItem ni = new DatedItem();
+								ni.pubDate = tw.CreatedAtLocalTime;						// TODO - Get this right, including user's time zone, etc.
+								ni.twType = "PUB";
+								ni.twScreenName = tw.User.ScreenName;
+								ni.twRawText = tw.Text;
+								stories.Add(ni);
+							}
+						}
+						if (stories.Count == 0)
+							throw new ApplicationException(_feedUrl + " resulted in no tweets!");
 					}
 					else
 					{
@@ -939,10 +1098,18 @@ namespace com.dc3
 							ni.rssItem = item;
 							stories.Add(ni);
 						}
+						if (stories.Count == 0)
+							throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
 					}
 
-					if (stories.Count == 0)
-						throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
+					//
+					// Sort the stories newest to oldest. 
+					//
+					// This uses the overload of the List.Sort method that takes a Comparison<T> 
+					// delegate (and thus lambda expression). Love this language!!
+					//
+					if (stories.Count > 1)
+						stories.Sort((x, y) => DateTime.Compare(y.pubDate, x.pubDate));	// x <-> y for sort decreasing
 
 					//
 					// Create a list of strings which are the final messages to be send in Morse
@@ -954,9 +1121,10 @@ namespace com.dc3
 						string time;
 						string detail;
 						string msg;
+						string typ;
 
 						if (story.rssItem == null)								// This one is from Twitter
-							title = GetMorseInputText(story.twRawText);			// Entire tweet is title
+							title = GetMorseInputText(story.twRawText);			// Entire tweet is title (for cache)
 						else
 							title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
 
@@ -971,6 +1139,7 @@ namespace com.dc3
 						if (story.rssItem == null)								// This one is from Twitter
 						{
 							detail = "";										// Entire tweet is title
+							typ = "TWT " + story.twType + " " +  story.twScreenName;	// From includes screen name
 						}
 						else
 						{
@@ -986,11 +1155,12 @@ namespace com.dc3
 								detail = GetMorseInputText(detNode.InnerText);
 							else
 								detail = "";
+							typ = "RSS";
 						}
 
 						if (M.Mode == Morse.CodeMode.International)				// Radiotelegraphy
 						{
-							msg = "NR " + _msgNr.ToString() + " DE RSS " + time + " \\BT\\";
+							msg = "NR " + _msgNr.ToString() + " DE " + typ + " " + time + " \\BT\\";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
@@ -1001,7 +1171,7 @@ namespace com.dc3
 						{
 							// TODO - Make time zone name adapt to station TZ and DST
 							string date = story.pubDate.ToUniversalTime().ToString("MMM d h mm tt") + " GMT";
-							msg = "NR " + _msgNr.ToString() + " RSS FILED " + date + " = ";
+							msg = "NR " + _msgNr.ToString() + " " + typ + " FILED " + date + " = ";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
@@ -1059,7 +1229,8 @@ namespace com.dc3
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show(ex.Message, "RSS to Morse", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				StopOnError();
 				return;
 			}
 		}

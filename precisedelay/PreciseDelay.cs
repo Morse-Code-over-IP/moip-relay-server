@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		PrecisionDelay.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
 // ABSTRACT:	Thread.Sleep is not accurate enough for timing of Morse Code.
 //				This class uses the WIndows Multimedia Timer services to 

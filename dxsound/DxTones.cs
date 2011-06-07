@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		DxTones.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	DirectX Tone Generator
 //
 // ABSTRACT:	Generates radio tone sounds via Managed DirectX.
 //

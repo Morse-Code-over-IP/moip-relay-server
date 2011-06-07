@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		SoundInterfaces.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
 // ABSTRACT:	Intervaces that allow simple switching between DirectX and the
 //				Media.SoundPlayer for Morse code sounds.
