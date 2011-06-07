@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		DxSounder.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
 // ABSTRACT:	Generates telegraph sounder sounds via Managed DirectX. 
 //

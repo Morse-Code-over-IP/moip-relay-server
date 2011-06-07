@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		SpSpark.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
 // ABSTRACT:	Generates spark gap sounds via Media.SoundPlayer. 
 //

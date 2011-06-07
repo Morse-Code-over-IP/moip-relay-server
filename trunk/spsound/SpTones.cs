@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		SpTones.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
 // ABSTRACT:	Generates radio tone sounds via Media.SoundPlayer. 
 //

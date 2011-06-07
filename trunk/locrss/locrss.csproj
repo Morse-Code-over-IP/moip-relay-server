@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>com.dc3</RootNamespace>
-    <AssemblyName>RSSMorse</AssemblyName>
+    <AssemblyName>MorseNews</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
@@ -46,10 +46,6 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="TwitterVB, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\TwitterVB\bin\Debug\TwitterVB.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainForm.cs">
@@ -66,6 +62,9 @@
     <EmbeddedResource Include="Properties\Resources.resx" />
     <EmbeddedResource Include="SoundCfgForm.resx">
       <DependentUpon>SoundCfgForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TwitterPin.resx">
+      <DependentUpon>TwitterPin.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
@@ -84,11 +83,23 @@
     <Compile Include="SoundCfgForm.Designer.cs">
       <DependentUpon>SoundCfgForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TwitterPin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TwitterPin.Designer.cs">
+      <DependentUpon>TwitterPin.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
+    <None Include="Twitter API Wiki - Twitter API Documentation.url" />
+    <None Include="TwitterVB API Documentation.chm" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\TwitterVB\TwitterVB.vbproj">
+      <Project>{E3C24619-5F3A-4903-87B6-8E3DB1F1F219}</Project>
+      <Name>TwitterVB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\comportctrl\comportctrl.csproj">
       <Project>{AAE2923E-38E5-4C48-BA2D-3CA23B1717E2}</Project>
       <Name>comportctrl</Name>

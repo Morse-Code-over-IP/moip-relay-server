@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // TITLE:		ComPortCtrl.cs
 //
-// FACILITY:	RSS to Morse tool
+// FACILITY:	Morse Code News Reader
 //
 // ABSTRACT:	The .NET SerialPort class is extremely sluggish in handling
 //				the modem-control lines on the serial port. This class uses 
@@ -157,7 +157,7 @@ namespace com.dc3
 
 			OVERLAPPED ov = new OVERLAPPED();
 			ov.Offset = 0; ov.OffsetHigh = 0;
-			ov.hEvent = sg.Handle;
+			ov.hEvent = sg.SafeWaitHandle.DangerousGetHandle();
 			IntPtr unmanagedOv = Marshal.AllocHGlobal(Marshal.SizeOf(ov));
 			Marshal.StructureToPtr(ov, unmanagedOv, true);
 
@@ -206,7 +206,7 @@ namespace com.dc3
 					OnComPortPinChanged(e);
 				}
 			}
-			catch (ThreadInterruptedException ex) { }
+			catch (ThreadInterruptedException) { }
 		}
 
 		private void GetPinStatus()
