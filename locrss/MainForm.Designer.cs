@@ -67,10 +67,13 @@ namespace com.dc3
 			this.llSoundCfg = new System.Windows.Forms.LinkLabel();
 			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.mnuRemoveFromList = new System.Windows.Forms.ToolStripMenuItem();
 			this.mnuUrlResetToDefault = new System.Windows.Forms.ToolStripMenuItem();
 			this.nudStoryAge = new System.Windows.Forms.NumericUpDown();
 			this.nudPollInterval = new System.Windows.Forms.NumericUpDown();
+			this.btnFeedList = new System.Windows.Forms.Button();
 			this.tbVolume = new System.Windows.Forms.TrackBar();
+			this.ofnDlg = new System.Windows.Forms.OpenFileDialog();
 			this.statusStrip1.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudCharSpeed)).BeginInit();
@@ -141,7 +144,7 @@ namespace com.dc3
 			this.groupBox1.Location = new System.Drawing.Point(16, 79);
 			this.groupBox1.Name = "groupBox1";
 			this.groupBox1.Size = new System.Drawing.Size(271, 73);
-			this.groupBox1.TabIndex = 3;
+			this.groupBox1.TabIndex = 4;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Morse Code";
 			// 
@@ -169,7 +172,7 @@ namespace com.dc3
             0});
 			this.nudCharSpeed.Name = "nudCharSpeed";
 			this.nudCharSpeed.Size = new System.Drawing.Size(43, 20);
-			this.nudCharSpeed.TabIndex = 1;
+			this.nudCharSpeed.TabIndex = 3;
 			this.toolTip.SetToolTip(this.nudCharSpeed, "Character speed, increase for Farnsworth effect");
 			this.nudCharSpeed.Value = new decimal(new int[] {
             20,
@@ -203,7 +206,7 @@ namespace com.dc3
             0});
 			this.nudCodeSpeed.Name = "nudCodeSpeed";
 			this.nudCodeSpeed.Size = new System.Drawing.Size(43, 20);
-			this.nudCodeSpeed.TabIndex = 0;
+			this.nudCodeSpeed.TabIndex = 1;
 			this.toolTip.SetToolTip(this.nudCodeSpeed, "Code speed, words per minute");
 			this.nudCodeSpeed.Value = global::com.dc3.Properties.Settings.Default.CodeSpeed;
 			this.nudCodeSpeed.ValueChanged += new System.EventHandler(this.nudCodeSpeed_ValueChanged);
@@ -214,7 +217,7 @@ namespace com.dc3
 			this.rbAmerican.Location = new System.Drawing.Point(16, 42);
 			this.rbAmerican.Name = "rbAmerican";
 			this.rbAmerican.Size = new System.Drawing.Size(69, 17);
-			this.rbAmerican.TabIndex = 1;
+			this.rbAmerican.TabIndex = 2;
 			this.rbAmerican.TabStop = true;
 			this.rbAmerican.Text = "American";
 			this.toolTip.SetToolTip(this.rbAmerican, "Use American code and send messages in telegram format");
@@ -257,7 +260,7 @@ namespace com.dc3
 			this.btnStartStop.Location = new System.Drawing.Point(324, 232);
 			this.btnStartStop.Name = "btnStartStop";
 			this.btnStartStop.Size = new System.Drawing.Size(91, 30);
-			this.btnStartStop.TabIndex = 10;
+			this.btnStartStop.TabIndex = 11;
 			this.btnStartStop.Text = "Start";
 			this.btnStartStop.UseVisualStyleBackColor = true;
 			this.btnStartStop.Click += new System.EventHandler(this.btnStartStop_Click);
@@ -294,7 +297,7 @@ namespace com.dc3
             0});
 			this.nudSpark.Name = "nudSpark";
 			this.nudSpark.Size = new System.Drawing.Size(42, 20);
-			this.nudSpark.TabIndex = 1;
+			this.nudSpark.TabIndex = 3;
 			this.toolTip.SetToolTip(this.nudSpark, "Spark sound - change to hear sample");
 			this.nudSpark.Value = global::com.dc3.Properties.Settings.Default.SparkNumber;
 			this.nudSpark.ValueChanged += new System.EventHandler(this.nudSpark_ValueChanged);
@@ -305,7 +308,7 @@ namespace com.dc3
 			this.rbSpark.Location = new System.Drawing.Point(16, 43);
 			this.rbSpark.Name = "rbSpark";
 			this.rbSpark.Size = new System.Drawing.Size(134, 17);
-			this.rbSpark.TabIndex = 13;
+			this.rbSpark.TabIndex = 2;
 			this.rbSpark.TabStop = true;
 			this.rbSpark.Text = "CW Spark Gap (select)";
 			this.toolTip.SetToolTip(this.rbSpark, "Use telegraph sounder sound for code output");
@@ -328,7 +331,7 @@ namespace com.dc3
             0});
 			this.nudSounder.Name = "nudSounder";
 			this.nudSounder.Size = new System.Drawing.Size(42, 20);
-			this.nudSounder.TabIndex = 2;
+			this.nudSounder.TabIndex = 5;
 			this.toolTip.SetToolTip(this.nudSounder, "Sounder type - change to hear sample");
 			this.nudSounder.Value = global::com.dc3.Properties.Settings.Default.SounderNumber;
 			this.nudSounder.ValueChanged += new System.EventHandler(this.nudSounder_ValueChanged);
@@ -363,7 +366,7 @@ namespace com.dc3
             0});
 			this.nudToneFreq.Name = "nudToneFreq";
 			this.nudToneFreq.Size = new System.Drawing.Size(42, 20);
-			this.nudToneFreq.TabIndex = 0;
+			this.nudToneFreq.TabIndex = 1;
 			this.toolTip.SetToolTip(this.nudToneFreq, "Tone frequency - change to hear sample");
 			this.nudToneFreq.Value = global::com.dc3.Properties.Settings.Default.ToneFreq;
 			this.nudToneFreq.ValueChanged += new System.EventHandler(this.nudToneFreq_ValueChanged);
@@ -374,7 +377,7 @@ namespace com.dc3
 			this.rbSounder.Location = new System.Drawing.Point(16, 66);
 			this.rbSounder.Name = "rbSounder";
 			this.rbSounder.Size = new System.Drawing.Size(153, 17);
-			this.rbSounder.TabIndex = 1;
+			this.rbSounder.TabIndex = 4;
 			this.rbSounder.TabStop = true;
 			this.rbSounder.Text = "Telegraph Sounder (select)";
 			this.toolTip.SetToolTip(this.rbSounder, "Use telegraph sounder sound for code output");
@@ -403,7 +406,7 @@ namespace com.dc3
 			this.groupBox3.Location = new System.Drawing.Point(324, 79);
 			this.groupBox3.Name = "groupBox3";
 			this.groupBox3.Size = new System.Drawing.Size(91, 73);
-			this.groupBox3.TabIndex = 6;
+			this.groupBox3.TabIndex = 7;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Ext Sounder";
 			// 
@@ -465,7 +468,7 @@ namespace com.dc3
 			this.btnClearCache.Location = new System.Drawing.Point(324, 45);
 			this.btnClearCache.Name = "btnClearCache";
 			this.btnClearCache.Size = new System.Drawing.Size(91, 22);
-			this.btnClearCache.TabIndex = 5;
+			this.btnClearCache.TabIndex = 6;
 			this.btnClearCache.Text = "Clear Cache";
 			this.toolTip.SetToolTip(this.btnClearCache, "Clear the \"seen story\" cache now");
 			this.btnClearCache.UseVisualStyleBackColor = true;
@@ -477,7 +480,7 @@ namespace com.dc3
 			this.llHelp.Location = new System.Drawing.Point(350, 208);
 			this.llHelp.Name = "llHelp";
 			this.llHelp.Size = new System.Drawing.Size(46, 13);
-			this.llHelp.TabIndex = 9;
+			this.llHelp.TabIndex = 10;
 			this.llHelp.TabStop = true;
 			this.llHelp.Text = "Help me";
 			this.toolTip.SetToolTip(this.llHelp, "Click to see RSS Morse help");
@@ -517,7 +520,7 @@ namespace com.dc3
 			this.llRSSFeeds.Location = new System.Drawing.Point(351, 185);
 			this.llRSSFeeds.Name = "llRSSFeeds";
 			this.llRSSFeeds.Size = new System.Drawing.Size(58, 13);
-			this.llRSSFeeds.TabIndex = 8;
+			this.llRSSFeeds.TabIndex = 9;
 			this.llRSSFeeds.TabStop = true;
 			this.llRSSFeeds.Text = "RSS feeds";
 			this.toolTip.SetToolTip(this.llRSSFeeds, "Click to see Yahoo! RSS Feeds");
@@ -543,7 +546,7 @@ namespace com.dc3
 			this.llSoundCfg.Location = new System.Drawing.Point(351, 162);
 			this.llSoundCfg.Name = "llSoundCfg";
 			this.llSoundCfg.Size = new System.Drawing.Size(56, 13);
-			this.llSoundCfg.TabIndex = 7;
+			this.llSoundCfg.TabIndex = 8;
 			this.llSoundCfg.TabStop = true;
 			this.llSoundCfg.Text = "Sound cfg";
 			this.toolTip.SetToolTip(this.llSoundCfg, "Click for sound output settings");
@@ -558,20 +561,28 @@ namespace com.dc3
 			this.cbFeedUrl.FormattingEnabled = true;
 			this.cbFeedUrl.Location = new System.Drawing.Point(74, 14);
 			this.cbFeedUrl.Name = "cbFeedUrl";
-			this.cbFeedUrl.Size = new System.Drawing.Size(339, 21);
+			this.cbFeedUrl.Size = new System.Drawing.Size(237, 21);
 			this.cbFeedUrl.TabIndex = 0;
 			this.cbFeedUrl.Text = global::com.dc3.Properties.Settings.Default.FeedURL;
-			this.toolTip.SetToolTip(this.cbFeedUrl, "RSS Feed URL - May be file or web feed. Right click to reset list.");
+			this.toolTip.SetToolTip(this.cbFeedUrl, "Feed URI (RSS, Twitter, or List of feeds). Right click for options. See Help!");
 			this.cbFeedUrl.TextChanged += new System.EventHandler(this.cbFeedUrl_TextChanged);
 			// 
 			// contextMenuStrip1
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuRemoveFromList,
             this.mnuUrlResetToDefault});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
 			this.contextMenuStrip1.ShowImageMargin = false;
 			this.contextMenuStrip1.ShowItemToolTips = false;
-			this.contextMenuStrip1.Size = new System.Drawing.Size(153, 26);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(153, 70);
+			// 
+			// mnuRemoveFromList
+			// 
+			this.mnuRemoveFromList.Name = "mnuRemoveFromList";
+			this.mnuRemoveFromList.Size = new System.Drawing.Size(152, 22);
+			this.mnuRemoveFromList.Text = "Remove from list";
+			this.mnuRemoveFromList.Click += new System.EventHandler(this.mnuRemoveFromList_Click);
 			// 
 			// mnuUrlResetToDefault
 			// 
@@ -602,7 +613,7 @@ namespace com.dc3
             0});
 			this.nudStoryAge.Name = "nudStoryAge";
 			this.nudStoryAge.Size = new System.Drawing.Size(52, 20);
-			this.nudStoryAge.TabIndex = 2;
+			this.nudStoryAge.TabIndex = 3;
 			this.toolTip.SetToolTip(this.nudStoryAge, "Don\'t re-send stories sent within this time");
 			this.nudStoryAge.Value = global::com.dc3.Properties.Settings.Default.StoryAge;
 			this.nudStoryAge.ValueChanged += new System.EventHandler(this.nudStoryAge_ValueChanged);
@@ -623,10 +634,21 @@ namespace com.dc3
             0});
 			this.nudPollInterval.Name = "nudPollInterval";
 			this.nudPollInterval.Size = new System.Drawing.Size(45, 20);
-			this.nudPollInterval.TabIndex = 1;
-			this.toolTip.SetToolTip(this.nudPollInterval, "Interval between checks of RSS feed for new stories");
+			this.nudPollInterval.TabIndex = 2;
+			this.toolTip.SetToolTip(this.nudPollInterval, "Interval between checks of feed(s) for new stories");
 			this.nudPollInterval.Value = global::com.dc3.Properties.Settings.Default.PollInterval;
 			this.nudPollInterval.ValueChanged += new System.EventHandler(this.nudPollInterval_ValueChanged);
+			// 
+			// btnFeedList
+			// 
+			this.btnFeedList.Location = new System.Drawing.Point(324, 14);
+			this.btnFeedList.Name = "btnFeedList";
+			this.btnFeedList.Size = new System.Drawing.Size(91, 22);
+			this.btnFeedList.TabIndex = 1;
+			this.btnFeedList.Text = "Get Feed List...";
+			this.toolTip.SetToolTip(this.btnFeedList, "Browse for a list of feeds");
+			this.btnFeedList.UseVisualStyleBackColor = true;
+			this.btnFeedList.Click += new System.EventHandler(this.btnFeedList_Click);
 			// 
 			// tbVolume
 			// 
@@ -635,16 +657,22 @@ namespace com.dc3
 			this.tbVolume.Name = "tbVolume";
 			this.tbVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
 			this.tbVolume.Size = new System.Drawing.Size(45, 107);
-			this.tbVolume.TabIndex = 17;
+			this.tbVolume.TabIndex = 12;
 			this.tbVolume.TickStyle = System.Windows.Forms.TickStyle.None;
 			this.tbVolume.Value = global::com.dc3.Properties.Settings.Default.Volume;
 			this.tbVolume.Scroll += new System.EventHandler(this.tbVolume_Scroll);
+			// 
+			// ofnDlg
+			// 
+			this.ofnDlg.DefaultExt = "txt";
+			this.ofnDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(430, 299);
+			this.Controls.Add(this.btnFeedList);
 			this.Controls.Add(this.llSoundCfg);
 			this.Controls.Add(this.picSoundCfg);
 			this.Controls.Add(this.picRSS);
@@ -742,6 +770,9 @@ namespace com.dc3
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem mnuUrlResetToDefault;
 		private System.Windows.Forms.TrackBar tbVolume;
+		private System.Windows.Forms.Button btnFeedList;
+		private System.Windows.Forms.OpenFileDialog ofnDlg;
+		private System.Windows.Forms.ToolStripMenuItem mnuRemoveFromList;
 	}
 }
 
