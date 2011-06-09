@@ -64,6 +64,7 @@
 //						time when running in DirectX sound mode.
 // 03-Jun-11	rbd		2.0.0 - Start addition of Twitter feed sourcing. 
 // 06-Jun-11	rbd		2.0.0 - Much more logic changes. Too numerous for description here.
+// 08-Jun-11	rbd		2.0.0 - Finishing touches on this. 
 //
 //
 using System;
@@ -142,7 +143,6 @@ namespace com.dc3
 		//
 		private Thread _runThread = null;
 		private bool _run;
-		private bool _soundOK;
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
 		private int _msgNr = 1;
@@ -185,7 +185,6 @@ namespace com.dc3
 			_useSerial = chkUseSerial.Checked;
 			_serialPort = null;
 			_run = false;
-			_soundOK = false;
 
 			if (Properties.Settings.Default.CodeMode == 0)
 				rbInternational.Checked = true;									// Triggers CheckedChanged (typ.)
@@ -219,10 +218,16 @@ namespace com.dc3
 			statBarLabel.Text = "Ready";
 			statBarCrawl.Text = "";
 			UpdateUI();
+
+			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
+			this.Top = Properties.Settings.Default.SavedWinY;
 		}
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			Properties.Settings.Default.SavedWinX = this.Left;
+			Properties.Settings.Default.SavedWinY = this.Top;
+
 			if (_titleExpireThread != null)
 			{
 				_titleExpireThread.Interrupt();
@@ -245,11 +250,13 @@ namespace com.dc3
 
 		private void btnFeedList_Click(object sender, EventArgs e)
 		{
+			ofnDlg.InitialDirectory = Properties.Settings.Default.LastListDir;
 			if (ofnDlg.ShowDialog() == DialogResult.OK)
 			{
 				Uri furi = new Uri(ofnDlg.FileName);
 				int index = cbFeedUrl.Items.Add(furi.AbsoluteUri);
 				cbFeedUrl.SelectedIndex = index;
+				Properties.Settings.Default.LastListDir = Path.GetDirectoryName(ofnDlg.FileName);
 			}
 
 		}
@@ -491,7 +498,7 @@ namespace com.dc3
 
 		private void picHelp_Click(object sender, EventArgs e)
 		{
-			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\rssmorse.html");
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\news.html");
 		}
 
 		private void llRSSFeeds_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -1115,9 +1122,9 @@ namespace com.dc3
 										screen_name = opts.Get("screen_name");
 										if (screen_name == null)
 											screen_name = twConn.AccountInformation().ScreenName;
-										string listName = opts.Get("slug");
+										string listName = opts.Get("list_name");
 										if (listName == null)
-											throw new ApplicationException("twitter://list requires ?slug=xxx to identify the list");
+											throw new ApplicationException("twitter://list requires ?list_name=xxx to identify the list");
 										sts = twConn.ListStatuses(screen_name, listName, 20);
 										break;
 
@@ -1278,7 +1285,10 @@ namespace com.dc3
 								break;
 							}
 							else
+							{
+								GC.Collect(GC.MaxGeneration);
 								Thread.Sleep(5000);
+							}
 						}
 					}
 					else

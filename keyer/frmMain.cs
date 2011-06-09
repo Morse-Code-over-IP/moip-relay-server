@@ -112,6 +112,9 @@ namespace com.dc3.morse
 		public frmMain()
 		{
 			InitializeComponent();
+
+			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
+			this.Top = Properties.Settings.Default.SavedWinY;
 		}
 
 		private void _calcSpaceTime()					// Calculate space times for Farnsworth (word rate < char rate)
@@ -175,10 +178,16 @@ namespace com.dc3.morse
 
 			_iambicKeyer = new IambicKeyer(SendCallback);
 			_iambicKeyer.ModeB = !_iambicA;
+
+			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
+			this.Top = Properties.Settings.Default.SavedWinY;
 		}
 
 		private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			Properties.Settings.Default.SavedWinX = this.Left;
+			Properties.Settings.Default.SavedWinY = this.Top;
+
 			Properties.Settings.Default.Save();
 			if (_serialPort != null) _serialPort.Close();
 			_iambicKeyer.Dispose();
