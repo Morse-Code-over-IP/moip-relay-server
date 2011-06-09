@@ -260,5 +260,41 @@ namespace com.dc3.Properties {
                 this["oAuthTokenSecret"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("48")]
+        public int SavedWinX {
+            get {
+                return ((int)(this["SavedWinX"]));
+            }
+            set {
+                this["SavedWinX"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("48")]
+        public int SavedWinY {
+            get {
+                return ((int)(this["SavedWinY"]));
+            }
+            set {
+                this["SavedWinY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastListDir {
+            get {
+                return ((string)(this["LastListDir"]));
+            }
+            set {
+                this["LastListDir"] = value;
+            }
+        }
     }
 }
