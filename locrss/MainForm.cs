@@ -65,6 +65,7 @@
 // 03-Jun-11	rbd		2.0.0 - Start addition of Twitter feed sourcing. 
 // 06-Jun-11	rbd		2.0.0 - Much more logic changes. Too numerous for description here.
 // 08-Jun-11	rbd		2.0.0 - Finishing touches on this. 
+// 10-Jun-11	rbd		2.1.0 - Search ResultType now an enum (TwitterVB 3.1)
 //
 //
 using System;
@@ -1063,12 +1064,22 @@ namespace com.dc3
 									NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
 									opts.Add(opts2);
 								}
-								string mode = opts.Get("result_type");
-								if (mode == null)
-									mode = "popular";
+								string rtstr = opts.Get("result_type");						// Will be null if not in URI
+								TwitterVB2.Globals.ResultType rtype = Globals.ResultType.Mixed;	// Value is placeholder for compiler
+
+								if (rtstr != null)
+								{
+									rtstr = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(rtstr);	// Tricky!
+									try {
+										rtype = (TwitterVB2.Globals.ResultType)Enum.Parse(typeof(TwitterVB2.Globals.ResultType), rtstr);
+									} catch (Exception) {
+										throw new ApplicationException("twitter://search?result_type= must be mixed, popular, or recent");
+									}
+								}
 								TwitterSearchParameters tsp = new TwitterSearchParameters();
 								tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
-								tsp.Add(TwitterSearchParameterNames.ResultType, mode);		// Custom add-on to TwitterVB by me! (popular, mixed, recent)
+								if (rtstr != null)
+									tsp.Add(TwitterSearchParameterNames.ResultType, rtype);
 								tsp.Add(TwitterSearchParameterNames.Rpp, 20);
 								List<TwitterSearchResult> resList = twConn.Search(tsp);
 								foreach (TwitterSearchResult res in resList)
