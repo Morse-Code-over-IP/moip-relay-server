@@ -9,7 +9,7 @@
       <Value Profile="(Default)">10</Value>
     </Setting>
     <Setting Name="StoryAge" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">120</Value>
+      <Value Profile="(Default)">240</Value>
     </Setting>
     <Setting Name="ToneFreq" Type="System.Decimal" Scope="User">
       <Value Profile="(Default)">640</Value>
@@ -61,7 +61,7 @@
       <Value Profile="(Default)">8</Value>
     </Setting>
     <Setting Name="RiseFall" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">8</Value>
     </Setting>
     <Setting Name="oAuthToken" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -77,6 +77,15 @@
     </Setting>
     <Setting Name="LastListDir" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="IgnoreRetweets" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="BreakTime" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="DebugTracing" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

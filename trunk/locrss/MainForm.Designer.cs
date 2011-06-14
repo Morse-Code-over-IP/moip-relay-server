@@ -614,7 +614,7 @@ namespace com.dc3
 			this.nudStoryAge.Name = "nudStoryAge";
 			this.nudStoryAge.Size = new System.Drawing.Size(52, 20);
 			this.nudStoryAge.TabIndex = 3;
-			this.toolTip.SetToolTip(this.nudStoryAge, "Don\'t re-send stories sent within this time");
+			this.toolTip.SetToolTip(this.nudStoryAge, "Don\'t send stories older than this many minutes");
 			this.nudStoryAge.Value = global::com.dc3.Properties.Settings.Default.StoryAge;
 			this.nudStoryAge.ValueChanged += new System.EventHandler(this.nudStoryAge_ValueChanged);
 			// 
@@ -697,7 +697,7 @@ namespace com.dc3
 			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse News V2.0";
+			this.Text = "Morse News V2.1";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.statusStrip1.ResumeLayout(false);
