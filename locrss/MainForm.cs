@@ -650,14 +650,14 @@ namespace com.dc3
 		//
 		// Cross-thread methods for the worker thread and the status bar
 		//
-		delegate void SetTextCallback(string text);
+		delegate void SetTextCallback(string text, bool trace);
 
-		private void SetStatus(string text)
+		private void SetStatus(string text, bool trace)
 		{
 			if (this.statusStrip1.InvokeRequired)
 			{
 				SetTextCallback d = new SetTextCallback(SetStatus);
-				this.Invoke(d, new object[] { text });
+				this.Invoke(d, new object[] { text, trace });
 			}
 			else
 			{
@@ -667,11 +667,13 @@ namespace com.dc3
 			}
 		}
 
+		delegate void CrawlerCallback(string text);
+
 		private void SetCrawler(string text)
 		{
 			if (this.statusStrip1.InvokeRequired)
 			{
-				SetTextCallback d = new SetTextCallback(SetCrawler);
+				CrawlerCallback d = new CrawlerCallback(SetCrawler);
 				this.Invoke(d, new object[] { text });
 			}
 			else
@@ -684,7 +686,7 @@ namespace com.dc3
 		{
 			if (this.statusStrip1.InvokeRequired)
 			{
-				SetTextCallback d = new SetTextCallback(AddToCrawler);
+				CrawlerCallback d = new CrawlerCallback(AddToCrawler);
 				this.Invoke(d, new object[] { text });
 			}
 			else
@@ -1064,7 +1066,7 @@ namespace com.dc3
 							// format. Yes, we could just use Twitter's RSS, but this gives us
 							// more flexibility.
 							//
-							SetStatus("Getting Twitter feed data...");
+							SetStatus("Getting Twitter feed data...", true);
 							if (_debugTracing)
 								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
 							TwitterAPI twConn = LoginTwitter();
@@ -1193,7 +1195,7 @@ namespace com.dc3
 							//
 							// Sending an RSS feed
 							//
-							SetStatus("Getting RSS feed data...");
+							SetStatus("Getting RSS feed data...", true);
 							if (_debugTracing)
 								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
 							XmlDocument feedXml = new XmlDocument();
@@ -1344,7 +1346,27 @@ namespace com.dc3
 						int n = 1;
 						foreach (MorseMessage msg in messages)
 						{
-							SetStatus("Break...");
+							bool repeated = false;
+							//
+							// Catch the same message appearing multiple times in the current set
+							// (before being filtered above). 
+							//
+							lock (_titleCache)
+							{
+								if (_titleCache.ContainsKey(msg.Title))
+									repeated = true;
+							}
+							if (repeated)
+							{
+								if (_debugTracing)
+								{
+									Trace.WriteLine("**Same story repeated in current set, skipped:", _traceCatMorseNews);
+									Trace.WriteLine("  " + msg.Title, _traceCatMorseNews);
+								}
+								continue;
+							}
+
+							SetStatus("Break...", true);
 							Thread.Sleep(_breakTimeMs);
 							if (DateTime.Now.Date == _lastMsgSendDate)
 							{
@@ -1357,7 +1379,7 @@ namespace com.dc3
 										" - resetting message number to zero", _traceCatMorseNews);
 								_msgNr = 1;											// Reset msg number at date change
 							}
-							SetStatus("Sending message " + n++ + " of " + messages.Count);
+							SetStatus("Sending message " + n++ + " of " + messages.Count, true);
 							SetCrawler("");
 							msg.Contents = msg.Contents.Replace("_##_", _msgNr.ToString());
 							if (_debugTracing)
@@ -1393,12 +1415,12 @@ namespace com.dc3
 							for (int i = 0; i < tWait.TotalSeconds; i++)
 							{
 								string buf = TimeSpan.FromSeconds(tWait.TotalSeconds - i).ToString().Substring(3, 5);
-								SetStatus("Check feed in " + buf + "...");
+								SetStatus("Check feed in " + buf + "...", false);
 								Thread.Sleep(1000);
 							}
 						}
 					}
-					SetStatus("");
+					SetStatus("", false);
 				}
 			}
 			catch (ThreadInterruptedException)
