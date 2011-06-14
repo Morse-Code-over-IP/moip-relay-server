@@ -65,7 +65,8 @@
 // 03-Jun-11	rbd		2.0.0 - Start addition of Twitter feed sourcing. 
 // 06-Jun-11	rbd		2.0.0 - Much more logic changes. Too numerous for description here.
 // 08-Jun-11	rbd		2.0.0 - Finishing touches on this. 
-// 10-Jun-11	rbd		2.1.0 - Search ResultType now an enum (TwitterVB 3.1)
+// 10-Jun-11	rbd		2.1.1 - Search ResultType now an enum (TwitterVB 3.1)
+// 13-Jun-11	rbd		2.1.2 - SF Issues 3315998 and 3316001 relating to message numbering.
 //
 //
 using System;
@@ -146,11 +147,12 @@ namespace com.dc3
 		private bool _run;
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
-		private int _msgNr = 1;
+		private int _msgNr = 0;
 		private ITone _tones;
 		private IAudioWav _sounder;
 		private IAudioWav _spark;
 		private DateTime _lastPollTime;
+		private DateTime _lastMsgSendDate = DateTime.MinValue;					// [sentinel]
 		private ComPortCtrl _serialPort;
 
 
@@ -969,7 +971,7 @@ namespace com.dc3
 				M.WordWpm = _codeSpeed;
 				M.UnknownCharacter = HandleUnkChar;
 
-				_msgNr = 1;														// Start with message #1
+				_msgNr = 0;														// Start with message #1
 
 				if (_useSerial)
 				{
@@ -1245,7 +1247,7 @@ namespace com.dc3
 
 						if (M.Mode == Morse.CodeMode.International)				// Radiotelegraphy
 						{
-							msg = "NR " + _msgNr.ToString() + " DE " + typ + " " + time + " \\BT\\";
+							msg = "NR _##_ DE " + typ + " " + time + " \\BT\\";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
@@ -1256,14 +1258,13 @@ namespace com.dc3
 						{
 							// TODO - Make time zone name adapt to station TZ and DST
 							string date = story.pubDate.ToUniversalTime().ToString("MMM d h mm tt") + " GMT";
-							msg = "NR " + _msgNr.ToString() + " " + typ + " FILED " + date + " = ";
+							msg = "NR _##_ " + typ + " FILED " + date + " = ";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
 								msg += detail;
 							msg += " END";
 						}
-						_msgNr += 1;
 
 						MorseMessage mMsg = new MorseMessage();
 						mMsg.Title = title;
@@ -1279,27 +1280,28 @@ namespace com.dc3
 					{
 						//
 						// Have message(s), generate Morse Code sound for each
+						// Number them here, counting only those actually sent.
 						//
 						int n = 1;
 						foreach (MorseMessage msg in messages)
 						{
+							Thread.Sleep(5000);										// Always space 5 sec.
+							if (DateTime.Now.Date == _lastMsgSendDate)
+								_msgNr += 1;
+							else
+								_msgNr = 1;											// Reset msg number at date change
 							SetStatus("Sending message " + n++ + " of " + messages.Count);
 							SetCrawler("");
+							msg.Contents = msg.Contents.Replace("_##_", _msgNr.ToString());
+							_lastMsgSendDate = DateTime.Now.Date;
 							M.CwCom(msg.Contents, Send);
 							lock (_titleCache)
 							{
 								_titleCache.Add(msg.Title, DateTime.Now);
 							}
 							if (DateTime.Now > _lastPollTime.AddMinutes(_pollInterval))
-							{
-								_msgNr = n;										// We're forgetting the rest
 								break;
-							}
-							else
-							{
-								GC.Collect(GC.MaxGeneration);
-								Thread.Sleep(5000);
-							}
+							GC.Collect(GC.MaxGeneration);
 						}
 					}
 					else
