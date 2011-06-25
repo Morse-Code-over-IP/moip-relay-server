@@ -161,7 +161,7 @@ namespace com.dc3
 			// 
 			this.nudCharSpeed.Location = new System.Drawing.Point(215, 42);
 			this.nudCharSpeed.Maximum = new decimal(new int[] {
-            35,
+            60,
             0,
             0,
             0});
@@ -195,7 +195,7 @@ namespace com.dc3
 			this.nudCodeSpeed.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "CodeSpeed", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
 			this.nudCodeSpeed.Location = new System.Drawing.Point(215, 19);
 			this.nudCodeSpeed.Maximum = new decimal(new int[] {
-            35,
+            60,
             0,
             0,
             0});
