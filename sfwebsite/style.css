@@ -315,6 +315,9 @@ hr { display: none; }
 #sidebar p {
 	margin: 0;
 	padding: 0px 14px;
+	text-align: left;
+	line-height: 16px;
+	text-align: left;
 }
 
 #sidebar h2 {
@@ -334,7 +337,7 @@ hr { display: none; }
 }
 
 
-#sidebar p { line-height: 16px; 
+#sidebar p {  
 }
 
 #sidebar a {
