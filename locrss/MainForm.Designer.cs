@@ -161,7 +161,7 @@ namespace com.dc3
 			// 
 			this.nudCharSpeed.Location = new System.Drawing.Point(215, 42);
 			this.nudCharSpeed.Maximum = new decimal(new int[] {
-            60,
+            35,
             0,
             0,
             0});
@@ -195,7 +195,7 @@ namespace com.dc3
 			this.nudCodeSpeed.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.Properties.Settings.Default, "CodeSpeed", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
 			this.nudCodeSpeed.Location = new System.Drawing.Point(215, 19);
 			this.nudCodeSpeed.Maximum = new decimal(new int[] {
-            60,
+            35,
             0,
             0,
             0});
@@ -614,7 +614,7 @@ namespace com.dc3
 			this.nudStoryAge.Name = "nudStoryAge";
 			this.nudStoryAge.Size = new System.Drawing.Size(52, 20);
 			this.nudStoryAge.TabIndex = 3;
-			this.toolTip.SetToolTip(this.nudStoryAge, "Don\'t send stories older than this many minutes");
+			this.toolTip.SetToolTip(this.nudStoryAge, "Don\'t re-send stories sent within this time");
 			this.nudStoryAge.Value = global::com.dc3.Properties.Settings.Default.StoryAge;
 			this.nudStoryAge.ValueChanged += new System.EventHandler(this.nudStoryAge_ValueChanged);
 			// 
@@ -697,7 +697,7 @@ namespace com.dc3
 			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse News V2.1";
+			this.Text = "Morse News V2.0";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.statusStrip1.ResumeLayout(false);

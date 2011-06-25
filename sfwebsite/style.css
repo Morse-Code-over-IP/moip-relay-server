@@ -293,13 +293,13 @@ hr { display: none; }
 }
 
 #sidebar li ul {
-	margin: 0px 16px;
+	margin: 0px 0px;
 }
 
 #sidebar li li {
 	margin: 0;
-	padding: 2px 0px;
-	background: url(images/img03.gif) no-repeat left 6px;
+	padding: 8px 0px;
+	background: url(images/img03.gif) no-repeat left 16px;
 }
 
 #sidebar li li p {
@@ -315,9 +315,6 @@ hr { display: none; }
 #sidebar p {
 	margin: 0;
 	padding: 0px 14px;
-	text-align: left;
-	line-height: 16px;
-	text-align: left;
 }
 
 #sidebar h2 {
@@ -337,7 +334,7 @@ hr { display: none; }
 }
 
 
-#sidebar p {  
+#sidebar p { line-height: 16px; 
 }
 
 #sidebar a {

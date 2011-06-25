@@ -65,15 +65,6 @@
 // 03-Jun-11	rbd		2.0.0 - Start addition of Twitter feed sourcing. 
 // 06-Jun-11	rbd		2.0.0 - Much more logic changes. Too numerous for description here.
 // 08-Jun-11	rbd		2.0.0 - Finishing touches on this. 
-// 10-Jun-11	rbd		2.1.1 - Search ResultType now an enum (TwitterVB 3.1)
-// 13-Jun-11	rbd		2.1.2 - SF Issues 3315998 and 3316001 relating to message numbering.
-// 14-Jun-11	rbd		2.1.2 - Story age now means "don't send stories older than this" - period.
-//						Add setting to ignore retweets (default true). No UI for this.
-//						Add setting for break time between stories (def 5 sec). No UI for this.
-//						Add setting for tracing to DebugView, and a bunch of tracing.
-//						Capitalize Twitter screen names, put them into the same place (after
-//						the header) as they are in RSS posts. 
-// 24-Jun-11	rbd		2.1.2 - SF 3329000 Increase max speed to 60 (ridiculous but ...)
 //
 //
 using System;
@@ -101,8 +92,6 @@ namespace com.dc3
 {
 	public partial class MainForm : Form
 	{
-		private const string _traceCatMorseNews = "MorseNews";
-
 		public enum CodeMode { International, American }
 		public enum SoundMode { Tone, Spark, Sounder }
 		//
@@ -148,9 +137,6 @@ namespace com.dc3
 		private string _feedUrl;
 		private int _serialPortNum;
 		private bool _useSerial;
-		private bool _ignoreRetweets;											// Settings only from here on
-		private bool _debugTracing;
-		private int _breakTimeMs;
 
 		//
 		// State variables
@@ -159,12 +145,11 @@ namespace com.dc3
 		private bool _run;
 		private Dictionary<string, DateTime> _titleCache = new Dictionary<string, DateTime>();
 		private Thread _titleExpireThread = null;
-		private int _msgNr = 0;
+		private int _msgNr = 1;
 		private ITone _tones;
 		private IAudioWav _sounder;
 		private IAudioWav _spark;
 		private DateTime _lastPollTime;
-		private DateTime _lastMsgSendDate = DateTime.MinValue;					// [sentinel]
 		private ComPortCtrl _serialPort;
 
 
@@ -233,10 +218,6 @@ namespace com.dc3
 			statBarLabel.Text = "Ready";
 			statBarCrawl.Text = "";
 			UpdateUI();
-
-			_ignoreRetweets = Properties.Settings.Default.IgnoreRetweets;
-			_debugTracing = Properties.Settings.Default.DebugTracing;
-			_breakTimeMs = Properties.Settings.Default.BreakTime * 1000;
 
 			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
 			this.Top = Properties.Settings.Default.SavedWinY;
@@ -651,30 +632,26 @@ namespace com.dc3
 		//
 		// Cross-thread methods for the worker thread and the status bar
 		//
-		delegate void SetTextCallback(string text, bool trace);
+		delegate void SetTextCallback(string text);
 
-		private void SetStatus(string text, bool trace)
+		private void SetStatus(string text)
 		{
 			if (this.statusStrip1.InvokeRequired)
 			{
 				SetTextCallback d = new SetTextCallback(SetStatus);
-				this.Invoke(d, new object[] { text, trace });
+				this.Invoke(d, new object[] { text });
 			}
 			else
 			{
-				if (trace && _debugTracing)
-					Trace.WriteLine(text, _traceCatMorseNews);
 				statBarLabel.Text = text;
 			}
 		}
-
-		delegate void CrawlerCallback(string text);
 
 		private void SetCrawler(string text)
 		{
 			if (this.statusStrip1.InvokeRequired)
 			{
-				CrawlerCallback d = new CrawlerCallback(SetCrawler);
+				SetTextCallback d = new SetTextCallback(SetCrawler);
 				this.Invoke(d, new object[] { text });
 			}
 			else
@@ -687,7 +664,7 @@ namespace com.dc3
 		{
 			if (this.statusStrip1.InvokeRequired)
 			{
-				CrawlerCallback d = new CrawlerCallback(AddToCrawler);
+				SetTextCallback d = new SetTextCallback(AddToCrawler);
 				this.Invoke(d, new object[] { text });
 			}
 			else
@@ -861,7 +838,7 @@ namespace com.dc3
 		//
 		private void TitleExpire()
 		{
-			DateTime expiryTime = DateTime.Now.AddMinutes(-_storyAge - 10);		// Leave in cache longer, avoid edge condition
+			DateTime expiryTime = DateTime.Now.AddMinutes(-_storyAge);
 			lock (_titleCache)
 			{
 				List<string> oldTitles = new List<string>();
@@ -922,17 +899,12 @@ namespace com.dc3
 		//
 		private void HandleUnkChar(char ch)
 		{
-			string msg = "";
-
-			if (_debugTracing)
-			{
-				msg = " ['" + ch + "'";
-				msg += " U+" + ((int)ch).ToString("X4") + "]";
-			}
-			else
-			{
-				msg = " [" + ch + "] ";
-			}
+#if DEBUG
+			string msg = " ['" + ch + "'";
+			msg += " U+" + ((int)ch).ToString("X4") + "]";
+#else
+			string msg = " [" + ch + "] ";
+#endif
 			AddToCrawler(msg);
 		}
 
@@ -996,7 +968,7 @@ namespace com.dc3
 				M.WordWpm = _codeSpeed;
 				M.UnknownCharacter = HandleUnkChar;
 
-				_msgNr = 0;														// Start with message #1
+				_msgNr = 1;														// Start with message #1
 
 				if (_useSerial)
 				{
@@ -1067,9 +1039,7 @@ namespace com.dc3
 							// format. Yes, we could just use Twitter's RSS, but this gives us
 							// more flexibility.
 							//
-							SetStatus("Getting Twitter feed data...", true);
-							if (_debugTracing)
-								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
+							SetStatus("Getting Twitter feed data...");
 							TwitterAPI twConn = LoginTwitter();
 							List<TwitterStatus> sts = null;
 							string screen_name = null;
@@ -1093,31 +1063,19 @@ namespace com.dc3
 									NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
 									opts.Add(opts2);
 								}
-								string rtstr = opts.Get("result_type");						// Will be null if not in URI
-								TwitterVB2.Globals.ResultType rtype = Globals.ResultType.Mixed;	// Value is placeholder for compiler
-
-								if (rtstr != null)
-								{
-									rtstr = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(rtstr);	// Tricky!
-									try {
-										rtype = (TwitterVB2.Globals.ResultType)Enum.Parse(typeof(TwitterVB2.Globals.ResultType), rtstr);
-									} catch (Exception) {
-										throw new ApplicationException("twitter://search?result_type= must be mixed, popular, or recent");
-									}
-								}
+								string mode = opts.Get("result_type");
+								if (mode == null)
+									mode = "popular";
 								TwitterSearchParameters tsp = new TwitterSearchParameters();
 								tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
-								if (rtstr != null)
-									tsp.Add(TwitterSearchParameterNames.ResultType, rtype);
+								tsp.Add(TwitterSearchParameterNames.ResultType, mode);		// Custom add-on to TwitterVB by me! (popular, mixed, recent)
 								tsp.Add(TwitterSearchParameterNames.Rpp, 20);
 								List<TwitterSearchResult> resList = twConn.Search(tsp);
-								if (_debugTracing)
-									Trace.WriteLine("Search API returned " + resList.Count + " tweets", _traceCatMorseNews);
 								foreach (TwitterSearchResult res in resList)
 								{
 									DatedItem ni = new DatedItem();
 									ni.pubDate = res.CreatedAtLocalTime;
-									ni.twType = "SCH ";
+									ni.twType = ""; // "PUB ";
 									ni.twScreenName = res.AuthorName;
 									ni.twRawText = res.Title;
 									stories.Add(ni);
@@ -1125,10 +1083,7 @@ namespace com.dc3
 							}
 							else if (uri.Host == "messages")
 							{
-								List<TwitterDirectMessage> msgList = twConn.DirectMessages();
-								if (_debugTracing)
-									Trace.WriteLine("Found  " + msgList.Count + " direct message tweets", _traceCatMorseNews);
-								foreach (TwitterDirectMessage msg in msgList)
+								foreach (TwitterDirectMessage msg in twConn.DirectMessages())
 								{
 									DatedItem ni = new DatedItem();
 									ni.pubDate = msg.CreatedAtLocalTime;
@@ -1176,8 +1131,6 @@ namespace com.dc3
 									default:
 										throw new ApplicationException("Unknown twitter:// uri '" + uri.Host + "'");
 								}
-								if (_debugTracing)
-									Trace.WriteLine("Found  " + sts.Count + " " + uri.Host + " tweets", _traceCatMorseNews);
 								foreach (TwitterStatus tw in sts)
 								{
 									DatedItem ni = new DatedItem();
@@ -1196,9 +1149,7 @@ namespace com.dc3
 							//
 							// Sending an RSS feed
 							//
-							SetStatus("Getting RSS feed data...", true);
-							if (_debugTracing)
-								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
+							SetStatus("Getting RSS feed data...");
 							XmlDocument feedXml = new XmlDocument();
 							//feedXml.Load(feedUri);
 							feedXml.LoadXml(GetAuthFeedXml(feedUri));
@@ -1207,20 +1158,11 @@ namespace com.dc3
 							if (items.Count == 0)
 								throw new ApplicationException("This does not look like an RSS feed");
 
-							if (_debugTracing)
-								Trace.WriteLine("Found  " + items.Count + " RSS articles", _traceCatMorseNews);
 							foreach (XmlNode item in items)
 							{
 								DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
 								if (pubUtc == DateTime.MinValue)
-								{
-									if (_debugTracing)
-									{
-										Trace.WriteLine("RSS article has bad pubDate " + item.SelectSingleNode("pubDate").InnerText, _traceCatMorseNews);
-										Trace.WriteLine("  " + item.SelectSingleNode("title").InnerText, _traceCatMorseNews);
-									}
 									continue;											// Bad pubDate, skip this story
-								}
 								//
 								// OK we have a story we can use, as we were able to parse the date.
 								//
@@ -1229,8 +1171,8 @@ namespace com.dc3
 								ni.rssItem = item;
 								stories.Add(ni);
 							}
-							//if (stories.Count == 0)
-							//    throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
+							if (stories.Count == 0)
+								throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
 						}
 					}
 
@@ -1255,32 +1197,15 @@ namespace com.dc3
 						string msg;
 						string typ;
 
-						if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))	// If too old
-							continue;											// Skip it
-
 						if (story.rssItem == null)								// This one is from Twitter
-						{
-							// Entire story is the title. Add screen name before to look similar to RSS newsfeeds
-							title = GetMorseInputText(story.twScreenName + " - " + story.twRawText);
-							if (_ignoreRetweets && title.Contains(" RT @"))		// Skip retweets (already capitalized)
-								continue;
-						}
+							title = GetMorseInputText(story.twRawText);			// Entire tweet is title (for cache)
 						else
-						{
 							title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
-						}
 
 						lock (_titleCache)
 						{
 							if (_titleCache.ContainsKey(title))
-							{
-								if (_debugTracing)
-								{
-									Trace.WriteLine("Found in cache and skipped:", _traceCatMorseNews);
-									Trace.WriteLine("  " + title, _traceCatMorseNews);
-								}
 								continue;										// Recently sent, skip
-							}
 						}
 
 
@@ -1288,7 +1213,7 @@ namespace com.dc3
 						if (story.rssItem == null)								// This one is from Twitter
 						{
 							detail = "";										// Entire tweet is title
-							typ = "TWT " + story.twType;	// From includes screen name
+							typ = "TWT " + story.twType + story.twScreenName;	// From includes screen name
 						}
 						else
 						{
@@ -1309,7 +1234,7 @@ namespace com.dc3
 
 						if (M.Mode == Morse.CodeMode.International)				// Radiotelegraphy
 						{
-							msg = "NR _##_ DE " + typ + " " + time + " \\BT\\";
+							msg = "NR " + _msgNr.ToString() + " DE " + typ + " " + time + " \\BT\\";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
@@ -1320,13 +1245,14 @@ namespace com.dc3
 						{
 							// TODO - Make time zone name adapt to station TZ and DST
 							string date = story.pubDate.ToUniversalTime().ToString("MMM d h mm tt") + " GMT";
-							msg = "NR _##_ " + typ + " FILED " + date + " = ";
+							msg = "NR " + _msgNr.ToString() + " " + typ + " FILED " + date + " = ";
 							if (detail.Length < title.Length)
 								msg += title + " " + detail;
 							else
 								msg += detail;
 							msg += " END";
 						}
+						_msgNr += 1;
 
 						MorseMessage mMsg = new MorseMessage();
 						mMsg.Title = title;
@@ -1342,65 +1268,27 @@ namespace com.dc3
 					{
 						//
 						// Have message(s), generate Morse Code sound for each
-						// Number them here, counting only those actually sent.
 						//
 						int n = 1;
 						foreach (MorseMessage msg in messages)
 						{
-							bool repeated = false;
-							//
-							// Catch the same message appearing multiple times in the current set
-							// (before being filtered above). 
-							//
-							lock (_titleCache)
-							{
-								if (_titleCache.ContainsKey(msg.Title))
-									repeated = true;
-							}
-							if (repeated)
-							{
-								if (_debugTracing)
-								{
-									Trace.WriteLine("**Same story repeated in current set, skipped:", _traceCatMorseNews);
-									Trace.WriteLine("  " + msg.Title, _traceCatMorseNews);
-								}
-								continue;
-							}
-
-							SetStatus("Break...", true);
-							Thread.Sleep(_breakTimeMs);
-							if (DateTime.Now.Date == _lastMsgSendDate)
-							{
-								_msgNr += 1;
-							}
-							else
-							{
-								if (_debugTracing)
-									Trace.WriteLine("New day " + DateTime.Now.Date.ToString("d") +
-										" - resetting message number to zero", _traceCatMorseNews);
-								_msgNr = 1;											// Reset msg number at date change
-							}
-							SetStatus("Sending message " + n++ + " of " + messages.Count, true);
+							SetStatus("Sending message " + n++ + " of " + messages.Count);
 							SetCrawler("");
-							msg.Contents = msg.Contents.Replace("_##_", _msgNr.ToString());
-							if (_debugTracing)
-								Trace.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + msg.Contents, _traceCatMorseNews);
-							_lastMsgSendDate = DateTime.Now.Date;
 							M.CwCom(msg.Contents, Send);
 							lock (_titleCache)
 							{
-								if (_titleCache.ContainsKey(msg.Title))
-								{
-									// SHOULD NEVER HAPPEN!
-									Trace.WriteLine("** Tried to add existing title to cache:", _traceCatMorseNews);
-									Trace.WriteLine("  " + msg.Title, _traceCatMorseNews);
-								}
-								else
-									_titleCache.Add(msg.Title, DateTime.Now);
+								_titleCache.Add(msg.Title, DateTime.Now);
 							}
 							if (DateTime.Now > _lastPollTime.AddMinutes(_pollInterval))
+							{
+								_msgNr = n;										// We're forgetting the rest
 								break;
-							GC.Collect(GC.MaxGeneration);
+							}
+							else
+							{
+								GC.Collect(GC.MaxGeneration);
+								Thread.Sleep(5000);
+							}
 						}
 					}
 					else
@@ -1409,19 +1297,17 @@ namespace com.dc3
 						// No messages to send this time, wait until next time to poll
 						//
 						TimeSpan tWait = _lastPollTime.AddMinutes(_pollInterval) - DateTime.Now;
-						if (_debugTracing)
-							Trace.WriteLine("No messages, wait for " + tWait.ToString(), _traceCatMorseNews);
 						if (tWait > TimeSpan.Zero)
 						{
 							for (int i = 0; i < tWait.TotalSeconds; i++)
 							{
 								string buf = TimeSpan.FromSeconds(tWait.TotalSeconds - i).ToString().Substring(3, 5);
-								SetStatus("Check feed in " + buf + "...", false);
+								SetStatus("Check feed in " + buf + "...");
 								Thread.Sleep(1000);
 							}
 						}
 					}
-					SetStatus("", false);
+					SetStatus("");
 				}
 			}
 			catch (ThreadInterruptedException)
@@ -1430,15 +1316,7 @@ namespace com.dc3
 			}
 			catch (Exception ex)
 			{
-				if (_debugTracing)
-				{
-					Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
-					MessageBox.Show(ex.ToString(), Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-				}
-				else
-				{
-					MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-				}	
+				MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				StopOnError();
 				return;
 			}

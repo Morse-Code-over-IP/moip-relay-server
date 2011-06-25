@@ -49,7 +49,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("240")]
+        [global::System.Configuration.DefaultSettingValueAttribute("120")]
         public decimal StoryAge {
             get {
                 return ((decimal)(this["StoryAge"]));
@@ -227,7 +227,7 @@ namespace com.dc3.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public int RiseFall {
             get {
                 return ((int)(this["RiseFall"]));
@@ -294,42 +294,6 @@ namespace com.dc3.Properties {
             }
             set {
                 this["LastListDir"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool IgnoreRetweets {
-            get {
-                return ((bool)(this["IgnoreRetweets"]));
-            }
-            set {
-                this["IgnoreRetweets"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
-        public int BreakTime {
-            get {
-                return ((int)(this["BreakTime"]));
-            }
-            set {
-                this["BreakTime"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool DebugTracing {
-            get {
-                return ((bool)(this["DebugTracing"]));
-            }
-            set {
-                this["DebugTracing"] = value;
             }
         }
     }
