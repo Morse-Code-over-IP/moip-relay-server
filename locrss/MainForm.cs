@@ -73,6 +73,7 @@
 //						Add setting for tracing to DebugView, and a bunch of tracing.
 //						Capitalize Twitter screen names, put them into the same place (after
 //						the header) as they are in RSS posts. 
+// 24-Jun-11	rbd		2.1.2 - SF 3329000 Increase max speed to 60 (ridiculous but ...)
 //
 //
 using System;
@@ -661,7 +662,7 @@ namespace com.dc3
 			}
 			else
 			{
-				if (_debugTracing)
+				if (trace && _debugTracing)
 					Trace.WriteLine(text, _traceCatMorseNews);
 				statBarLabel.Text = text;
 			}
