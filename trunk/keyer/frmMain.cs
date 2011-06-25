@@ -51,6 +51,8 @@
 //						folder in end-user install.
 // 02-Jun-11	rbd		1.8.0 - DXTones now use StartLatency for envelope
 //						rise/fall. Set a nice (fixed) falue for keying.
+// 25-Jun-11	rbd		2.1.0 - Match version with Morse News, increase max
+//						speed to 60 WPM (ridiculous but...). 
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O

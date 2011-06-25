@@ -44,6 +44,7 @@
 			this.rbSounder = new System.Windows.Forms.RadioButton();
 			this.rbTone = new System.Windows.Forms.RadioButton();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
+			this.rbBug = new System.Windows.Forms.RadioButton();
 			this.chkSwapPaddles = new System.Windows.Forms.CheckBox();
 			this.chkModeA = new System.Windows.Forms.CheckBox();
 			this.pnlModeB = new System.Windows.Forms.Panel();
@@ -55,7 +56,6 @@
 			this.picHelp = new System.Windows.Forms.PictureBox();
 			this.llHelp = new System.Windows.Forms.LinkLabel();
 			this.tbVolume = new System.Windows.Forms.TrackBar();
-			this.rbBug = new System.Windows.Forms.RadioButton();
 			this.pnlHotSpot.SuspendLayout();
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
@@ -270,6 +270,19 @@
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Keyer Mode";
 			// 
+			// rbBug
+			// 
+			this.rbBug.AutoSize = true;
+			this.rbBug.Location = new System.Drawing.Point(15, 41);
+			this.rbBug.Name = "rbBug";
+			this.rbBug.Size = new System.Drawing.Size(99, 17);
+			this.rbBug.TabIndex = 7;
+			this.rbBug.TabStop = true;
+			this.rbBug.Text = "Semi-auto (bug)";
+			this.toolTip.SetToolTip(this.rbBug, "Dits are automatic, dahs are manual (bug mode)");
+			this.rbBug.UseVisualStyleBackColor = true;
+			this.rbBug.CheckedChanged += new System.EventHandler(this.rbBug_CheckedChanged);
+			// 
 			// chkSwapPaddles
 			// 
 			this.chkSwapPaddles.AutoSize = true;
@@ -402,19 +415,6 @@
 			this.tbVolume.Value = global::com.dc3.morse.Properties.Settings.Default.Volume;
 			this.tbVolume.Scroll += new System.EventHandler(this.tbVolume_Scroll);
 			// 
-			// rbBug
-			// 
-			this.rbBug.AutoSize = true;
-			this.rbBug.Location = new System.Drawing.Point(15, 41);
-			this.rbBug.Name = "rbBug";
-			this.rbBug.Size = new System.Drawing.Size(99, 17);
-			this.rbBug.TabIndex = 7;
-			this.rbBug.TabStop = true;
-			this.rbBug.Text = "Semi-auto (bug)";
-			this.toolTip.SetToolTip(this.rbBug, "Dits are automatic, dahs are manual (bug mode)");
-			this.rbBug.UseVisualStyleBackColor = true;
-			this.rbBug.CheckedChanged += new System.EventHandler(this.rbBug_CheckedChanged);
-			// 
 			// frmMain
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -433,7 +433,7 @@
 			this.MinimumSize = new System.Drawing.Size(169, 185);
 			this.Name = "frmMain";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse Keyer";
+			this.Text = "Morse Keyer V2.1";
 			this.Load += new System.EventHandler(this.frmMain_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
 			this.pnlHotSpot.ResumeLayout(false);
