@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=Windows-1252">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<link rel="STYLESHEET" type="text/css" href="dc3doc.css">
+		<title>Morse Keyer 1.6</title>
+</head>
+	<body>
+		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="MorseKeyerLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse Keyer 1.8</h1>
+	<p>Morse Keyer is a software keyer that can output CW radio tones or old-fashioned telegraph sounder sounds, and drive a device via a serial port (a physical telegraph sounder/loop or ham rig). This  document will hopefully be all you need to get going.</p>
+	<p><span class="yellowbg">Hover the mouse over the controls on the window to get hints on what they do.</span></p>
+<p><span class="yellowbg">If the program crashes when trying to make sounds, you probably can't use it as it requires Microsoft DirectX</span>.</p>
+<h2>Keyer Mode</h2>
+<p>The keyer has three modes: straight-key, semi-auto (bug), and and iambic (&quot;squeeze&quot;) paddle. The straight key mode is simple, it produces sound in response to key or paddle presses.</p>
+<p>The semi-automatic (bug) mode emulates a Vibroplex-type key. In this mode, both International/radio and American/telegraph code can be sent. The dit length is set via the code speed control, and is calculated for the so-called &quot;PARIS&quot; (or &quot;MORSE&quot;) method for International code.</p>
+<p>The iambic mode can be used to send only International/radio code, as it does not have the timing features needed for American Morse. The iambic mode is normally the &quot;B&quot; mode, which adds a trailing element if the paddle is released &quot;early&quot;. Most people prefer this mode. Mode &quot;A&quot; can be selected if you're used to it. For more info on iambic keying, see <a href="K7QO_Iambic_Paddle.pdf" target="_blank">Using an Iambic Paddle by Chuck Adams, K7QO</a> and <a href="modeab.pdf">What's all this iambic keyer mode A and B stuff, anyhow?</a> The code speed control uses the so-called &quot;PARIS&quot; (or &quot;MORSE&quot;) method to establish dit and dah lengths.</p>
+<h2>Keying Inputs</h2>
+<p>The keyer can be keyed with left and right mouse buttons, or a straight key, single-level, or iambic  paddle attached to a serial port (via the CTS and DSR signals). A single-lever paddle is most useful when the keyer is set for semi-automatic (bug) mode. This allows you to send American Morse code like you would with a real bug. An iambic paddle is most useful when the keyer is in the iambic paddles mode, and is limited to International Morse code.</p>
+<h3>Keying With the Mouse</h3>
+<p>To key with the mouse, you must move the cursor over the blue &quot;mouse keying area&quot; in the keyer's window.</p>
+<h3>Connecting a Paddle via the Mouse Inputs</h3>
+<p>If you have an old mouse you can sacrifice, consider turning it into a mouse interface for your paddles. Open the mouse and locate where the left and right button microswitches attach to the PC board. You should be able to see that one side of each switch is connected together. This is the common. The other side of each switch will be your left and right connections. The key effectively closes the mouse button switches (connected in parallel to the switches). Solder wires to the PC board so the key parallels the mouse button switches.</p>
+<p>This is actually the best way to connect a physical key as the signals coming into the system are conditioned for debouncing and very fast to react. The disadvantage is that you must put the cursor over the keying area as already mentioned.</p>
+<h3>Connecting a Paddle via Serial Port</h3>
+<p>See the directions at Les Kerr's <a href="http://home.comcast.net/~morsekob/morsekob.htm#AppendixB" target="_blank">MorseKOB Tutorial Appendix B</a> or at the <a href="http://www.mrx.com.au/images/cwcom_help.htm#Morse Key Cable" target="_blank">end of the CW Communicator manual</a>. Once you have the cable made up, connect it, select the COM port to which it is connected. Now try keying. If you got the cable and port number right you'll be all set.</p>
+<h2>Sound Output</h2>
+<p>You can select to have  radio tone or telegraph sounder output. If you select <strong> Radio Tone</strong>, clicking the up and down arrow in the <strong>Tone Freq</strong>. box will play a short tone at the new frequency. If you select <strong>Telegraph Sounder</strong>, you can cycle through the available sounder sounds in the same way.</p>
+<p>At speeds above 30 wpm, the telegraph sounds can start to sound mushy. This is a limitation in the speed of the sound playing in Windows.</p>
+	<h2>Connecting an External Telegraph Sounder/Loop or Ham Rig</h2>
+<p>First you need to make up an interface circuit which uses the serial port's Request to Send (RTS) pin to control the current loop that drives the sounder or loop. You can find out more at Les Kerr's <a href="http://home.comcast.net/~morsekob/morsekob.htm#AppendixD" target="_blank">MorseKOB tutorial Appendix D</a>, and at the <a href="http://www.mrx.com.au/images/cwcom_help.htm#Morse Key Cable" target="_blank">end of the CW Communicator manual</a>. Once you have the sounder interface connected, select your COM port and click Test button. Your sounder should click/clack 4 times or your ham rig should send 4 dits. If this works, you're all set. Check the <strong>Use</strong> box. When the serial port is active, the keyer always keys the DTR pin whether or not you have anything hooked up to it! If you don't want the keyer to make sounds, just turn  the volume down to zero.</p>
+	<h2><a name="sndcfg"></a>Administrivia</h2>
+<p>Morse Keyer was developed by Robert B. Denny. You can contact me at <a href="mailto:rdenny@dc3.com" target="_blank">rdenny@dc3.com</a>. </p>
+	<p>Thanks to Les Kerr, the <a href="http://home.comcast.net/~morsekob/" target="_blank">MorseKOB</a> author, and John Samin, author of <a href="http://www.mrx.com.au/d_cwcom.htm" target="_blank">CW Communicator</a>, for help in getting this and other Morse code tools going. </p>
+	<p>As shown below, Morse Keyer is licensed as open source. Sources are available at the <a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank">Morse Code  RSS News Tools SourceForge Project</a>.<br>
+	</p>
+<hr color="silver" size=2>
+		<div><span class="copyright"><a href="http://www.opensource.org/" target="_blank"><img src="osilic.png" alt="pic" width="50" height="69" hspace="8" border="0" align="left" title="Open Source Initiative home page"></a></span><span xmlns:dc="http://purl.org/dc/elements/1.1/" property="dc:title">RSS Morse</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Robert B. Denny</span> is licensed under a <a href="http://www.opensource.org/licenses/cpal_1.0" target="aux" rel="license">Common Public Attribution License</a>.		</div>
+	</body>
+</html>

@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3C6C71E0-479F-402C-A84D-3002B11AC7B9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>com.dc3.morse</RootNamespace>
+    <AssemblyName>DC3.Morse.DirectXSounds</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkSubset>
+    </TargetFrameworkSubset>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DxSounder.cs" />
+    <Compile Include="DxSpark.cs" />
+    <Compile Include="DxTones.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\precisedelay\precisedelay.csproj">
+      <Project>{05188BFB-24A4-4B47-909E-7E7F035082A9}</Project>
+      <Name>precisedelay</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\soundinterfaces\soundinterfaces.csproj">
+      <Project>{CBA089A4-5496-408E-B49C-AA2852056F03}</Project>
+      <Name>soundinterfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 1.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 2.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 3.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 4.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 5.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 6.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Clack 7.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 1.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 2.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 3.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 4.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 5.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 6.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Click 7.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Spark 1.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Spark 2.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Spark 3.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Spark 4.wav" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

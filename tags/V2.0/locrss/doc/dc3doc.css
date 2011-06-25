@@ -1,0 +1,184 @@
+/*
+ * Cascading style sheet for Dakota VOEvent broker Help
+ * Modified for Dakota help doc 06-Jan-2010 (rbd)
+ */
+
+/*
+ * Hyperlink coloring
+ */
+a:link		{ color: #0000FF; }
+a:active	{ color: #808000; }
+a:visited	{ color: #0000FF; } 
+a:hover		{ color: #808000; }
+
+/*
+ * Body and element defaults.
+ */
+body {
+	font-size: 80%;
+	line-height: 125%;
+	font-family: "Lucida Grande", Geneva, Verdana, Arial, Helvetica, sans-serif;
+	background-color: White;
+} 
+
+p {
+	margin-top: .5em; 
+	margin-bottom: .5em;
+} 
+
+h1 {
+	font-size: 150%;
+	font-family: Arial, Helvetica, sans-serif;
+	margin-bottom: .5em;
+	line-height: 125%;
+} 
+
+h2 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 130%;
+	margin-top: 1.5em;
+	margin-bottom: 0.5em;
+} 
+
+h3 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 120%;
+	margin-top: 1.2em;
+	margin-bottom: 0.5em;
+	color: maroon;
+} 
+
+h4 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 100%;
+	color: maroon;
+	margin-top: 1.2em;
+	margin-bottom: 0.5em;
+}
+
+/*
+ * List adjustments
+ */
+
+ul, ol, ul ul, ol ol, ol ul, ul ol{
+	margin-left: 3.0em;
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
+} 
+
+dl {
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
+}
+
+li { 
+	margin-top: 0.375em; 
+	margin-bottom: 0.375em;
+} 
+
+dt {
+	margin-top: 0.5em;
+	font-size: 90%;
+	font-weight: bold;
+	margin-left: 2.0em;
+}
+
+dd { margin-left: 3.5em; 
+}
+
+pre	{
+	padding: 0.25em;
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
+	margin-left: 1.5em;
+	background-color: #C0FFFF;
+	font-family: "Lucida Console", Monaco, "Lucida Sans Typewriter", "Courier New", Courier, monospace; 
+	font-size: 95%;
+} 
+code { 
+	margin-top: 0em; 
+	margin-bottom: 0em; 
+	font-family: "Lucida Console", Monaco, "Lucida Sans Typewriter", "Courier New", Courier, monospace; 
+	font-size: 95%;
+} 
+
+/*
+ * Tables
+ */
+table { 
+	font-size: 100%;
+}
+
+tr { 
+	margin: 0.5em;
+	vertical-align: top;
+}
+			
+th { 
+	margin: 0.5em;
+	text-align: left;
+	background-color: PowderBlue;
+	vertical-align: top;
+	}
+						
+td {
+	margin: 0.5em;
+	text-align: left;
+	vertical-align: top;
+}
+
+/*
+ * Quick-class goodies
+ */
+
+.indent { 
+	margin-left: 1.5em; 
+} 
+
+.mini {
+	font-size: 75%;
+}
+
+.alert {
+	background-color: #CCFFCC;
+}
+
+.note {
+	margin-top: 0.75em;
+	padding: 0.25em;
+	margin-left: 3em;
+	margin-right: 3em;
+	background-color: #FFFF99;
+}
+
+.underline {
+	text-decoration: underline; 
+}
+
+.yellowbg {
+	background-color: #FFFF00;
+}
+
+.fixed {
+	font-family: "Lucida Console", Monaco, "Lucida Sans Typewriter", "Courier New", Courier, monospace; 
+}
+
+/*
+ * Specific classes
+ */
+ 
+input.small {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 85%;
+}
+
+p.desc {
+	padding: 0.25em;
+	margin-left: 1.5em;
+	background-color: #FFFFC0;
+}
+
+div.copyright {
+	color: dimgray;
+	font-size: 85%;
+}
