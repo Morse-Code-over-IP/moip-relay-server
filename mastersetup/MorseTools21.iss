@@ -38,12 +38,13 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create desktop icons"; GroupDescription: "{cm:AdditionalIcons}";
 
 [Files]
-; MorseNews and common assemblies
+; MorseNews and common assemblies/files
 Source: "D:\dev\misc\MorseTools\locrss\bin\Release\MorseNews.exe"; DestDir: "{app}";
 Source: "D:\dev\misc\MorseTools\locrss\bin\Release\MorseNews.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\dev\misc\MorseTools\locrss\bin\Release\*.dll"; DestDir: "{app}";
 Source: "D:\dev\misc\MorseTools\locrss\doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\dev\misc\MorseTools\locrss\Setup\DirectX Assemblies\*"; DestDir: "{app}";
+Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 ; Additional files for MorseKeyer
 Source: "D:\dev\misc\MorseTools\keyer\bin\Release\MorseKeyer.exe"; DestDir: "{app}";
 Source: "D:\dev\misc\MorseTools\keyer\bin\Release\MorseKeyer.exe.config"; DestDir: "{app}"; Flags: ignoreversion
