@@ -74,6 +74,7 @@
 //						Capitalize Twitter screen names, put them into the same place (after
 //						the header) as they are in RSS posts. 
 // 24-Jun-11	rbd		2.1.2 - SF 3329000 Increase max speed to 60 (ridiculous but ...)
+// 14-Jul-11	rbd		2.1.4 - Add noise for CW tones and spark gap.
 //
 //
 using System;
@@ -84,6 +85,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
+using System.Media;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -141,6 +143,7 @@ namespace com.dc3
 		private int _charSpeed;
 		private bool _directX;
 		private int _toneFreq;
+		private int _noiseLevel;
 		private int _timingComp;
 		private int _sounderNum;
 		private int _sparkNum;
@@ -163,10 +166,10 @@ namespace com.dc3
 		private ITone _tones;
 		private IAudioWav _sounder;
 		private IAudioWav _spark;
+		private SoundPlayer _noise;
 		private DateTime _lastPollTime;
 		private DateTime _lastMsgSendDate = DateTime.MinValue;					// [sentinel]
 		private ComPortCtrl _serialPort;
-
 
 		//
 		// Form ctor and event methods
@@ -185,12 +188,14 @@ namespace com.dc3
 			nudCharSpeed.Value = Properties.Settings.Default.CharSpeed;
 			nudCharSpeed.Minimum = (decimal)_codeSpeed;
 			_charSpeed = (int)nudCharSpeed.Value;
-			// -------------------------------------
+			// ------ FROM SOUND CONFIG FORM -------
 			_directX = Properties.Settings.Default.DirectX;
 			if (_directX)
 				_timingComp = Properties.Settings.Default.RiseFall;
 			else
 				_timingComp = (int)Properties.Settings.Default.TimingComp;
+			_noiseLevel = Properties.Settings.Default.NoiseLevel;
+			// -------------------------------------
 			_toneFreq = (int)nudToneFreq.Value;
 			_sounderNum = (int)nudSounder.Value;
 			_sparkNum = (int)nudSpark.Value;
@@ -199,6 +204,7 @@ namespace com.dc3
 			_serialPortNum = (int)nudSerialPort.Value;
 			_useSerial = chkUseSerial.Checked;
 			_serialPort = null;
+			_noise = null;
 			_run = false;
 
 			if (Properties.Settings.Default.CodeMode == 0)
@@ -485,6 +491,7 @@ namespace com.dc3
 		{
 			SoundCfgForm sf = new SoundCfgForm();
 			sf.UseDirectX = Properties.Settings.Default.DirectX;
+			sf.NoiseLevel = Properties.Settings.Default.NoiseLevel;
 			if (sf.UseDirectX)
 				sf.TimingComp = Properties.Settings.Default.RiseFall;
 			else
@@ -507,6 +514,8 @@ namespace com.dc3
 				else
 					Properties.Settings.Default.TimingComp = (decimal)_timingComp;
 				Properties.Settings.Default.DirectX = _directX;
+				_noiseLevel = sf.NoiseLevel;
+				Properties.Settings.Default.NoiseLevel = sf.NoiseLevel;
 			}
 		}
 
@@ -1006,6 +1015,17 @@ namespace com.dc3
 #else
 					_serialPort.Open("COM" + _serialPortNum.ToString());
 #endif
+					_noise = null;
+				}
+				else
+				{
+					if (_noiseLevel > 0 && _soundMode != SoundMode.Sounder)		// No noise for telegraph sounder
+					{
+						_noise = new SoundPlayer(Properties.Resources.ResourceManager.GetStream("Noise" + _noiseLevel));
+						_noise.PlayLooping();
+					}
+					else
+						_noise = null;
 				}
 
 				// Remember the state of the title cache, we have a clear button!
@@ -1426,10 +1446,12 @@ namespace com.dc3
 			}
 			catch (ThreadInterruptedException)
 			{
+				if (_noise != null) _noise.Stop();
 				return;
 			}
 			catch (Exception ex)
 			{
+				if (_noise != null) _noise.Stop();
 				if (_debugTracing)
 				{
 					Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
