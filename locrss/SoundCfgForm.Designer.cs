@@ -36,13 +36,16 @@
 			this.chkDirectX = new System.Windows.Forms.CheckBox();
 			this.nudTimingComp = new System.Windows.Forms.NumericUpDown();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.trkNoise = new System.Windows.Forms.TrackBar();
+			this.label1 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.nudTimingComp)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.trkNoise)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// cmdOK
 			// 
 			this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-			this.cmdOK.Location = new System.Drawing.Point(97, 73);
+			this.cmdOK.Location = new System.Drawing.Point(101, 101);
 			this.cmdOK.Name = "cmdOK";
 			this.cmdOK.Size = new System.Drawing.Size(72, 25);
 			this.cmdOK.TabIndex = 0;
@@ -52,7 +55,7 @@
 			// cmdCancel
 			// 
 			this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.cmdCancel.Location = new System.Drawing.Point(19, 73);
+			this.cmdCancel.Location = new System.Drawing.Point(14, 101);
 			this.cmdCancel.Name = "cmdCancel";
 			this.cmdCancel.Size = new System.Drawing.Size(72, 25);
 			this.cmdCancel.TabIndex = 1;
@@ -93,24 +96,47 @@
 			this.nudTimingComp.TabIndex = 14;
 			this.toolTip.SetToolTip(this.nudTimingComp, "Reduce inter-character spacing for sound latency");
 			// 
+			// trkNoise
+			// 
+			this.trkNoise.AutoSize = false;
+			this.trkNoise.LargeChange = 1;
+			this.trkNoise.Location = new System.Drawing.Point(81, 68);
+			this.trkNoise.Maximum = 4;
+			this.trkNoise.Name = "trkNoise";
+			this.trkNoise.Size = new System.Drawing.Size(96, 28);
+			this.trkNoise.TabIndex = 17;
+			this.trkNoise.TickStyle = System.Windows.Forms.TickStyle.None;
+			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(13, 70);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(59, 13);
+			this.label1.TabIndex = 18;
+			this.label1.Text = "Noise level";
+			// 
 			// SoundCfgForm
 			// 
 			this.AcceptButton = this.cmdOK;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.cmdCancel;
-			this.ClientSize = new System.Drawing.Size(189, 113);
+			this.ClientSize = new System.Drawing.Size(189, 141);
+			this.Controls.Add(this.label1);
+			this.Controls.Add(this.cmdCancel);
+			this.Controls.Add(this.cmdOK);
+			this.Controls.Add(this.trkNoise);
 			this.Controls.Add(this.chkDirectX);
 			this.Controls.Add(this.lblTiming);
 			this.Controls.Add(this.nudTimingComp);
-			this.Controls.Add(this.cmdCancel);
-			this.Controls.Add(this.cmdOK);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "SoundCfgForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Sound Settings";
 			((System.ComponentModel.ISupportInitialize)(this.nudTimingComp)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.trkNoise)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -124,5 +150,7 @@
 		private System.Windows.Forms.NumericUpDown nudTimingComp;
 		private System.Windows.Forms.CheckBox chkDirectX;
 		private System.Windows.Forms.ToolTip toolTip;
+		private System.Windows.Forms.TrackBar trkNoise;
+		private System.Windows.Forms.Label label1;
 	}
 }

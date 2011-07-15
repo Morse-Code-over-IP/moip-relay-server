@@ -1,6 +1,7 @@
 ﻿//
 // 02-Jun-11	rbd		1.8.0 - Vary label and re-use timing control for two
 //						purposes, depending on the mode.
+// 14-Jul-11	rbd		2.1.4 - Add noise level slider and property
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,6 +28,12 @@ namespace com.dc3
 		{
 			get { return chkDirectX.Checked; }
 			set { chkDirectX.Checked = value; }
+		}
+
+		public int NoiseLevel
+		{
+			get { return trkNoise.Value; }
+			set { trkNoise.Value = value; }
 		}
 
 		private void chkDirectX_CheckedChanged(object sender, EventArgs e)
