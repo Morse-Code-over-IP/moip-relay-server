@@ -7,7 +7,7 @@
 		<title>Morse News 2.1</title>
 </head>
 	<body>
-		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 2.1	</h1>
+		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 2.1	(Updated 22-July-2011)</h1>
 	<p>Morse News periodically reads one <em>or more</em> <a href="http://news.yahoo.com/page/rss" target="_blank">RSS</a> (news) and/or <a href="http://twitter.com/" target="_blank">Twitter</a> feeds and translates the received messages into International or American Morse Code, which is output as CW radio tones, or telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. This  document will hopefully be all you need to get going. <span class="underline">You'll miss out on important features if you skip reading this</span>!</p>
 	<p><span class="yellowbg">Hover the mouse over the controls on the window to get hints on what they do.</span></p>
 	<h2>Quick Start</h2>
@@ -22,10 +22,9 @@
 	<p class="alert"><strong>Please Note:</strong> Before writing off Twitter, please read the Twitter section below. You can create a separate dedicated Twitter account for use as a news feed then have it follow commercial news services' tweets.</p>
 <h2><img src="big_rss.png" alt="RSS" width="32" height="32" hspace="8" align="absmiddle">RSS News Feeds and URLs</h2>
 	<p>RSS feeds contain digests of articles, most often news articles. It's beyond the scope of this document to describe RSS itself, how to use RSS, how to find RSS feeds, etc. Start with the <a href="http://en.wikipedia.org/wiki/RSS" target="_blank">Wikipedia article on RSS</a> if you need info and go from there. Morse News was tested with Yahoo! RSS News feeds. It comes pre-set with several of these feeds. The Yahoo! feeds are clean copies of Associated Press, Reuters, etc. news wire services, not cluttered with junk and verbal decoration. I suggest you start with these. The Feed URL list is pre-filled with a few Yahoo! RSS feeds and a &quot;Top 100 words&quot; practice feed from my web site. Of course you can type in your own URLs. If you actually <em>use</em> a feed you typed in, it will be remembered in the list. Up to the latest 16 feeds used are remembered. <span class="alert">If you want to reset the list to the original set, right click and select <strong>Reset to original list</strong></span>.</p>
-	<p>You can find a  list of Yahoo! feeds on the <a href="http://news.yahoo.com/page/rss" target="_blank">Yahoo! RSS News Feeds page</a> (there's a hot-link to that page on the Morse News main window!). To use one of these feeds, click on its RSS icon <img src="rss3.gif" alt="rss" title="Right click and copy link/shortcut for feed URL" width="16" height="17" border="0" align="absmiddle">. You'll see a new browser tab or window full of &quot;stuff&quot;. Never mind that, just copy the URL from the address box at the top of the browser and paste it into the <strong>Feed URL</strong> box at the top of Morse News.</p>
+	<p class="note">Note: As of mid July 2011, it appears that Yahoo! is phasing out their RSS feeds. They no longer have a list of them available, however they are still working. In the next version of Morse News I'll update the standard list to consist of some CNN, UPI, and Reuters feeds. Asssociated Press only feeds in Atom now, and at present Morse News only understands RSS and Twitter (though I may add Atom soon).</p>
 	<p>There's sort of an art to discovering the actual feed URL for RSS feeds. Sometimes it's enough to right-click on the RSS icon and select Copy Link or Copy Shortcut (depending on your browser). Looking at the bottom status area of your browser while hovering over a feed icon is another trick. Here are some other news-type RSS sources:</p>
-	<p><a href="http://hosted.ap.org/dynamic/fronts/RSS?SITE=AP&SECTION=HOME" target="_blank"><strong>Associated Press</strong></a> - The real deal, but note that Yahoo! combines AP, Reuters, AFP, and other newswires<br>
-	<a href="http://www.upi.com/rss/" target="_blank"><strong>United Press International</strong></a> - Another classic newswire service<br>
+	<p><a href="http://www.upi.com/rss/" target="_blank"><strong>United Press International</strong></a> - The classic newswire service. <br>
 	<a href="http://www.reuters.com/tools/rss" target="_blank"><strong>Reuters</strong></a> - Brisith newswire service, more world-oriented than the above US-centric services <br>
 		<a href="http://www.cnn.com/services/rss/" target="_blank"><strong>CNN News</strong></a> - These work well in Morse News<br>
 	<a href="http://www.foxnews.com/rss/index.html" target="_blank"><strong>Fox News</strong></a> - Not so good, too much bulleted hyperlink text follows the real news. </p>
@@ -67,8 +66,8 @@
 <pre>;
 ; Morse News feed list for Joe Mama
 ;
-http://rss.news.yahoo.com/rss/topstories
-http://rss.news.yahoo.com/rss/tech
+http://rss.upi.com/news/news.rss
+http://rss.cnn.com/rss/cnn_crime.rss
 twitter://timeline                          ; My home timeline<br>twitter://messages                          ; My direct messages (PVT)
 </pre>
 <p>When you select the feed list file in the file browser, you'll notice that a file:// URL appears in the Feed URL field, and the file has a type of <strong>.txt</strong>. <span class="alert">If you enter a file:// URL of a file of type <strong>.xml</strong>, it is assumed to contain RSS info, which will be fed. You can put one of these into a feed list file!</span><br>
