@@ -38,6 +38,10 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.nudSerialPort = new System.Windows.Forms.NumericUpDown();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
+			this.lblTiming = new System.Windows.Forms.Label();
+			this.nudRiseFallMs = new System.Windows.Forms.NumericUpDown();
+			this.label3 = new System.Windows.Forms.Label();
+			this.cbSoundDevs = new System.Windows.Forms.ComboBox();
 			this.nudSounder = new System.Windows.Forms.NumericUpDown();
 			this.label4 = new System.Windows.Forms.Label();
 			this.nudToneFreq = new System.Windows.Forms.NumericUpDown();
@@ -60,6 +64,7 @@
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
 			this.groupBox2.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.nudRiseFallMs)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).BeginInit();
 			this.groupBox1.SuspendLayout();
@@ -72,9 +77,9 @@
 			// 
 			this.pnlHotSpot.BackColor = System.Drawing.Color.Blue;
 			this.pnlHotSpot.Controls.Add(this.label2);
-			this.pnlHotSpot.Location = new System.Drawing.Point(319, 19);
+			this.pnlHotSpot.Location = new System.Drawing.Point(319, 33);
 			this.pnlHotSpot.Name = "pnlHotSpot";
-			this.pnlHotSpot.Size = new System.Drawing.Size(94, 64);
+			this.pnlHotSpot.Size = new System.Drawing.Size(94, 73);
 			this.pnlHotSpot.TabIndex = 0;
 			this.toolTip.SetToolTip(this.pnlHotSpot, "Place mouse here for mouse keying");
 			this.pnlHotSpot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pnlHotSpot_MouseDown);
@@ -83,7 +88,7 @@
 			// label2
 			// 
 			this.label2.ForeColor = System.Drawing.Color.Yellow;
-			this.label2.Location = new System.Drawing.Point(12, 12);
+			this.label2.Location = new System.Drawing.Point(13, 15);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(67, 39);
 			this.label2.TabIndex = 0;
@@ -99,16 +104,16 @@
 			this.groupBox3.Controls.Add(this.chkUseSerial);
 			this.groupBox3.Controls.Add(this.label6);
 			this.groupBox3.Controls.Add(this.nudSerialPort);
-			this.groupBox3.Location = new System.Drawing.Point(319, 120);
+			this.groupBox3.Location = new System.Drawing.Point(319, 138);
 			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(95, 93);
+			this.groupBox3.Size = new System.Drawing.Size(95, 102);
 			this.groupBox3.TabIndex = 5;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Serial I/O";
 			// 
 			// btnTestSerial
 			// 
-			this.btnTestSerial.Location = new System.Drawing.Point(12, 64);
+			this.btnTestSerial.Location = new System.Drawing.Point(13, 69);
 			this.btnTestSerial.Name = "btnTestSerial";
 			this.btnTestSerial.Size = new System.Drawing.Size(67, 22);
 			this.btnTestSerial.TabIndex = 2;
@@ -123,7 +128,7 @@
 			this.chkUseSerial.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.chkUseSerial.Checked = global::com.dc3.morse.Properties.Settings.Default.UseSerial;
 			this.chkUseSerial.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::com.dc3.morse.Properties.Settings.Default, "UseSerial", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.chkUseSerial.Location = new System.Drawing.Point(8, 45);
+			this.chkUseSerial.Location = new System.Drawing.Point(8, 47);
 			this.chkUseSerial.Name = "chkUseSerial";
 			this.chkUseSerial.Size = new System.Drawing.Size(72, 17);
 			this.chkUseSerial.TabIndex = 1;
@@ -159,6 +164,10 @@
 			// 
 			// groupBox2
 			// 
+			this.groupBox2.Controls.Add(this.lblTiming);
+			this.groupBox2.Controls.Add(this.nudRiseFallMs);
+			this.groupBox2.Controls.Add(this.label3);
+			this.groupBox2.Controls.Add(this.cbSoundDevs);
 			this.groupBox2.Controls.Add(this.nudSounder);
 			this.groupBox2.Controls.Add(this.label4);
 			this.groupBox2.Controls.Add(this.nudToneFreq);
@@ -166,15 +175,60 @@
 			this.groupBox2.Controls.Add(this.rbTone);
 			this.groupBox2.Location = new System.Drawing.Point(17, 139);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(263, 74);
+			this.groupBox2.Size = new System.Drawing.Size(263, 148);
 			this.groupBox2.TabIndex = 2;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Sound Output";
 			// 
+			// lblTiming
+			// 
+			this.lblTiming.AutoSize = true;
+			this.lblTiming.Location = new System.Drawing.Point(32, 47);
+			this.lblTiming.Name = "lblTiming";
+			this.lblTiming.Size = new System.Drawing.Size(160, 13);
+			this.lblTiming.TabIndex = 16;
+			this.lblTiming.Text = "Tone envelope rise/fall time (ms)";
+			// 
+			// nudRiseFallMs
+			// 
+			this.nudRiseFallMs.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.morse.Properties.Settings.Default, "RiseFall", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+			this.nudRiseFallMs.Location = new System.Drawing.Point(196, 45);
+			this.nudRiseFallMs.Maximum = new decimal(new int[] {
+            40,
+            0,
+            0,
+            0});
+			this.nudRiseFallMs.Name = "nudRiseFallMs";
+			this.nudRiseFallMs.Size = new System.Drawing.Size(51, 20);
+			this.nudRiseFallMs.TabIndex = 7;
+			this.nudRiseFallMs.Value = global::com.dc3.morse.Properties.Settings.Default.RiseFall;
+			this.nudRiseFallMs.ValueChanged += new System.EventHandler(this.nudRiseFallMs_ValueChanged);
+			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(14, 95);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(106, 13);
+			this.label3.TabIndex = 6;
+			this.label3.Text = "Sound output device";
+			// 
+			// cbSoundDevs
+			// 
+			this.cbSoundDevs.DisplayMember = "00000000-0000-0000-0000-000000000000";
+			this.cbSoundDevs.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.cbSoundDevs.FormattingEnabled = true;
+			this.cbSoundDevs.Location = new System.Drawing.Point(16, 113);
+			this.cbSoundDevs.Name = "cbSoundDevs";
+			this.cbSoundDevs.Size = new System.Drawing.Size(230, 21);
+			this.cbSoundDevs.TabIndex = 5;
+			this.cbSoundDevs.ValueMember = "00000000-0000-0000-0000-000000000000";
+			this.cbSoundDevs.SelectedIndexChanged += new System.EventHandler(this.cbSoundDevs_SelectedIndexChanged);
+			// 
 			// nudSounder
 			// 
 			this.nudSounder.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.morse.Properties.Settings.Default, "SounderNumber", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.nudSounder.Location = new System.Drawing.Point(196, 42);
+			this.nudSounder.Location = new System.Drawing.Point(196, 71);
 			this.nudSounder.Maximum = new decimal(new int[] {
             7,
             0,
@@ -230,7 +284,7 @@
 			// rbSounder
 			// 
 			this.rbSounder.AutoSize = true;
-			this.rbSounder.Location = new System.Drawing.Point(16, 42);
+			this.rbSounder.Location = new System.Drawing.Point(16, 71);
 			this.rbSounder.Name = "rbSounder";
 			this.rbSounder.Size = new System.Drawing.Size(153, 17);
 			this.rbSounder.TabIndex = 3;
@@ -381,7 +435,7 @@
 			this.picHelp.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.picHelp.Image = ((System.Drawing.Image)(resources.GetObject("picHelp.Image")));
 			this.picHelp.InitialImage = null;
-			this.picHelp.Location = new System.Drawing.Point(332, 96);
+			this.picHelp.Location = new System.Drawing.Point(332, 255);
 			this.picHelp.Name = "picHelp";
 			this.picHelp.Size = new System.Drawing.Size(16, 16);
 			this.picHelp.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -393,7 +447,7 @@
 			// llHelp
 			// 
 			this.llHelp.AutoSize = true;
-			this.llHelp.Location = new System.Drawing.Point(351, 97);
+			this.llHelp.Location = new System.Drawing.Point(351, 256);
 			this.llHelp.Name = "llHelp";
 			this.llHelp.Size = new System.Drawing.Size(46, 13);
 			this.llHelp.TabIndex = 4;
@@ -405,10 +459,10 @@
 			// tbVolume
 			// 
 			this.tbVolume.DataBindings.Add(new System.Windows.Forms.Binding("Value", global::com.dc3.morse.Properties.Settings.Default, "Volume", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-			this.tbVolume.Location = new System.Drawing.Point(286, 119);
+			this.tbVolume.Location = new System.Drawing.Point(286, 138);
 			this.tbVolume.Name = "tbVolume";
 			this.tbVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.tbVolume.Size = new System.Drawing.Size(45, 102);
+			this.tbVolume.Size = new System.Drawing.Size(45, 115);
 			this.tbVolume.TabIndex = 3;
 			this.tbVolume.TickStyle = System.Windows.Forms.TickStyle.None;
 			this.toolTip.SetToolTip(this.tbVolume, "Adjust the sound volume");
@@ -419,7 +473,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(432, 229);
+			this.ClientSize = new System.Drawing.Size(426, 300);
 			this.Controls.Add(this.picHelp);
 			this.Controls.Add(this.llHelp);
 			this.Controls.Add(this.groupBox3);
@@ -433,7 +487,7 @@
 			this.MinimumSize = new System.Drawing.Size(169, 185);
 			this.Name = "frmMain";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse Keyer V2.1";
+			this.Text = "Morse Keyer V2.2";
 			this.Load += new System.EventHandler(this.frmMain_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
 			this.pnlHotSpot.ResumeLayout(false);
@@ -442,6 +496,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).EndInit();
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.nudRiseFallMs)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudSounder)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudToneFreq)).EndInit();
 			this.groupBox1.ResumeLayout(false);
@@ -482,6 +537,10 @@
 		private System.Windows.Forms.PictureBox picHelp;
 		private System.Windows.Forms.LinkLabel llHelp;
 		private System.Windows.Forms.RadioButton rbBug;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.ComboBox cbSoundDevs;
+		private System.Windows.Forms.NumericUpDown nudRiseFallMs;
+		private System.Windows.Forms.Label lblTiming;
 	}
 }
 

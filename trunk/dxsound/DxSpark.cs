@@ -8,7 +8,6 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
-//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -28,6 +27,8 @@
 // 18-May-10	rbd		1.5.0 - Volume 0 means absolutely silent.
 // 19-May-10	rbd		1.5.0 - Stop before Down, prevent stuttering
 // 02-Jun-11	rbd		1.8.0 - Disposals to prevent memory leaks
+// 28-Nov-11	rbd		1.9.0 - (*SF #3432844) Add parameter for sound device 
+//						selection to constructor.
 //
 using System;
 using System.Collections.Generic;
@@ -40,23 +41,23 @@ namespace com.dc3.morse
 {
     public class DxSpark : IAudioWav, IDisposable
     {
-        private Device _deviceSound;
+        private Device _deviceSound = null;										// [sentinel]
 		private float _volume;
 		private int _rawVol;
 		private int _sparkNum;
 		private int _ditMs;
 		private int _startLatency;
 
-		private BufferDescription _bufDesc;
+		private BufferDescription _bufDesc = null;								// [sentinel]
 		private Microsoft.DirectX.DirectSound.Buffer _buf = null;				// [sentinel]
 
-		public DxSpark(System.Windows.Forms.Control Handle)
+		public DxSpark(System.Windows.Forms.Control Handle, Guid DeviceGuid)
 		{
 			_ditMs = 80;
 			_startLatency = 0;
 			this.Volume = 1.0F;
 
-			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
+			_deviceSound = new Microsoft.DirectX.DirectSound.Device(DeviceGuid);
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
 
 			_bufDesc = new BufferDescription();
@@ -155,10 +156,15 @@ namespace com.dc3.morse
 
 		public void Dispose()
 		{
-			_deviceSound.Dispose();
-			_bufDesc.Dispose();
+			if (_deviceSound != null)
+				_deviceSound.Dispose();
+			_deviceSound = null;
+			if (_bufDesc != null)
+				_bufDesc.Dispose();
+			_bufDesc = null;
 			if (_buf != null)
 				_buf.Dispose();
+			_buf = null;
 		}
 
 		#endregion

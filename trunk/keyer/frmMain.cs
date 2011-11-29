@@ -21,7 +21,7 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
-//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -53,6 +53,8 @@
 //						rise/fall. Set a nice (fixed) falue for keying.
 // 25-Jun-11	rbd		2.1.0 - Match version with Morse News, increase max
 //						speed to 60 WPM (ridiculous but...). 
+// 28-Nov-11	rbd		2.2.0 (SF #3432844) Add logic for sound device sel.
+//						(SF #3444486) Add tone envelope rise/fall time control.
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -67,6 +69,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.IO;
+using Microsoft.DirectX.DirectSound;
 
 namespace com.dc3.morse
 {
@@ -85,6 +88,7 @@ namespace com.dc3.morse
 		private int _toneFreq;
 		private int _sounderNum;
 		private int _codeSpeed;				// Character WPM
+		private int _riseFallMs;
 		private int _serialPortNum;
 		private bool _useSerial;
 		private bool _iambicA;
@@ -98,15 +102,23 @@ namespace com.dc3.morse
 #else
 		private SerialPort _serialPort;		// Used for paddle via serial and optional real sounder output
 #endif
-		private DxTones _dxTones;
-		private DxSounder _dxSounder;
-		private IambicKeyer _iambicKeyer = null;		// [sentinel]
+		private string _soundDevGUID;	
+		private DxTones _dxTones = null;			// [senitnel]
+		private DxSounder _dxSounder = null;		// [sentinel]
+		private IambicKeyer _iambicKeyer = null;	// [sentinel]
 		private int _ctime;					// Character dit time (ms)
 		private int _stime;					// Symbol space time (ms)
 		private int _cstime;				// Character space time (ms)
 		private int _wstime;				// Word space time (ms)
 		private object _semiAutoLock;
 		private object _serialPortLock;
+
+		private struct SoundDev
+		{
+			public DeviceInformation info;
+			public override string ToString() { return info.Description; }	// Allow display in list
+			public SoundDev(DeviceInformation di) { info = di; }
+		}
 
 		//
 		// Form construction, load, closing
@@ -133,25 +145,38 @@ namespace com.dc3.morse
 
 		private void frmMain_Load(object sender, EventArgs e)
 		{
-			_semiAutoLock = new object();
-			_serialPortLock = new object();
-
+			//
+			// These must precede the sound device selection, as they
+			// are used to set up sound after the device is selected
+			// in the listbox event below.
+			//
+			_toneFreq = (int)nudToneFreq.Value;
+			_sounderNum = (int)nudSounder.Value;
 			_codeSpeed = (int)Properties.Settings.Default.CodeSpeed;
 			_ctime = _tbase / _codeSpeed;
 			_calcSpaceTime();
+			_riseFallMs = (int)Properties.Settings.Default.RiseFall;
+			//
+			// Set up the sound device selector and select the one saved
+			// in the app settings. This has the side effect of setting
+			// up the sound generators.
+			//
+			_soundDevGUID = (string)Properties.Settings.Default.SoundDevGUID;	// Get the current GUID (or blank)
+			DevicesCollection myDevices = new DevicesCollection();
+			int iSel = -1;
+			int i = 0;
+			foreach (DeviceInformation info in myDevices)
+			{
+				SoundDev sd = new SoundDev(info);
+				cbSoundDevs.Items.Add(sd);
+				if (info.DriverGuid.ToString() == _soundDevGUID)
+					iSel = i;
+				i += 1;
+			}
+			cbSoundDevs.SelectedIndex = iSel;
 
-			_toneFreq = (int)nudToneFreq.Value;
-			_dxTones = new DxTones(this, 1000);
-			_dxTones.Frequency = _toneFreq;
-			_dxTones.DitMilliseconds = _ctime;
-			_dxTones.Volume = tbVolume.Value / 10.0F;
-			_dxTones.StartLatency = 5;					// Actually rise/fall time
-
-			_sounderNum = (int)nudSounder.Value;
-			_dxSounder = new DxSounder(this);
-			_dxSounder.SoundIndex = _sounderNum;
-			_dxSounder.DitMilliseconds = _ctime;
-			_dxSounder.Volume = tbVolume.Value / 10.0F;
+			_semiAutoLock = new object();
+			_serialPortLock = new object();
 
 			_keyerMode = Properties.Settings.Default.KeyerMode;
 			if (_keyerMode == 0)
@@ -189,6 +214,7 @@ namespace com.dc3.morse
 		{
 			Properties.Settings.Default.SavedWinX = this.Left;
 			Properties.Settings.Default.SavedWinY = this.Top;
+			Properties.Settings.Default.SoundDevGUID = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid.ToString();
 
 			Properties.Settings.Default.Save();
 			if (_serialPort != null) _serialPort.Close();
@@ -198,6 +224,26 @@ namespace com.dc3.morse
 		//
 		// Control events
 		//
+
+		private void cbSoundDevs_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			Guid drvrGuid = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid;
+
+			if (_dxTones != null) 
+				_dxTones.Dispose();
+			_dxTones = new DxTones(this, drvrGuid, 1000);
+			_dxTones.Frequency = _toneFreq;
+			_dxTones.DitMilliseconds = _ctime;
+			_dxTones.Volume = tbVolume.Value / 10.0F;
+			_dxTones.StartLatency = _riseFallMs;					// Actually rise/fall time
+
+			if (_dxSounder != null)
+				_dxSounder.Dispose();
+			_dxSounder = new DxSounder(this, drvrGuid);
+			_dxSounder.SoundIndex = _sounderNum;
+			_dxSounder.DitMilliseconds = _ctime;
+			_dxSounder.Volume = tbVolume.Value / 10.0F;
+		}
 
 		private void nudSpeed_ValueChanged(object sender, EventArgs e)
 		{
@@ -212,6 +258,13 @@ namespace com.dc3.morse
 		{
 			_toneFreq = (int)nudToneFreq.Value;
 			_dxTones.Frequency = _toneFreq;
+			_dxTones.PlayFor(100);
+		}
+
+		private void nudRiseFallMs_ValueChanged(object sender, EventArgs e)
+		{
+			_riseFallMs = (int)nudRiseFallMs.Value;
+			_dxTones.StartLatency = _riseFallMs;
 			_dxTones.PlayFor(100);
 		}
 
@@ -511,6 +564,7 @@ namespace com.dc3.morse
 			chkModeA.Enabled = rbIambic.Checked;
 			pnlModeB.Visible = rbIambic.Checked && !chkModeA.Checked;
 			nudToneFreq.Enabled = rbTone.Checked;
+			nudRiseFallMs.Enabled = rbTone.Checked;
 			nudSounder.Enabled = rbSounder.Checked;
 			btnTestSerial.Enabled = nudSerialPort.Enabled = !chkUseSerial.Checked;
 		}

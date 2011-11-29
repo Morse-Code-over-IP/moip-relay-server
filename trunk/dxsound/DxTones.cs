@@ -8,7 +8,6 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
-//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -35,22 +34,27 @@
 //						version 1.6.0 (above) moved things into procs so can get rid
 //						of globals and dispose of resources properly. Use StartLatency
 //						property for variable envelope shaping (aferthought + laziness).
+// 27-Nov-11	rbd		1.9.0 - (SF #3432839) Manual key release tone now has 
+//						shaped envelope. This turned out to be amazingly easy.
+// 28-Nov-11	rbd		1.9.0 - (*SF #3432844) Add parameter for sound device 
+//						selection to constructor. Implement IDisposable.
 //
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Microsoft.DirectX.DirectSound;
+using System.Diagnostics;
 
 namespace com.dc3.morse
 {
-    public class DxTones : ITone
+    public class DxTones : ITone, IDisposable
     {
 		private const int _sampleRate = 44100;
 		private const short _bitsPerSample = 16;
 		private const short _bytesPerSample = 2;
 
-		private Device _deviceSound = null;
+		private Device _deviceSound = null;											// [sentinel]
 		private int _maxLen;														// Max length tone
 		private float _freq;
 		private double _filtCoeff;
@@ -58,10 +62,14 @@ namespace com.dc3.morse
 		private int _rawVol;
 		private int _ditMs;
 		private int _riseFallTime;
+		private int _totalSamples;
+		private double _envelopeSamples;
+		private double _cycleSamples;
 
+		private BufferDescription _bufDesc = null;									// [sentinel]
 		private SecondaryBuffer _secBuf = null;										// [sentinel]
 
-		public DxTones(System.Windows.Forms.Control Handle, int MaxLenMs)
+		public DxTones(System.Windows.Forms.Control Handle, Guid DeviceGuid, int MaxLenMs)
         {
 			_maxLen = MaxLenMs;
 			this.Frequency = 880;													// Defaults (typ.)
@@ -69,7 +77,7 @@ namespace com.dc3.morse
 			_ditMs = 80;
 			_riseFallTime = 10;
 
-			_deviceSound = new Microsoft.DirectX.DirectSound.Device();
+			_deviceSound = new Microsoft.DirectX.DirectSound.Device(DeviceGuid);
 			_deviceSound.SetCooperativeLevel(Handle, CooperativeLevel.Priority);	// Up priority for quick response
 		}
 
@@ -78,8 +86,6 @@ namespace com.dc3.morse
 		//
 		private void genWaveBuf(int duration)
 		{
-			BufferDescription bufDesc = null;
-
 			try
 			{
 				byte[] waveBuf = GenTone(_freq, 0.9, duration);
@@ -93,21 +99,21 @@ namespace com.dc3.morse
 				waveFmt.SamplesPerSecond = _sampleRate;
 				waveFmt.AverageBytesPerSecond = _sampleRate * _bytesPerSample;
 
-				bufDesc = new BufferDescription(waveFmt);
-				bufDesc.DeferLocation = true;
-				bufDesc.BufferBytes = waveBuf.Length;
-				bufDesc.ControlEffects = false;										// Necessary for short tones
-				bufDesc.GlobalFocus = true;											// Enable audio when program is in background
-				bufDesc.ControlVolume = true;
+				_bufDesc = new BufferDescription(waveFmt);
+				_bufDesc.DeferLocation = true;
+				_bufDesc.BufferBytes = waveBuf.Length;
+				_bufDesc.ControlEffects = false;									// Necessary for short tones
+				_bufDesc.GlobalFocus = true;										// Enable audio when program is in background
+				_bufDesc.ControlVolume = true;
 				if (_secBuf != null)												// If any previous buffer
 					_secBuf.Dispose();												// Dispose of it now!
-				_secBuf = new SecondaryBuffer(bufDesc, _deviceSound);
+				_secBuf = new SecondaryBuffer(_bufDesc, _deviceSound);
 				_secBuf.Write(0, waveBuf, LockFlag.EntireBuffer);
 			}
 			finally
 			{
-				if (bufDesc != null)
-					bufDesc.Dispose();
+				if (_bufDesc != null)
+					_bufDesc.Dispose();
 			}
 
 
@@ -119,16 +125,18 @@ namespace com.dc3.morse
 		private byte[] GenTone(double frequency, double amp, int duration)
         {
             int length = (int)(_sampleRate * duration / 1000.0);
+			_totalSamples = length;
             byte[] wavedata = new byte[length * 2];
 			double timeScale = frequency * 2 * Math.PI / (double)_sampleRate;
 
-			int envelopeSamples = (int)(_sampleRate * _riseFallTime / 1000.0 );		// Linear attack/decay from "StartLatency" (1.8)
+			_envelopeSamples = (double)_sampleRate * _riseFallTime / 1000.0 ;		// Linear attack/decay from "StartLatency" (1.8)
+			_cycleSamples = (double)_sampleRate / _freq;
 			double xo = 0;
 			double yo = 0;
             for (int i = 0; i < length; i++)
             {
-				double a0 = amp * Math.Min((double)i / envelopeSamples, 1.0);		// Envelope
-				a0 = a0 * Math.Min((double)(length - i) / envelopeSamples, 1.0);
+				double a0 = amp * Math.Min((double)i / _envelopeSamples, 1.0);		// Envelope
+				a0 = a0 * Math.Min((double)(length - i) / _envelopeSamples, 1.0);
 
 				double xn = Math.Sin(i * timeScale);
 
@@ -226,9 +234,32 @@ namespace com.dc3.morse
 		{
 			if (_secBuf != null)
 			{
-				_secBuf.Stop();
-				_secBuf.SetCurrentPosition(0);
+				int pos = _secBuf.PlayPosition / 2;								// Position in samples
+				int sJump = (int)((((_maxLen - _riseFallTime) / 1000.0) - ((double)pos / _sampleRate)) * _freq);	// Whole cycles to start of delay
+				pos += (int)((double)sJump * _cycleSamples);					// Jump forward n integral number of cycles!
+				_secBuf.SetCurrentPosition(2 * pos);							// .. to start of decay envelope
+				// Simply let the tail play now. For some reason, PreciseDelay does not delay in this situation, sometimes!
+//				PreciseDelay.Wait(2 * _riseFallTime);							// Empirical, wait at least 20, but 2 * envelope
+//				_secBuf.Stop();													// Just in case...
+//				_secBuf.SetCurrentPosition(0);
 			}
 		}
+
+		#region IDisposable Members
+
+		public void Dispose()
+		{
+			if (_deviceSound != null)
+				_deviceSound.Dispose();
+			_deviceSound = null;
+			if (_bufDesc != null)
+				_bufDesc.Dispose();
+			_bufDesc = null;
+			if (_secBuf != null)
+				_secBuf.Dispose();
+			_secBuf = null;
+		}
+
+		#endregion
 	}
 }
