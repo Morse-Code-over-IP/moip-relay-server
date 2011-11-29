@@ -38,5 +38,11 @@
     <Setting Name="SavedWinY" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">64</Value>
     </Setting>
+    <Setting Name="SoundDevGUID" Type="System.String" Scope="User">
+      <Value Profile="(Default)">00000000-0000-0000-0000-000000000000</Value>
+    </Setting>
+    <Setting Name="RiseFall" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">8</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

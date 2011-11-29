@@ -4,10 +4,10 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=Windows-1252">
 		<meta http-equiv="Content-Style-Type" content="text/css">
 		<link rel="STYLESHEET" type="text/css" href="dc3doc.css">
-		<title>Morse Keyer 2.1</title>
+		<title>Morse Keyer 2.2</title>
 </head>
 	<body>
-		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="MorseKeyerLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse Keyer 2.1</h1>
+		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="MorseKeyerLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse Keyer 2.2 (Updated 28-Nov-2011)</h1>
 	<p>Morse Keyer is a software keyer that can output CW radio tones or old-fashioned telegraph sounder sounds, and drive a device via a serial port (a physical telegraph sounder/loop or ham rig). This  document will hopefully be all you need to get going.</p>
 	<p><span class="yellowbg">Hover the mouse over the controls on the window to get hints on what they do.</span></p>
 <p><span class="yellowbg">If the program crashes when trying to make sounds, you probably can't use it as it requires Microsoft DirectX</span>.</p>
@@ -25,8 +25,8 @@
 <h3>Connecting a Paddle via Serial Port</h3>
 <p>See the directions at Les Kerr's <a href="http://home.comcast.net/~morsekob/morsekob.htm#AppendixB" target="_blank">MorseKOB Tutorial Appendix B</a> or at the <a href="http://www.mrx.com.au/images/cwcom_help.htm#Morse Key Cable" target="_blank">end of the CW Communicator manual</a>. Once you have the cable made up, connect it, select the COM port to which it is connected. Now try keying. If you got the cable and port number right you'll be all set.</p>
 <h2>Sound Output</h2>
-<p>You can select to have  radio tone or telegraph sounder output. If you select <strong> Radio Tone</strong>, clicking the up and down arrow in the <strong>Tone Freq</strong>. box will play a short tone at the new frequency. If you select <strong>Telegraph Sounder</strong>, you can cycle through the available sounder sounds in the same way.</p>
-<p>At speeds above 30 wpm, the telegraph sounds can start to sound mushy. This is a limitation in the speed of the sound playing in Windows.</p>
+<p>You can select to have  radio tone or telegraph sounder output. If you select <strong> Radio Tone</strong>, clicking the up and down arrow in the <strong>Tone Freq</strong>. box will play a short tone at the new frequency. If you select <strong>Telegraph Sounder</strong>, you can cycle through the available sounder sounds in the same way. At speeds above 30 wpm, the telegraph sounds can start to sound mushy. This is a limitation in the speed of the sound playing in Windows.</p>
+<p>If you want to use a sound output device (&quot;sound card&quot;) other than the one currently selected in Windows, you can select it in the dropdown list. To use the one selected in Windows, select <strong>Primary Sound Driver</strong>.</p>
 	<h2>Connecting an External Telegraph Sounder/Loop or Ham Rig</h2>
 <p>First you need to make up an interface circuit which uses the serial port's Request to Send (RTS) pin to control the current loop that drives the sounder or loop. You can find out more at Les Kerr's <a href="http://home.comcast.net/~morsekob/morsekob.htm#AppendixD" target="_blank">MorseKOB tutorial Appendix D</a>, and at the <a href="http://www.mrx.com.au/images/cwcom_help.htm#Morse Key Cable" target="_blank">end of the CW Communicator manual</a>. Once you have the sounder interface connected, select your COM port and click Test button. Your sounder should click/clack 4 times or your ham rig should send 4 dits. If this works, you're all set. Check the <strong>Use</strong> box. When the serial port is active, the keyer always keys the DTR pin whether or not you have anything hooked up to it! If you don't want the keyer to make sounds, just turn  the volume down to zero.</p>
 	<h2><a name="sndcfg"></a>Administrivia</h2>

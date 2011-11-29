@@ -9,7 +9,7 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
-//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
 //
 // NOTE ON CODE AND CHAR SPEED SPINBOXES:  If the CharSpeed spinbox is auto-bound
 //				to the Application Setting, the interaction between it and the
@@ -75,6 +75,9 @@
 //						the header) as they are in RSS posts. 
 // 24-Jun-11	rbd		2.1.2 - SF 3329000 Increase max speed to 60 (ridiculous but ...)
 // 14-Jul-11	rbd		2.1.4 - Add noise for CW tones and spark gap.
+// 28-Nov-11	rbd		2.2.0 - SF #3232844 - DXSounds take audio device GUID (always 
+//						'primary' for this app). SF #3444355 Hardware to DirectX sounds in
+//						anticipation of removing the programmed sound stuff.
 //
 //
 using System;
@@ -142,6 +145,7 @@ namespace com.dc3
 		private int _codeSpeed;
 		private int _charSpeed;
 		private bool _directX;
+		private string _soundDevGUID;
 		private int _toneFreq;
 		private int _noiseLevel;
 		private int _timingComp;
@@ -189,7 +193,9 @@ namespace com.dc3
 			nudCharSpeed.Minimum = (decimal)_codeSpeed;
 			_charSpeed = (int)nudCharSpeed.Value;
 			// ------ FROM SOUND CONFIG FORM -------
-			_directX = Properties.Settings.Default.DirectX;
+			// SF #3444355 _directX = Properties.Settings.Default.DirectX;
+			_directX = true;
+			_soundDevGUID = Properties.Settings.Default.SoundDevGUID;
 			if (_directX)
 				_timingComp = Properties.Settings.Default.RiseFall;
 			else
@@ -489,7 +495,7 @@ namespace com.dc3
 
 		private void picSoundCfg_Click(object sender, EventArgs e)
 		{
-			SoundCfgForm sf = new SoundCfgForm();
+			SoundCfgForm sf = new SoundCfgForm(_soundDevGUID);
 			sf.UseDirectX = Properties.Settings.Default.DirectX;
 			sf.NoiseLevel = Properties.Settings.Default.NoiseLevel;
 			if (sf.UseDirectX)
@@ -498,24 +504,26 @@ namespace com.dc3
 				sf.TimingComp = (int)Properties.Settings.Default.TimingComp;
 			if (sf.ShowDialog(this) == DialogResult.OK)
 			{
+				_soundDevGUID = sf.SoundDevGUID;
 				_timingComp = sf.TimingComp;
 				_tones.StartLatency = _timingComp;
 				_sounder.StartLatency = _timingComp;
 				_spark.StartLatency = _timingComp;
-				if (_directX != sf.UseDirectX)									// Switching sound technology
-				{
-					_directX = sf.UseDirectX;
+				//if (_directX != sf.UseDirectX)									// Switching sound technology
+				//{
+				//	_directX = sf.UseDirectX;
 					SetupSound();
-				}
-				else
-					_directX = sf.UseDirectX;
-				if (_directX)
+				//}
+				//else
+				//	_directX = sf.UseDirectX;
+				//if (_directX)
 					Properties.Settings.Default.RiseFall = _timingComp;
-				else
-					Properties.Settings.Default.TimingComp = (decimal)_timingComp;
+				//else
+				//	Properties.Settings.Default.TimingComp = (decimal)_timingComp;
 				Properties.Settings.Default.DirectX = _directX;
 				_noiseLevel = sf.NoiseLevel;
-				Properties.Settings.Default.NoiseLevel = sf.NoiseLevel;
+				Properties.Settings.Default.NoiseLevel = _noiseLevel;
+				Properties.Settings.Default.SoundDevGUID = _soundDevGUID;
 			}
 		}
 
@@ -544,9 +552,10 @@ namespace com.dc3
 #if !MONO_BUILD
 			if (_directX)
 			{
-				_tones = new DxTones(this, 1000);
-				_sounder = new DxSounder(this);
-				_spark = new DxSpark(this);
+				Guid guid = new Guid(_soundDevGUID);
+				_tones = new DxTones(this, guid, 1000);
+				_sounder = new DxSounder(this, guid);
+				_spark = new DxSpark(this, guid);
 			}
 			else
 			{

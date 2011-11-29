@@ -9,7 +9,7 @@
 //
 // ENVIRONMENT:	Microsoft.NET 2.0/3.5
 //				Developed under Visual Studio.NET 2008
-//				Also may be built under MonoDevelop 2.2.1/Mono 2.4+
+//
 //
 // AUTHOR:		Bob Denny, <rdenny@dc3.com>
 //
@@ -46,7 +46,6 @@ namespace com.dc3.morse
 
 	public interface IAudioWav
 	{
-		
 		int SoundIndex { get; set; }
 		float Volume { get; set; }
 		int StartLatency { get; set; }
