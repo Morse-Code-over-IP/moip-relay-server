@@ -38,6 +38,11 @@
 //						shaped envelope. This turned out to be amazingly easy.
 // 28-Nov-11	rbd		1.9.0 - (*SF #3432844) Add parameter for sound device 
 //						selection to constructor. Implement IDisposable.
+// 30-Nov-11	rbd		1.10.0 (SF #3446187) Change envelope to raised cosine. Also 
+//						lengthen the total duration by half the rise/fall time so
+//						that the tone is the proper duration at its half amplitude
+//						level. 
+//						
 //
 using System;
 using System.Collections.Generic;
@@ -124,19 +129,25 @@ namespace com.dc3.morse
         //
 		private byte[] GenTone(double frequency, double amp, int duration)
         {
-            int length = (int)(_sampleRate * duration / 1000.0);
+            int length = (int)(_sampleRate * ((double)duration + (_riseFallTime / 2.0)) / 1000.0);
 			_totalSamples = length;
             byte[] wavedata = new byte[length * 2];
 			double timeScale = frequency * 2 * Math.PI / (double)_sampleRate;
 
-			_envelopeSamples = (double)_sampleRate * _riseFallTime / 1000.0 ;		// Linear attack/decay from "StartLatency" (1.8)
+			_envelopeSamples = (double)_sampleRate * _riseFallTime / 1000.0 ;		// Cosine attack/decay from "StartLatency" (1.8)
 			_cycleSamples = (double)_sampleRate / _freq;
 			double xo = 0;
 			double yo = 0;
             for (int i = 0; i < length; i++)
             {
-				double a0 = amp * Math.Min((double)i / _envelopeSamples, 1.0);		// Envelope
-				a0 = a0 * Math.Min((double)(length - i) / _envelopeSamples, 1.0);
+				double a0;
+				//double a0 = amp * Math.Min((double)i / _envelopeSamples, 1.0);		// Envelope
+				//a0 = a0 * Math.Min((double)(length - i) / _envelopeSamples, 1.0);
+				a0 = amp;
+				if (i < _envelopeSamples)
+					a0 *= Math.Min(0.5 - (0.5 * Math.Cos(Math.PI * i / _envelopeSamples)), 1.0);
+				else if (i >= (length - _envelopeSamples))
+					a0 *= Math.Min(0.5 - (0.5 * Math.Cos(Math.PI * (length - i) / _envelopeSamples)), 1.0);
 
 				double xn = Math.Sin(i * timeScale);
 
@@ -164,7 +175,7 @@ namespace com.dc3.morse
 			get { return _freq; }
 			set { 
 				_freq = value;
-				_filtCoeff = Math.Exp((-Math.PI * _freq / (10.0 * _sampleRate)));	// Rolloff at freq / 10
+				_filtCoeff = Math.Exp((-Math.PI * _freq / (50.0 * _sampleRate)));	// Rolloff at freq / 50
 			}
 		}
 
@@ -234,10 +245,16 @@ namespace com.dc3.morse
 		{
 			if (_secBuf != null)
 			{
+				//
+				// This actually does work on faster machines, but leaves a discontinuity
+				// in the waveform if the machine isn't fast enough.
+				//
 				int pos = _secBuf.PlayPosition / 2;								// Position in samples
 				int sJump = (int)((((_maxLen - _riseFallTime) / 1000.0) - ((double)pos / _sampleRate)) * _freq);	// Whole cycles to start of delay
 				pos += (int)((double)sJump * _cycleSamples);					// Jump forward n integral number of cycles!
+		_secBuf.Stop();
 				_secBuf.SetCurrentPosition(2 * pos);							// .. to start of decay envelope
+		_secBuf.Play(0, BufferPlayFlags.Default);
 				// Simply let the tail play now. For some reason, PreciseDelay does not delay in this situation, sometimes!
 //				PreciseDelay.Wait(2 * _riseFallTime);							// Empirical, wait at least 20, but 2 * envelope
 //				_secBuf.Stop();													// Just in case...
