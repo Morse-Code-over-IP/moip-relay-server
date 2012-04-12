@@ -76,8 +76,9 @@
 // 24-Jun-11	rbd		2.1.2 - SF 3329000 Increase max speed to 60 (ridiculous but ...)
 // 14-Jul-11	rbd		2.1.4 - Add noise for CW tones and spark gap.
 // 28-Nov-11	rbd		2.2.0 - SF #3232844 - DXSounds take audio device GUID (always 
-//						'primary' for this app). SF #3444355 Hardware to DirectX sounds in
+//						'primary' for this app). SF #3444355 Hardwire to DirectX sounds in
 //						anticipation of removing the programmed sound stuff.
+// 11-Apr-12	rbd		2.4.0 - SF #3516969 - Add Atom feed capability.
 //
 //
 using System;
@@ -117,7 +118,9 @@ namespace com.dc3
 		{
 			public DatedItem()
 			{
-				rssItem = null;												// [sentinel] (typ.)
+				rssItem = null;													// [sentinel] (typ.)
+				atomItem = null;
+				atomNsMgr = null;
 				twType = null;
 				twScreenName = null;
 				twRawText = null;
@@ -125,6 +128,8 @@ namespace com.dc3
 			}
 			public DateTime pubDate { get; set; }
 			public XmlNode rssItem { get; set; }
+			public XmlNode atomItem { get; set; }
+			public XmlNamespaceManager atomNsMgr { get; set; }
 			public string twType { get; set; }
 			public string twScreenName { get; set; }
 			public string twRawText { get; set; }
@@ -750,28 +755,40 @@ namespace com.dc3
 			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
 			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
 			buf = Regex.Replace(buf, "[—–]", "-");								// Unicode emdash/endash -> hyphen
+			buf = buf.Replace("(AP)", "AP");									// Special case for AP Atom feeds
 			buf = Regex.Replace(buf, "\\s\\s+", " ").Trim().ToUpper();			// Compress running whitespace, fold all to upper case
 
 			return buf;
 		}
 
 		//
-		// Tries to get a correct pubDate (local time) from the RSS <item> node.
+		// Tries to get a correct pubDate (local time) from the RSS or Atom
+		// <item> node. Easy for Atom ISO 8601 date format.
 		//
-		// This would be much easier if the @#$%^& date in pubDate wasn't the
+		// RSS would be much easier if the @#$%^& date in pubDate wasn't the
 		// old lazy-man's unix strftime()/RFC822 format, with its "whatever"
 		// time zone abbrevations!!!! FeedBurner uses "EST" egad.
 		//
-		private DateTime GetPubDateUtc(XmlNode item)
+		private DateTime GetPubDateUtc(XmlNode item, XmlNamespaceManager nsmgr)
 		{
 			DateTime corrDate;
 
-			XmlNode n = item.SelectSingleNode("pubDate");						// Some feeds don't have this, so use now()
-			if (n == null)
+			XmlNode n = item.SelectSingleNode("pubDate");						// Try RSS dfirst
+			if (n == null && nsmgr != null)
+			{
+				n = item.SelectSingleNode("at:updated", nsmgr);					// Then try Atom:updated, then Atom:published
+				if (n == null)
+				{
+					n = item.SelectSingleNode("at:published", nsmgr);
+					if (n == null)
+						return DateTime.Now;									// Can't find the date, use 'Now'
+				}
+			}
+			else
 				return DateTime.Now;
 
 			string dateStr = n.InnerText;
-			if (!DateTime.TryParse(dateStr, out corrDate))
+			if (!DateTime.TryParse(dateStr, out corrDate))						// This works on Atom dates!
 			{
 				//
 				// Probably an RFC 822 time with text time zone other than 'GMT"
@@ -1092,6 +1109,11 @@ namespace com.dc3
 						if (uri.Scheme == "twitter")
 						{
 							//
+							// =======
+							// TWITTER
+							// =======
+							//
+							//
 							// Using the TwitterVB library, which puts an API on Twitter's "xml" 
 							// format. Yes, we could just use Twitter's RSS, but this gives us
 							// more flexibility.
@@ -1223,7 +1245,9 @@ namespace com.dc3
 						else
 						{
 							//
-							// Sending an RSS feed
+							// ===
+							// RSS
+							// ===
 							//
 							SetStatus("Getting RSS feed data...", true);
 							if (_debugTracing)
@@ -1232,31 +1256,70 @@ namespace com.dc3
 							//feedXml.Load(feedUri);
 							feedXml.LoadXml(GetAuthFeedXml(feedUri));
 
+							//
+							// First try for RSS
+							//
 							XmlNodeList items = feedXml.SelectNodes("/rss/channel/item");
-							if (items.Count == 0)
-								throw new ApplicationException("This does not look like an RSS feed");
-
-							if (_debugTracing)
-								Trace.WriteLine("Found  " + items.Count + " RSS articles", _traceCatMorseNews);
-							foreach (XmlNode item in items)
+							if (items.Count > 0)
 							{
-								DateTime pubUtc = GetPubDateUtc(item);					// See comments above, sick hack
-								if (pubUtc == DateTime.MinValue)
+								if (_debugTracing)
+									Trace.WriteLine("Found  " + items.Count + " RSS articles", _traceCatMorseNews);
+								foreach (XmlNode item in items)
 								{
-									if (_debugTracing)
+									DateTime pubUtc = GetPubDateUtc(item, null);			// See comments above, sick hack
+									if (pubUtc == DateTime.MinValue)
 									{
-										Trace.WriteLine("RSS article has bad pubDate " + item.SelectSingleNode("pubDate").InnerText, _traceCatMorseNews);
-										Trace.WriteLine("  " + item.SelectSingleNode("title").InnerText, _traceCatMorseNews);
+										if (_debugTracing)
+										{
+											Trace.WriteLine("RSS article has bad pubDate " + item.SelectSingleNode("pubDate").InnerText, _traceCatMorseNews);
+											Trace.WriteLine("  " + item.SelectSingleNode("title").InnerText, _traceCatMorseNews);
+										}
+										continue;											// Bad pubDate, skip this story
 									}
-									continue;											// Bad pubDate, skip this story
+									//
+									// OK we have a story we can use, as we were able to parse the date.
+									//
+									DatedItem ni = new DatedItem();
+									ni.pubDate = pubUtc;
+									ni.rssItem = item;
+									stories.Add(ni);
 								}
+							}
+							else
+							{
 								//
-								// OK we have a story we can use, as we were able to parse the date.
+								// ====
+								// ATOM
+								// ====
 								//
-								DatedItem ni = new DatedItem();
-								ni.pubDate = pubUtc;
-								ni.rssItem = item;
-								stories.Add(ni);
+								XmlNamespaceManager nsmgr = new XmlNamespaceManager(feedXml.NameTable);
+								nsmgr.AddNamespace("at", "http://www.w3.org/2005/Atom");
+								items = feedXml.SelectNodes("/at:feed/at:entry", nsmgr);
+								if (items.Count == 0)
+									throw new ApplicationException("This does not look like an RSS or Atom feed");
+								if (_debugTracing)
+									Trace.WriteLine("Found  " + items.Count + " Atom articles", _traceCatMorseNews);
+								foreach (XmlNode item in items)
+								{
+									DateTime pubUtc = GetPubDateUtc(item, nsmgr);			// See comments above, sick hack
+									if (pubUtc == DateTime.MinValue)
+									{
+										if (_debugTracing)
+										{
+											Trace.WriteLine("RSS article has bad pubDate " + item.SelectSingleNode("pubDate").InnerText, _traceCatMorseNews);
+											Trace.WriteLine("  " + item.SelectSingleNode("title").InnerText, _traceCatMorseNews);
+										}
+										continue;											// Bad pubDate, skip this story
+									}
+									//
+									// OK we have a story we can use, as we were able to parse the date.
+									//
+									DatedItem ni = new DatedItem();
+									ni.pubDate = pubUtc;
+									ni.atomItem = item;
+									ni.atomNsMgr = nsmgr;
+									stories.Add(ni);
+								}
 							}
 							//if (stories.Count == 0)
 							//    throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
@@ -1287,16 +1350,20 @@ namespace com.dc3
 						if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))	// If too old
 							continue;											// Skip it
 
-						if (story.rssItem == null)								// This one is from Twitter
+						if (story.twType != null)								// This one is from Twitter
 						{
 							// Entire story is the title. Add screen name before to look similar to RSS newsfeeds
 							title = GetMorseInputText(story.twScreenName + " - " + story.twRawText);
 							if (_ignoreRetweets && title.Contains(" RT @"))		// Skip retweets (already capitalized)
 								continue;
 						}
-						else
+						else if (story.rssItem != null)
 						{
 							title = GetMorseInputText(story.rssItem.SelectSingleNode("title").InnerText);
+						}
+						else
+						{
+							title = GetMorseInputText(story.atomItem.SelectSingleNode("at:title", story.atomNsMgr).InnerText);
 						}
 
 						lock (_titleCache)
@@ -1314,12 +1381,12 @@ namespace com.dc3
 
 
 						time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
-						if (story.rssItem == null)								// This one is from Twitter
+						if (story.twType != null)								// This one is from Twitter
 						{
 							detail = "";										// Entire tweet is title
 							typ = "TWT " + story.twType;	// From includes screen name
 						}
-						else
+						else if (story.rssItem != null)
 						{
 							// ?? SHOULD I DO THIS ??
 							//if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))
@@ -1334,6 +1401,15 @@ namespace com.dc3
 							else
 								detail = "";
 							typ = "RSS";
+						}
+						else
+						{
+							XmlNode detNode = story.atomItem.SelectSingleNode("at:summary", story.atomNsMgr);
+							if (detNode != null)
+								detail = GetMorseInputText(detNode.InnerText);
+							else
+								detail = "";
+							typ = "ATM";
 						}
 
 						if (M.Mode == Morse.CodeMode.International)				// Radiotelegraphy
