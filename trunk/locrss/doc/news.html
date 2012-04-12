@@ -7,8 +7,8 @@
 		<title>Morse News 2.2</title>
 </head>
 	<body>
-		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 2.3	(Updated 31-Nov-2011)</h1>
-	<p>Morse News periodically reads one <em>or more</em> <a href="http://news.yahoo.com/page/rss" target="_blank">RSS</a> (news) and/or <a href="http://twitter.com/" target="_blank">Twitter</a> feeds and translates the received messages into International or American Morse Code, which is output as CW radio tones, or telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. This  document will hopefully be all you need to get going. <span class="underline">You'll miss out on important features if you skip reading this</span>!</p>
+		<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 2.4	(Updated 11-Apr-2012, Atom support)</h1>
+	<p>Morse News periodically reads one <em>or more</em> <a href="http://news.yahoo.com/sitemap/" target="_blank">RSS</a> (news), <a href="http://hosted2.ap.org/APDEFAULT/APNewsFeeds" target="_blank">Atom</a> (news), and/or <a href="http://twitter.com/" target="_blank">Twitter</a> feeds and translates the received messages into International or American Morse Code, which is output as CW radio tones, or telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. This  document will hopefully be all you need to get going. <span class="underline">You'll miss out on important features if you skip reading this</span>!</p>
 	<p><span class="yellowbg">Hover the mouse over the controls on the window to get hints on what they do.</span></p>
 	<p><span class="yellowbg">If the program crashes when trying to make sounds, you probably can't use it as it requires Microsoft DirectX</span>.</p>
 	<h2>Quick Start</h2>
@@ -19,17 +19,32 @@
 		<li>Select International or American code.</li>
 		<li>Click Start and you should start to hear the Morse code for Yahoo! top stories.</li>
 	</ol>
-	<p class="alert"><strong>Please Note:</strong> Before writing off Twitter, please read the Twitter section below. You can create a separate dedicated Twitter account for use as a news feed then have it follow commercial news services' tweets.</p>
-<h2><img src="big_rss.png" alt="RSS" width="32" height="32" hspace="8" align="absmiddle">RSS News Feeds and URLs</h2>
-	<p>RSS feeds contain digests of articles, most often news articles. It's beyond the scope of this document to describe RSS itself, how to use RSS, how to find RSS feeds, etc. Start with the <a href="http://en.wikipedia.org/wiki/RSS" target="_blank">Wikipedia article on RSS</a> if you need info and go from there. Morse News was tested with Yahoo! RSS News feeds. It comes pre-set with several of these feeds. The Yahoo! feeds are clean copies of Associated Press, Reuters, etc. news wire services, not cluttered with junk and verbal decoration. I suggest you start with these. The Feed URL list is pre-filled with a few Yahoo! RSS feeds and a &quot;Top 100 words&quot; practice feed from my web site. Of course you can type in your own URLs. If you actually <em>use</em> a feed you typed in, it will be remembered in the list. Up to the latest 16 feeds used are remembered. <span class="alert">If you want to reset the list to the original set, right click and select <strong>Reset to original list</strong></span>.</p>
-	<p class="note">Note: As of mid 2011, it appears that Yahoo! is phasing out their RSS feeds. They no longer have a list of them available, however they are still working. In the next version of Morse News I'll update the standard list to consist of some CNN, UPI, and Reuters feeds. Asssociated Press only feeds in Atom now, and at present Morse News only understands RSS and Twitter (though I may add Atom soon).</p>
-	<p>There's sort of an art to discovering the actual feed URL for RSS feeds. Sometimes it's enough to right-click on the RSS icon and select Copy Link or Copy Shortcut (depending on your browser). Looking at the bottom status area of your browser while hovering over a feed icon is another trick. Here are some other news-type RSS sources:</p>
-	<p><a href="http://www.upi.com/rss/" target="_blank"><strong>United Press International</strong></a> - The classic newswire service. <br>
-	<a href="http://www.reuters.com/tools/rss" target="_blank"><strong>Reuters</strong></a> - Brisith newswire service, more world-oriented than the above US-centric services <br>
-		<a href="http://www.cnn.com/services/rss/" target="_blank"><strong>CNN News</strong></a> - These work well in Morse News<br>
-	<a href="http://www.foxnews.com/rss/index.html" target="_blank"><strong>Fox News</strong></a> - Not so good, too much bulleted hyperlink text follows the real news. </p>
-<p><span class="yellowbg">Not all RSS feeds will be usable in Morse News!</span></p>
-	<h2><a href="http://twitter.com/" target="_blank"><img src="twitter_logo.png" alt="Twitter" width="103" height="24" border="0" align="absmiddle"></a></h2>
+	<p class="alert"><strong>Please Note:</strong> Before writing off Twitter, please read the <a href="#twit">Twitter section</a> below. You can create a separate dedicated Twitter account for use as a news feed then have it follow commercial news services' tweets.</p>
+<h2><img src="big_rss.png" alt="RSS" width="32" height="32" hspace="8" align="absmiddle">RSS and Atom News Feeds and URLs</h2>
+	<p>RSS and Atom feeds are similar and Morse News understands both formats automatically. These feeds contain digests of articles, most often news articles. It's beyond the scope of this document to describe these feed technologies, how to use them, how to find  feeds, etc. Start with the Wikipedia articles on <a href="http://en.wikipedia.org/wiki/RSS" target="_blank">RSS</a> and <a href="http://en.wikipedia.org/wiki/Atom_(standard)" target="_blank">Atom</a> if you want detailed info and go from there. Morse News was tested with Yahoo! RSS News feeds. It comes pre-set with several of these feeds. The Yahoo! feeds are clean copies of Associated Press, Reuters, etc. news wire services, not cluttered with junk and verbal decoration. I suggest you start with these. The Feed URL list is pre-filled with a few Yahoo! RSS feeds and a &quot;Top 100 words&quot; practice feed from my web site. Of course you can type in your own URLs. If you actually <em>use</em> a feed you typed in, it will be remembered in the list. Up to the latest 16 feeds used are remembered. <span class="alert">If you want to reset the list to the original set, right click and select <strong>Reset to original list</strong></span>.</p>
+	<h3>RSS and Atom Feeds</h3>
+	<p>There's sort of an art to discovering the actual feed URL for RSS and Atom feeds. Sometimes it's enough to right-click on the RSS/Atom icon and select Copy Link or Copy Shortcut (depending on your browser). Looking at the bottom status area of your browser while hovering over a feed icon is another trick. Here are some news-type  sources:</p>
+	
+	<p><a href="http://news.yahoo.com/sitemap/" target="_blank"><strong>Yahoo! News</strong></a> - These are clean news feeds from Reuters, AP, and others and they result in clean telegraphic news.<br>
+		<strong><a href="http://hosted2.ap.org/APDEFAULT/APNewsFeeds" target="_blank">Associated Press</a></strong> - Essential news from AP. There are over a dozen categorized feeds<br>
+		<a href="http://www.reuters.com/tools/rss" target="_blank"><strong>Reuters</strong></a> - British newswire service, more world-oriented than the above services<br>
+		<strong><a href="http://www.nytimes.com/services/xml/rss/index.html" target="_blank">The New York Times</a></strong> - Over two dozen news feeds of all types. Somewhat biased but well written. <br>
+		<a href="http://www.upi.com/rss/" target="_blank"><strong>United Press International</strong></a> - The classic newswire service.<br>
+		<a href="http://www.cbc.ca/rss/" target="_blank"><strong>The CBC News Network</strong></a> - Canadian Broadcasting Corporation world and Canada-oriented news. Works well for Morse messages.<br>
+		<a href="http://www.cnn.com/services/rss/" target="_blank"><strong>CNN News</strong></a> - These work well in Morse News.<br>
+		<strong><a href="http://www.theregister.co.uk/Design/page/feeds.html" target="_blank">The Register</a></strong> - British crazy tabloid style reporting on information technology, tech hardware, etc. Challenging for Morse reading becuse of the unusual writing style. <br>
+		<strong><a href="http://finance.yahoo.com/rssindex" target="_blank">Yahoo! Finance</a></strong> - Markets, companies, and commentary from one of Yahoo!'s best services. You can even get feeds on individual stocks.
+	</p>
+	<p><span class="yellowbg">Not all  feeds will be usable in Morse News!</span></p>
+
+<h3>Feeding From Your Facebook Home</h3>
+
+<p>To get the RSS feed for your Facebook &quot;home&quot;:</p>
+<ol>
+	<li>Along the top of your Facebook page, in the blue bar, the globe icon is where you see your notifications. Click the globe and at the bottom select <strong>see all notifications</strong>.</li>
+	<li>At the top of the Your Notifications page that appears, see <span style="color:gray">Get notifications via:</span> <span style="color: blue">RSS</span>. The <span style="color:blue">RSS</span> is a hyperlink to your Facebook RSS feed. As usual, right click and select Copy Link or Copy Shortcut (depending on your browser).</li>
+</ol>
+	<h2><a name="twit"></a><a href="http://twitter.com/" target="_blank"><img src="twitter_logo.png" alt="Twitter" width="140" height="62" border="0" align="absmiddle"></a>&nbsp;&nbsp;Using Twitter to Feed Morse News</h2>
 	<p>You can monitor your Twitter timeline (and <em>much</em> more) with Morse News. Assuming you have a Twitter account, all you have to do to monitor your home timeline is use a Feed URL of <span class="fixed">twitter://timeline</span>. You'll notice that this is one of the default items in the Feed URL dropdown list. Try it! The first time you do, you'll see a web browser open to allow you to authorize Morse News to access your Twitter account. This happens only once. <span class="alert">Please note that Morse News asks <strong>only for read access</strong> to your Twitter account. It cannot possibly post tweets or make any changes</span>.</p>
 <h3>Why Twitter? It's an excellent way to get news!</h3>
 <p>Even if you don't	use Twitter, it's a useful way to get news of multiple specialized topics. There are a couple of ways to do this:</p>
@@ -62,7 +77,7 @@
 	<dd>A timeline resulting from a Twitter search for hashtag <strong>#morsecode</strong>, and returning only <strong>popular</strong> tweets. The choices for <strong>result_type</strong> are <strong>popular</strong>, <strong>recent</strong>, and <strong>mixed</strong> (containing both).</dd>
 </dl>
 <h2>Multiple Feeds - Aggregation</h2>
-<p>To make things even more interesting, you can read multiple RSS and Twitter feeds, combining all of their articles into an aggregated feed. Instead of putting a single feed URL into the field, you put the URL of a local file which contains a <strong>list of feed URLs</strong> (you can mix http:// for RSS and twitter://). Clicking the <strong>Get Feed List</strong> button opens a file browser with which you can select the feed list file (type of <strong>.txt</strong>). For example:</p>
+<p>To make things even more interesting, you can read multiple RSS, Atom, and Twitter feeds, combining all of their articles into an aggregated feed. Instead of putting a single feed URL into the field, you put the URL of a local file which contains a <strong>list of feed URLs</strong> (you can mix<strong> http://</strong> for RSS/Atom and <strong>twitter://</strong>). Clicking the <strong>Get Feed List</strong> button opens a file browser with which you can select the feed list file (type of <strong>.txt</strong>). For example:</p>
 <pre>;
 ; Morse News feed list for Joe Mama
 ;
@@ -70,11 +85,11 @@ http://rss.upi.com/news/news.rss
 http://rss.cnn.com/rss/cnn_crime.rss
 twitter://timeline                          ; My home timeline<br>twitter://messages                          ; My direct messages (PVT)
 </pre>
-<p>When you select the feed list file in the file browser, you'll notice that a file:// URL appears in the Feed URL field, and the file has a type of <strong>.txt</strong>. <span class="alert">If you enter a file:// URL of a file of type <strong>.xml</strong>, it is assumed to contain RSS info, which will be fed. You can put one of these into a feed list file!</span><br>
+<p>When you select the feed list file in the file browser, you'll notice that a <strong>file:// </strong>URL appears in the Feed URL field, and the file has a type of <strong>.txt</strong>. <span class="alert">If you enter a <strong>file://</strong> URL of a file of type <strong>.xml</strong>, it is assumed to contain RSS or Atom info, which will be fed. You can put one of these into a feed list file!</span><br>
 </p>
 <h2>Article Control</h2>
 <p>Each time a feed (or a set of feeds) is read, it supplies a bunch of &quot;recent&quot; articles. <span class="underline">They are sorted newest to oldest</span>. Morse News has some filtering to prevent the same articles from being seen &quot;too often&quot;. That's what the <strong>Story Age</strong> setting does. The default setting of 120 (minutes) means the same story won't be sent via Morse unless it hasn't been seen for two hours. The <strong>Clear Cache</strong> button immediately deletes all to the &quot;seen&quot; titles instead of waiting for each to expire. </p>
-<p>The <strong>Poll Interval</strong> sets the time (minutes) between fetches of the articles from the RSS feed. If you set this to many minutes, you'll get possibly large batches of messages at once (like when the Start button is first clicked). If you set this to a short interval like 5 minutes, you'll tend to get small batches of messages more or less in real time.	</p>
+<p>The <strong>Poll Interval</strong> sets the time (minutes) between fetches of the articles from the  feed(s). If you set this to many minutes, you'll get possibly large batches of messages at once (like when the Start button is first clicked). If you set this to a short interval like 5 minutes, you'll tend to get small batches of messages more or less in real time.	</p>
 <h2>Morse Code Control</h2>
 <p>Besides the obvious selector for International versus American Morse code, you can also control the speed (words per minute). The generated American Morse code has timing nuances that should make it sound quite natural. Timing of American code is much more &quot;human&quot;. Thanks to Les Kerr (the <a href="http://home.comcast.net/~morsekob/" target="_parent">MorseKOB</a> author) for the algorithms that make American code sound natural to experienced landline telegraphers.	</p>
 	<h3>Split-Speed (Farnsworth) Timing</h3>
