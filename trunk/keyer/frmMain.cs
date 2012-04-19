@@ -55,6 +55,7 @@
 //						speed to 60 WPM (ridiculous but...). 
 // 28-Nov-11	rbd		2.2.0 (SF #3432844) Add logic for sound device sel.
 //						(SF #3444486) Add tone envelope rise/fall time control.
+// 19-Apr-12	rbd		2.4.0 - Uprev version to match Morse News, no changes.
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
