@@ -79,6 +79,7 @@
 //						'primary' for this app). SF #3444355 Hardwire to DirectX sounds in
 //						anticipation of removing the programmed sound stuff.
 // 11-Apr-12	rbd		2.4.0 - SF #3516969 - Add Atom feed capability.
+// 19-Apr-12	rbd		2.4.1 - Fix version in window title bar (grr...)
 //
 //
 using System;
