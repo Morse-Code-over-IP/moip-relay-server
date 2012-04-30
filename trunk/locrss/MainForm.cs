@@ -80,6 +80,8 @@
 //						anticipation of removing the programmed sound stuff.
 // 11-Apr-12	rbd		2.4.0 - SF #3516969 - Add Atom feed capability.
 // 19-Apr-12	rbd		2.4.1 - Fix version in window title bar (grr...)
+// 30-Apr-12	rbd		2.5.0 - SF #3460283 support COM ports > 9 per 
+//								http://support.microsoft.com/kb/115831
 //
 //
 using System;
@@ -440,7 +442,7 @@ namespace com.dc3
 #if MONO_BUILD
 				S.Open("/dev/tty.serial" + _serialPortNum.ToString());
 #else
-				S.Open("COM" + _serialPortNum.ToString());
+				S.Open("\\\\.\\COM" + _serialPortNum.ToString());
 #endif
 				for (int i = 0; i < 4; i++)										// 4 dits @ 20 WPM
 				{
@@ -1040,7 +1042,7 @@ namespace com.dc3
 #if MONO_BUILD
 					_serialPort.Open("/dev/tty.serial" + _serialPortNum.ToString());
 #else
-					_serialPort.Open("COM" + _serialPortNum.ToString());
+					_serialPort.Open("\\\\.\\COM" + _serialPortNum.ToString());
 #endif
 					_noise = null;
 				}

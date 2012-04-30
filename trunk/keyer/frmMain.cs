@@ -56,6 +56,8 @@
 // 28-Nov-11	rbd		2.2.0 (SF #3432844) Add logic for sound device sel.
 //						(SF #3444486) Add tone envelope rise/fall time control.
 // 19-Apr-12	rbd		2.4.0 - Uprev version to match Morse News, no changes.
+// 30-Apr-12	rbd		2.5.0 - SF #3460283 support COM ports > 9 per 
+//								http://support.microsoft.com/kb/115831
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -537,11 +539,11 @@ namespace com.dc3.morse
 #if NEW_COM
 				_serialPort = new ComPortCtrl();
 				_serialPort.ComPortPinChanged += new ComPortEventHandler(comPort_PinChanged);
-				_serialPort.Open("COM" + _serialPortNum.ToString());
+				_serialPort.Open("\\\\.\\COM" + _serialPortNum.ToString());
 				_serialPort.DtrEnable = true;					// TODO is this needed? It was with the .NET SerialPort class
 
 #else
-				_serialPort = new SerialPort("COM" + _serialPortNum.ToString());
+				_serialPort = new SerialPort("\\\\.\\COM" + _serialPortNum.ToString());
 				_serialPort.PinChanged += new SerialPinChangedEventHandler(comPort_PinChanged);
 				_serialPort.Open();
 				_serialPort.DtrEnable = true;					// Not sure why, but these are needed to get pin events
