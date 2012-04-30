@@ -42,14 +42,14 @@ namespace BlueWave.Interop.Asio.Test
 			// make sure we have at least one ASIO driver installed
 			if (AsioDriver.InstalledDrivers.Length == 0)
 			{
-				Console.WriteLine("There appears to be no ASIO drivers installed on your system.");
+				Console.WriteLine("There appear to be no ASIO drivers installed on your system.");
 				Console.WriteLine("If your soundcard supports ASIO natively, install the driver");
 				Console.WriteLine("from the support disc. If your soundcard has no native ASIO support");
 				Console.WriteLine("you can probably use the generic ASIO4ALL driver.");
 				Console.WriteLine("You can download this from: http://www.asio4all.com/");
 				Console.WriteLine("It's very good!");
 				Console.WriteLine();
-				Console.WriteLine("Hit Enter to exit...");
+				Console.WriteLine("Hit Enter to quit...");
 				Console.ReadLine();
 				return;
 			}

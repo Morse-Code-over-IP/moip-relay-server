@@ -12,13 +12,13 @@ using namespace System::Security::Permissions;
 
 [assembly:AssemblyTitleAttribute("BlueWave.Interop.Asio")];
 [assembly:AssemblyDescriptionAttribute("Provides .NET access to ASIO drivers")];
-[assembly:AssemblyConfigurationAttribute("")];
+[assembly:AssemblyConfigurationAttribute("Updated by Bob Denny <rdenny@dc3.com> April 2012")];
 [assembly:AssemblyCompanyAttribute("")];
 [assembly:AssemblyProductAttribute("")];
 [assembly:AssemblyCopyrightAttribute("Copyright © Rob Philpott 2008")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
-[assembly:AssemblyVersionAttribute("1.0.0.0")];
+[assembly:AssemblyVersionAttribute("1.1.0.0")];
 [assembly:ComVisible(false)];
 [assembly:CLSCompliantAttribute(true)];
 [assembly:SecurityPermission(SecurityAction::RequestMinimum, UnmanagedCode = true)];

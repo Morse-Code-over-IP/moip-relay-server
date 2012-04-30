@@ -3,7 +3,8 @@
 // rob@bigdevelopments.co.uk.  This file and the code contained within is freeware and may be
 // distributed and edited without restriction. You may be bound by licencing restrictions
 // imposed by Steinberg - check with them prior to distributing anything.
-// 
+//
+// (rbd) 30-Apr-12	Fix so missing ASIO registry tree fails gracefully
 
 #include "AsioRedirect.h"
 #include "InstalledDriver.h"
@@ -29,17 +30,19 @@ namespace BlueWave
 
 			array<InstalledDriver^>^ InstalledDriver::GetInstalledDriversFromRegistry()
 			{
+				// create an empty generic list of installed drivers
+				List<InstalledDriver^> list = gcnew List<InstalledDriver^>();
+
 				// our settings are in the local machine
 				RegistryKey^ localMachine = Registry::LocalMachine;
 
 				// in the software/asio folder
 				RegistryKey^ asioRoot = localMachine->OpenSubKey("SOFTWARE\\ASIO");
+				if (asioRoot == (RegistryKey^)nullptr) return list.ToArray();			// No ASIO, return empty array
 
 				// now read all the names of subkeys below that
 				array<String^>^ subkeyNames = asioRoot->GetSubKeyNames();
-
-				// create a generic list of installed drivers
-				List<InstalledDriver^> list = gcnew List<InstalledDriver^>();
+				if (subkeyNames == (array<String^>^)nullptr || subkeyNames->Length == 0) return list.ToArray();	// No ASIO drivers, return empty array
 
 				// iterate through and get the stuff we need
 				for (int index = 0; index < subkeyNames->Length; index++)
