@@ -101,13 +101,8 @@
   <ItemGroup>
     <None Include="Resources\AppIcon.ico" />
     <None Include="Twitter API Wiki - Twitter API Documentation.url" />
-    <None Include="TwitterVB API Documentation.chm" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TwitterVB\TwitterVB.vbproj">
-      <Project>{E3C24619-5F3A-4903-87B6-8E3DB1F1F219}</Project>
-      <Name>TwitterVB</Name>
-    </ProjectReference>
     <ProjectReference Include="..\comportctrl\comportctrl.csproj">
       <Project>{AAE2923E-38E5-4C48-BA2D-3CA23B1717E2}</Project>
       <Name>comportctrl</Name>
@@ -131,6 +126,10 @@
     <ProjectReference Include="..\spsound\spsound.csproj">
       <Project>{2C90B27A-9160-488B-A2A8-E40DEF101B28}</Project>
       <Name>spsound</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\twittervb\TwitterVB.vbproj">
+      <Project>{E3C24619-5F3A-4903-87B6-8E3DB1F1F219}</Project>
+      <Name>TwitterVB</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
