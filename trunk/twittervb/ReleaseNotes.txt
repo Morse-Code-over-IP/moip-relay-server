@@ -1,0 +1,138 @@
+﻿Version 3.1.1.0 - Maintenance Release - 2011.06.10
+=====================================
+Needed to make changes as this API further evolves (R. B. Denny <rdenny@dc3.com>)
+- Fix TRENDS_XXX URLs (TwitterAPI.vb) per http://twittervb.codeplex.com/discussions/254990
+- Add ResultType (-> result_type=xxx) to TwitterSearchParameters 
+- Clean up leading '+' from SearchString
+- Documentation references in XML comments updated to new docs (from the old wiki)
+- Quite a bit of doc cleanup, fixingdoc tags, and expanding same (OAuth example etc mainly)
+- Documentation updated accordingly (new .chm)
+
+Version 3.0 - Maintenance Release - 2011.03.26
+=================================
+As of this release, TwitterVB is in "maintenance" mode.  No new features will be added to the library.
+- FileSocialUpload() method removed due to Basic Auth deprecation
+- TweetPhotoUpload() method removed due to Basic Auth deprecation
+- TwitPicUpload() method removed due to Basic Auth deprecation
+- Code for the br.st web service removed due to the service shutting down
+
+Version 2.3.0 - 2010.03.03
+==========================
+- Patch 5151: Added BlockedUsers function to get a page other then the first
+- Patch 5420: The ListMembers function will now return more then just the first 20 users.
+- New encoding for OAuthUrlEncode that should restore non-American character support
+- Added support for the Users/Search method as defined at http://apiwiki.twitter.com/Twitter-REST-API-Method:-users-search
+- Enhanced the TwitterAPIException class
+
+Version 2.2.1 - 2010.Feb.06
+===========================
+- Final (we hope) correction for encoding issues and special characters
+
+Version 2.2 - 2010.Feb.03
+========================
+- Applied patches 4994 and 5086 for TwiCli functionality.
+- Applied patch 5114 for retweet bug fix (Work Item 5169).
+- Applied patch 4875 for documentation improvements.
+- Removed TwitterVB namespace
+- Implemented fix for special characters breaking status updates via OAuth
+
+Verison 2.1.1 - 2010.Jan.18
+==========================
+- Added GeoLat and GeoLong properties to TwitterStatus object
+- Fixed bug in OAuthUrlEncode() that cuased problems with certain punctuation
+
+Version 2.1 - 2010.Jan.10
+=========================
+- Added FileSocialUpload() method.
+- Cleaned up API documentation for TwitterRelationship code.
+
+Version 2.0.5 - 2010.Jan.01
+===========================
+- Added Name() property to TwitterUser() object
+- Corrected error in GetFavorites example code.
+
+Version 2.0.4 - 2009.Dec.22
+===========================
+- Fixed bug in ParseDirectMessages() that would result in no items being returned
+- Fixed bug in ParseRelationships() that would result in no items being returned
+- Changed OAuthUrlEncode() method to allow for non-English characters (e.g. Portugese)
+
+Version 2.0.3 - 2009.Dec.02
+===========================
+- Fixed bug in TwitterSearchResults constructor
+
+Version 2.0.2 - 2009.Dec.01
+===========================
+- Fixed issue in ReplyToUpdate() method
+- Fixed issues with direct message methods
+- Added TwitterDirectMessage class
+- Updated API documentation
+
+Version 2.0.1 - 2009.Nov.30
+===========================
+- Fixed bug in Update() method.
+
+Version 2.0 - 2009.Nov.29
+=========================
+- Added support for TwitPic uploading
+- Added support for TweetPhoto uploading
+- Added new mew methods to support "lists"
+- Added Url shortener methods
+
+Version 1.5 - 2009.Nov.21
+=========================
+- Added new methods to support "Retweet" API
+- TwitterVB2 namespace is code complete and in beta
+- Updated API documentation
+
+Version 1.4 - 2009.Oct.30
+=========================
+- Changed social graph methods to return a List(Of Int64)
+- Added search capability through TwitterSearchMethods class.
+- Added API documentation in the form of a compiled help file.
+- Major internal rearrangement of classes and objects
+- Added TwitterVB2 namespace for future expansion
+- Fixed issue #4273:Rate Limits not populating
+- Modified Rate Limits to return the reset time in local time.
+- Added DirectMessageMethods.Destroy()
+- TwitterUserMethods.Friends() now returns all friends with no need for paging or TwitterParameters object.
+- Deprecated TwitterUserMethods.AllFriends() method.
+- TwitterUserMethods.Followers() now returns all followers with no need for paging or TwitterParameters object.
+
+Version 1.3 - 2009.Oct.04
+==========================
+- Added TwitterAPIException class
+- Added TwitterFriendshipMethods class
+- Removed FollowUser() and UnFollowUser() from TwitterUserMethods
+- Added Create() and Destroy() to TwitterFriendshipMethods
+- Added TwitterTimelineMethods class
+- Moved PublicTimeline() method from TwitterStatusMethods to TwitterTimelineMethods
+- Moved UserTimeline() method from TwitterStatusMethods to TwitterTimelineMethods
+- Moved FriendsTimeline() method from TwitterStatusMethods to TwitterTimelineMethods
+- Moved Replies() method from TwitterStatusMethods to TwitterTimelineMethods
+- Moved Mentionds() method from TwitterStatusMethods to TwitterTimelineMethods
+- Added TwitterSocialGraphMethods class and TwitterSocialGraph class
+
+Version 1.2.4 - 2009.Sep.21
+===========================
+- Added TwitterBlockMethods class
+- Added Create() and Destroy() methods to TwitterBlockMethods class
+- Added TwitterFavoriteMethod class
+- Added Create() and Destory() methods to TwitterFavoriteMethods class
+
+Version 1.2.3 - 2009.Sep.19
+===========================
+- Fixed a bug that caused InReplyToStatusID to contain User IDs (Issue #14)
+- Fixed a bug that caused Direct Message status objects to have incomplete TwitterUser objects (Issue #11)
+- Fixed a bug in TwitterStatusMethods.Show() that was cuasing requests to be made as "POST" instead of "GET" (Issue #15)
+
+Version 1.2.2 - 2009.Sep.17
+===========================
+- Fixed a bug that was causing TwitterStatusMethods.Show() to return a TwitterUser (Issue #10)
+- Added a CreatedAt() property to the TwitterUser() class (Issue #13)
+
+Version 1.2 - 2009.Sep.16
+=========================
+- Added profile properties to TwitterUser
+- Renamed some TwitterUser properties for consistency with API
+- Added sample project to solution
