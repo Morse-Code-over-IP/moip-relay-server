@@ -35,10 +35,7 @@ namespace BlueWave.Interop.Asio.Test
         
         // STAThread is ESSENTIAL to make this work
 		[STAThread] public static void Main(string[] args)
-		{
-            // no messing, this is high priority stuff
-			Thread.CurrentThread.Priority = ThreadPriority.Highest;
-            
+		{            
 			// make sure we have at least one ASIO driver installed
 			if (AsioDriver.InstalledDrivers.Length == 0)
 			{
@@ -49,7 +46,7 @@ namespace BlueWave.Interop.Asio.Test
 				Console.WriteLine("You can download this from: http://www.asio4all.com/");
 				Console.WriteLine("It's very good!");
 				Console.WriteLine();
-				Console.WriteLine("Hit Enter to quit...");
+				Console.WriteLine("Press Enter to quit...");
 				Console.ReadLine();
 				return;
 			}
@@ -68,13 +65,14 @@ namespace BlueWave.Interop.Asio.Test
 			Console.WriteLine();
 
 			int driverNumber = 0;
+			ConsoleKeyInfo key;
 
             // get them to choose one
 			while (driverNumber < 1 || driverNumber > AsioDriver.InstalledDrivers.Length)
 			{
 				// we'll keep telling them this until they make a valid selection
 				Console.Write("Select which driver you wish to use (x for exit): ");
-				ConsoleKeyInfo key = Console.ReadKey();
+				key = Console.ReadKey();
 				Console.WriteLine();
 
 				// deal with exit condition
@@ -92,7 +90,16 @@ namespace BlueWave.Interop.Asio.Test
 			AsioDriver driver = AsioDriver.SelectDriver(AsioDriver.InstalledDrivers[driverNumber - 1]);
 
 			// popup the driver's control panel for configuration
-            driver.ShowControlPanel();
+			Console.Write("Do you want to configure this driver now ['y' if yes]?");
+			key = Console.ReadKey();
+			if (key.KeyChar == 'y')
+			{
+				driver.ShowControlPanel();
+				Console.WriteLine("\r\nPress Enter to end");
+				Console.ReadLine();
+				driver.Release();											// MANDATORY!!!
+				return;
+			}
 
 			// now dump some details
             Console.WriteLine("  Driver name = " + driver.DriverName);
@@ -113,27 +120,26 @@ namespace BlueWave.Interop.Asio.Test
 			Console.WriteLine("  ----");
 
             foreach (Channel channel in driver.InputChannels)
-			{
 				Console.WriteLine(channel.Name);
-			}
 
 			// and the output channels
             Console.WriteLine("  Output channels found = " + driver.OutputChannels.Length);
             Console.WriteLine("----");
 
             foreach (Channel channel in driver.OutputChannels)
-			{
 				Console.WriteLine(channel.Name);
-			}
 
-            // create a an array of standard sized buffers with a size of 100 
-            _delayBuffer = new float[driver.BufferSizex.PreferredSize, MaxBuffers];
-            
-            // this is our buffer fill event we need to respond to
-            driver.BufferUpdate += new EventHandler(AsioDriver_BufferUpdate);
+			// no messing, this is high priority stuff
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
-            // and off we go
-            driver.Start();
+			// create a an array of standard sized buffers with a size of 100 
+			_delayBuffer = new float[driver.BufferSizex.PreferredSize, MaxBuffers];
+
+			// this is our buffer fill event we need to respond to
+			driver.BufferUpdate += new EventHandler(AsioDriver_BufferUpdate);
+
+			// and off we go
+			driver.Start();
 
             // wait for enter key
             Console.WriteLine();
@@ -142,6 +148,7 @@ namespace BlueWave.Interop.Asio.Test
 
             // and all donw
             driver.Stop();
+			driver.Release();
 		}
 
 		/// <summary>
