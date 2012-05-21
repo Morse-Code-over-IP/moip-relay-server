@@ -4,6 +4,7 @@
 // distributed and edited without restriction. You may be bound by licencing restrictions
 // imposed by Steinberg - check with them prior to distributing anything.
 // 
+// R. B Denny	18-May-12	Move ClsId into public
 
 #pragma once
 #pragma managed
@@ -35,13 +36,13 @@ namespace BlueWave
 				static array<InstalledDriver^>^ GetInstalledDriversFromRegistry();
 
 				// this returns a string representation of the CLSID
-				property String^ ClsId { String^ get(); };
 
 			public:
 
 				// both these just return name
 				virtual String^ ToString() override;
 				property String^ Name { String^ get(); };
+				property String^ ClsId { String^ get(); };
 			};
 		}
 	}

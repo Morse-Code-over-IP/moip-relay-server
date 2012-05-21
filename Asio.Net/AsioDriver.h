@@ -89,7 +89,7 @@ namespace BlueWave
 					property array<Channel^>^		OutputChannels			{ array<Channel^>^ get(); }
 
 					// basic methods
-					void Start();
+					int Start();
 					void Stop();
 					void ShowControlPanel();
 					void CreateBuffers(bool useMaxBufferSize);

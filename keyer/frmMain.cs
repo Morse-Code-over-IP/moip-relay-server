@@ -58,7 +58,7 @@
 // 19-Apr-12	rbd		2.4.0 - Uprev version to match Morse News, no changes.
 // 30-Apr-12	rbd		2.5.0 - SF #3460283 support COM ports > 9 per 
 //								http://support.microsoft.com/kb/115831
-//
+// 20-May-12	rbd		2.5.0 - SF #3522625 ASIO support
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
 
@@ -73,6 +73,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.DirectX.DirectSound;
+using BlueWave.Interop.Asio;
 
 namespace com.dc3.morse
 {
@@ -81,6 +82,11 @@ namespace com.dc3.morse
 		//
 		// Constants
 		//
+		private enum SoundDevType
+		{
+			DirectX = 0,
+			ASIO = 1
+		}
 		private const int _tbase = 1200;	// Time base for millisecond timings. A standard 1WPM dit = 1200 ms mark, 1200 ms space
 
 		//
@@ -105,9 +111,10 @@ namespace com.dc3.morse
 #else
 		private SerialPort _serialPort;		// Used for paddle via serial and optional real sounder output
 #endif
-		private string _soundDevGUID;	
+		private SoundDev _selSoundDev;
 		private DxTones _dxTones = null;			// [senitnel]
 		private DxSounder _dxSounder = null;		// [sentinel]
+		private AsioTones _asioTones = null;		// [sentinel]
 		private IambicKeyer _iambicKeyer = null;	// [sentinel]
 		private int _ctime;					// Character dit time (ms)
 		private int _stime;					// Symbol space time (ms)
@@ -118,9 +125,18 @@ namespace com.dc3.morse
 
 		private struct SoundDev
 		{
+			public SoundDevType type;
 			public DeviceInformation info;
-			public override string ToString() { return info.Description; }	// Allow display in list
-			public SoundDev(DeviceInformation di) { info = di; }
+			public InstalledDriver asio;
+			public override string ToString()		// Allow display in list
+			{
+				if (type == SoundDevType.DirectX)
+					return info.Description;
+				else
+					return asio.Name + " (ASIO)";
+			}
+			public SoundDev(DeviceInformation di) { type = SoundDevType.DirectX; info = di; asio = null; }
+			public SoundDev(InstalledDriver dv) { type = SoundDevType.ASIO; asio = dv; info = new DeviceInformation(); }
 		}
 
 		//
@@ -164,19 +180,38 @@ namespace com.dc3.morse
 			// in the app settings. This has the side effect of setting
 			// up the sound generators.
 			//
-			_soundDevGUID = (string)Properties.Settings.Default.SoundDevGUID;	// Get the current GUID (or blank)
-			DevicesCollection myDevices = new DevicesCollection();
+			SoundDevType soundDevType;
+			string soundDevGUID;	
+			if (Properties.Settings.Default.SoundDevType == "DX")
+				soundDevType = SoundDevType.DirectX;
+			else
+				soundDevType = SoundDevType.ASIO;
+			soundDevGUID = (string)Properties.Settings.Default.SoundDevGUID;	// Get the current GUID(DX)/CLSID(ASIO) (or blank)
+			//
+			// Populate the sound device droplist and detect which one 
+			// was saved in the registry from last time (if any);
+			//
+			DevicesCollection myDevices = new DevicesCollection();				// First the DirectX devices
 			int iSel = -1;
 			int i = 0;
 			foreach (DeviceInformation info in myDevices)
 			{
 				SoundDev sd = new SoundDev(info);
 				cbSoundDevs.Items.Add(sd);
-				if (info.DriverGuid.ToString() == _soundDevGUID)
+				if (soundDevType == SoundDevType.DirectX && info.DriverGuid.ToString() == soundDevGUID)
 					iSel = i;
 				i += 1;
 			}
-			cbSoundDevs.SelectedIndex = iSel;
+
+			for (int j = 0; j < AsioDriver.InstalledDrivers.Length; j++)		// Then any ASIO devices
+			{
+				SoundDev sd = new SoundDev(AsioDriver.InstalledDrivers[j]);
+				cbSoundDevs.Items.Add(sd);
+				if (soundDevType == SoundDevType.ASIO && AsioDriver.InstalledDrivers[j].ClsId == soundDevGUID)
+					iSel = i;
+				i += 1;
+			}
+			cbSoundDevs.SelectedIndex = iSel;									// THIS FIRES UP THE SOUND SYSTEM
 
 			_semiAutoLock = new object();
 			_serialPortLock = new object();
@@ -215,10 +250,25 @@ namespace com.dc3.morse
 
 		private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			if (_asioTones != null)
+				_asioTones.Dispose();
+			if (_dxTones != null)
+				_dxTones.Dispose();
+			if (_dxSounder != null)
+				_dxSounder.Dispose();
 			Properties.Settings.Default.SavedWinX = this.Left;
 			Properties.Settings.Default.SavedWinY = this.Top;
 			Properties.Settings.Default.SoundDevGUID = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid.ToString();
-
+			if (_selSoundDev.type == SoundDevType.DirectX)
+			{
+				Properties.Settings.Default.SoundDevGUID = _selSoundDev.info.DriverGuid.ToString();
+				Properties.Settings.Default.SoundDevType = "DX";
+			}
+			else
+			{
+				Properties.Settings.Default.SoundDevGUID = _selSoundDev.asio.ClsId.ToString();
+				Properties.Settings.Default.SoundDevType = "ASIO";
+			}
 			Properties.Settings.Default.Save();
 			if (_serialPort != null) _serialPort.Close();
 			_iambicKeyer.Dispose();
@@ -228,47 +278,100 @@ namespace com.dc3.morse
 		// Control events
 		//
 
+		//
+		// This gets fired during initialization as well, so it will start
+		// up the sound system that was saved the last time the app was run.
+		//
 		private void cbSoundDevs_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			Guid drvrGuid = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid;
+			_selSoundDev = (SoundDev)cbSoundDevs.SelectedItem;
+			if (_selSoundDev.type == SoundDevType.DirectX)
+			{
+				Guid drvrGuid = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid;
 
-			if (_dxTones != null) 
-				_dxTones.Dispose();
-			_dxTones = new DxTones(this, drvrGuid, 1000);
-			_dxTones.Frequency = _toneFreq;
-			_dxTones.DitMilliseconds = _ctime;
-			_dxTones.Volume = tbVolume.Value / 10.0F;
-			_dxTones.StartLatency = _riseFallMs;					// Actually rise/fall time
+				if (_asioTones != null)
+					_asioTones.Dispose();
+				_asioTones = null;
+				if (_dxTones != null)
+					_dxTones.Dispose();
+				_dxTones = new DxTones(this, drvrGuid, 1000);
+				_dxTones.Frequency = _toneFreq;
+				_dxTones.DitMilliseconds = _ctime;
+				_dxTones.Volume = tbVolume.Value / 10.0F;
+				_dxTones.StartLatency = _riseFallMs;					// Actually rise/fall time
 
-			if (_dxSounder != null)
-				_dxSounder.Dispose();
-			_dxSounder = new DxSounder(this, drvrGuid);
-			_dxSounder.SoundIndex = _sounderNum;
-			_dxSounder.DitMilliseconds = _ctime;
-			_dxSounder.Volume = tbVolume.Value / 10.0F;
+				if (_dxSounder != null)
+					_dxSounder.Dispose();
+				_dxSounder = new DxSounder(this, drvrGuid);
+				_dxSounder.SoundIndex = _sounderNum;
+				_dxSounder.DitMilliseconds = _ctime;
+				_dxSounder.Volume = tbVolume.Value / 10.0F;
+			}
+			else
+			{
+				if (_dxTones != null)
+					_dxTones.Dispose();
+				_dxTones = null;
+				if (_asioTones != null)
+					_asioTones.Dispose();
+				_asioTones = new AsioTones(AsioDriver.SelectDriver(_selSoundDev.asio), 1000);
+				_asioTones.Frequency = _toneFreq;
+				_asioTones.DitMilliseconds = _ctime;
+				_asioTones.Volume = tbVolume.Value / 10.0F;
+				_asioTones.StartLatency = _riseFallMs;					// Actually rise/fall time
+				_asioTones.Start();										// Make it run now!
+
+				if (_dxSounder != null)
+					_dxSounder.Dispose();
+				_dxSounder = null;										// No ASIO sounder stuff.
+			}
+			UpdateUI();
 		}
 
 		private void nudSpeed_ValueChanged(object sender, EventArgs e)
 		{
 			_codeSpeed = (int)nudCodeSpeed.Value;
 			_ctime = _tbase / _codeSpeed;
-			_dxTones.DitMilliseconds = _ctime;
-			_dxSounder.DitMilliseconds = _ctime;
+			if (_selSoundDev.type == SoundDevType.DirectX)
+			{
+				_dxTones.DitMilliseconds = _ctime;
+				_dxSounder.DitMilliseconds = _ctime;
+			}
+			else
+			{
+				_asioTones.DitMilliseconds = _ctime;
+			}
 			_calcSpaceTime();
 		}
 
 		private void nudToneFreq_ValueChanged(object sender, EventArgs e)
 		{
 			_toneFreq = (int)nudToneFreq.Value;
-			_dxTones.Frequency = _toneFreq;
-			_dxTones.PlayFor(100);
+			if (_selSoundDev.type == SoundDevType.DirectX)
+			{
+				_dxTones.Frequency = _toneFreq;
+				_dxTones.PlayFor(100);
+			}
+			else
+			{
+				_asioTones.Frequency = _toneFreq;
+				_asioTones.PlayFor(100);
+			}
 		}
 
 		private void nudRiseFallMs_ValueChanged(object sender, EventArgs e)
 		{
 			_riseFallMs = (int)nudRiseFallMs.Value;
-			_dxTones.StartLatency = _riseFallMs;
-			_dxTones.PlayFor(100);
+			if (_selSoundDev.type == SoundDevType.DirectX)
+			{
+				_dxTones.StartLatency = _riseFallMs;
+				_dxTones.PlayFor(100);
+			}
+			else
+			{
+				_asioTones.StartLatency = _riseFallMs;
+				_asioTones.PlayFor(100);
+			}
 		}
 
 		private void nudSounder_ValueChanged(object sender, EventArgs e)
@@ -343,11 +446,21 @@ namespace com.dc3.morse
 
 		private void tbVolume_Scroll(object sender, EventArgs e)
 		{
-			_dxTones.Volume = _dxSounder.Volume = tbVolume.Value / 10.0F;
-			if (_soundMode == 0)
-				_dxTones.PlayFor(60);
-			else if (_soundMode == 1)
-				_dxSounder.PlayFor(60);
+			if (_selSoundDev.type == SoundDevType.DirectX)
+			{
+				_dxTones.Volume = _dxSounder.Volume = tbVolume.Value / 10.0F;
+				if (_soundMode == 0)
+					_dxTones.PlayFor(60);
+				else if (_soundMode == 1)
+					_dxSounder.PlayFor(60);
+			}
+			else
+			{
+				_asioTones.Volume = tbVolume.Value / 10.0F;
+				if (_soundMode == 0)
+					_asioTones.PlayFor(60);
+				// TODO No sounder support in ASIO
+			}
 		}
 
 		private void llHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -409,10 +522,19 @@ namespace com.dc3.morse
 			lock (_semiAutoLock)
 			{
 				if (_serialPort != null) _serialPort.RtsEnable = true;
-				if (_soundMode == 0)
-					_dxTones.Down();
+				if (_selSoundDev.type == SoundDevType.DirectX)
+				{
+					if (_soundMode == 0)
+						_dxTones.Down();
+					else
+						_dxSounder.Down();
+				}
 				else
-					_dxSounder.Down();
+				{
+					if (_soundMode == 0)
+						_asioTones.Down();
+					// TODO No sounder support in ASIO
+				}
 			}
 		}
 
@@ -421,10 +543,19 @@ namespace com.dc3.morse
 			lock (_semiAutoLock)
 			{
 				if (_serialPort != null) _serialPort.RtsEnable = false;
-				if (_soundMode == 0)
-					_dxTones.Up();
+				if (_selSoundDev.type == SoundDevType.DirectX)
+				{
+					if (_soundMode == 0)
+						_dxTones.Up();
+					else
+						_dxSounder.Up();
+				}
 				else
-					_dxSounder.Up();
+				{
+					if (_soundMode == 0)
+						_asioTones.Up();
+					// TODO No sounder support in ASIO
+				}
 				if (_keyerMode == 1) PreciseDelay.Wait(_ctime);					// Force inter-symbol space after (manual) Dah
 			}
 		}
@@ -570,6 +701,16 @@ namespace com.dc3.morse
 			nudRiseFallMs.Enabled = rbTone.Checked;
 			nudSounder.Enabled = rbSounder.Checked;
 			btnTestSerial.Enabled = nudSerialPort.Enabled = !chkUseSerial.Checked;
+			if (_soundMode == 1 && _selSoundDev.type == SoundDevType.ASIO)
+			{
+				rbTone.Checked = true;
+				rbSounder.Enabled = false;						// No sounder with ASIO
+			}
+			else
+			{
+				rbSounder.Enabled = true;
+			}
+
 		}
 
 		static bool _prevDSR = false;
@@ -627,6 +768,20 @@ namespace com.dc3.morse
 		{
 			lock (_semiAutoLock)
 			{
+				ITone Tone;
+				IAudioWav Sounder;
+				if (_selSoundDev.type == SoundDevType.DirectX)
+				{
+					Tone = _dxTones;
+					Sounder = _dxSounder;
+				}
+				else
+				{
+					Tone = _asioTones;
+					Sounder = null;
+					if (_soundMode == 1) return;
+				}
+
 				//Debug.Print(DateTime.Now.Ticks.ToString() + " " + S.ToString());
 				if (S == IambicKeyer.MorseSymbol.Dit || S == IambicKeyer.MorseSymbol.DitB)
 				{
@@ -636,15 +791,15 @@ namespace com.dc3.morse
 					{
 						case 0:
 							if (_serialPort != null) _serialPort.RtsEnable = true;
-							_dxTones.Dit();
+							Tone.Dit();
 							if (_serialPort != null) _serialPort.RtsEnable = false;
-							_dxTones.Space();
+							Tone.Space();
 							break;
 						case 1:
 							if (_serialPort != null) _serialPort.RtsEnable = true;
-							_dxSounder.Dit();
+							Sounder.Dit();
 							if (_serialPort != null) _serialPort.RtsEnable = false;
-							_dxSounder.Space();
+							Sounder.Space();
 							break;
 					}
 					if (S == IambicKeyer.MorseSymbol.DitB)
@@ -658,15 +813,15 @@ namespace com.dc3.morse
 					{
 						case 0:
 							if (_serialPort != null) _serialPort.RtsEnable = true;
-							_dxTones.Dah();
+							Tone.Dah();
 							if (_serialPort != null) _serialPort.RtsEnable = false;
-							_dxTones.Space();
+							Tone.Space();
 							break;
 						case 1:
 							if (_serialPort != null) _serialPort.RtsEnable = true;
-							_dxSounder.Dah();
+							Sounder.Dah();
 							if (_serialPort != null) _serialPort.RtsEnable = false;
-							_dxSounder.Space();
+							Sounder.Space();
 							break;
 					}
 					if (S == IambicKeyer.MorseSymbol.DahB)

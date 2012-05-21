@@ -82,7 +82,8 @@
 // 19-Apr-12	rbd		2.4.1 - Fix version in window title bar (grr...)
 // 30-Apr-12	rbd		2.5.0 - SF #3460283 support COM ports > 9 per 
 //								http://support.microsoft.com/kb/115831
-//
+// 20-May-12	rbd		2.5.0 - SF #3527171 command line options for autostart and specified
+//								feed URL or list.
 //
 using System;
 using System.Collections.Generic;
@@ -214,7 +215,6 @@ namespace com.dc3
 			_sounderNum = (int)nudSounder.Value;
 			_sparkNum = (int)nudSpark.Value;
 			_storyAge = (int)nudStoryAge.Value;
-			_feedUrl = cbFeedUrl.Text;
 			_serialPortNum = (int)nudSerialPort.Value;
 			_useSerial = chkUseSerial.Checked;
 			_serialPort = null;
@@ -238,6 +238,9 @@ namespace com.dc3
 					break;
 			}
 
+			if (Program.s_sFeedUrl != "")
+				cbFeedUrl.Text = Program.s_sFeedUrl;							// Force given URL to the top of the list
+			_feedUrl = cbFeedUrl.Text;
 			foreach (string uri in Properties.Settings.Default.LRU)
 				cbFeedUrl.Items.Add(uri);
 			if (cbFeedUrl.Text == "")											// Force something into feed URL
@@ -260,6 +263,10 @@ namespace com.dc3
 
 			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
 			this.Top = Properties.Settings.Default.SavedWinY;
+
+			if (Program.s_bAutoStart && btnStartStop.Enabled)					// If can start and autostart
+				btnStartStop_Click(new Object(), new EventArgs());
+
 		}
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -622,7 +629,7 @@ namespace com.dc3
 				{
 					while (cbFeedUrl.Items.Count > 16)							// Safety catch only
 						cbFeedUrl.Items.RemoveAt(0);
-					if (cbFeedUrl.Items.Count == 16)								// If full, remove last item
+					if (cbFeedUrl.Items.Count == 16)							// If full, remove last item
 						cbFeedUrl.Items.RemoveAt(15);
 					cbFeedUrl.Items.Insert(0, cbFeedUrl.Text);					// Insert new item at top
 				}

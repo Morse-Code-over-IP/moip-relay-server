@@ -86,6 +86,14 @@
     <Content Include="AppIcon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Asio.Net\Bluewave.Interop.Asio.vcproj">
+      <Project>{6DB00BA8-EFDE-4D3A-8983-F01857A36C1A}</Project>
+      <Name>BlueWave.Interop.Asio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\asiosound\asiosound.csproj">
+      <Project>{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}</Project>
+      <Name>asiosound</Name>
+    </ProjectReference>
     <ProjectReference Include="..\comportctrl\comportctrl.csproj">
       <Project>{AAE2923E-38E5-4C48-BA2D-3CA23B1717E2}</Project>
       <Name>comportctrl</Name>
