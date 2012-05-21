@@ -4,6 +4,8 @@
 // distributed and edited without restriction. You may be bound by licencing restrictions
 // imposed by Steinberg - check with them prior to distributing anything.
 // 
+// Bob Denny	18i-May-2012	Start returns an ASIOError->int now for diagnosis
+//
 
 #include "stdio.h"
 #include "BufferSize.h"
@@ -293,12 +295,12 @@ namespace BlueWave
 				return _outputChannels;
 			}
 
-			void AsioDriver::Start()
+			int AsioDriver::Start()
 			{
 				// make sure a driver has been engaged
 				CheckInitialised();
 
-				_pDriver->start();
+				return (int)_pDriver->start();
 			}
 
 			void AsioDriver::Stop()

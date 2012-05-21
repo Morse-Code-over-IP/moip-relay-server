@@ -71,6 +71,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TwitterVB", "twittervb\Twit
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BlueWave.Interop.Asio", "Asio.Net\Bluewave.Interop.Asio.vcproj", "{6DB00BA8-EFDE-4D3A-8983-F01857A36C1A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "asiosound", "asiosound\asiosound.csproj", "{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -231,6 +233,16 @@ Global
 		{6DB00BA8-EFDE-4D3A-8983-F01857A36C1A}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{6DB00BA8-EFDE-4D3A-8983-F01857A36C1A}.Release|Win32.ActiveCfg = Release|Win32
 		{6DB00BA8-EFDE-4D3A-8983-F01857A36C1A}.Release|Win32.Build.0 = Release|Win32
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{916C8646-6E48-4B3D-AE5D-B1B7E515DEFA}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
