@@ -124,13 +124,19 @@
   <data name="Noise1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Noise1.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Noise2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Noise2.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Static1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\static1.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Noise3" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Noise3.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Static2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\static2.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Noise4" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Noise4.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Static3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\static3.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Static4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\static4.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Static5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\static5.wav;System.IO.MemoryStream, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

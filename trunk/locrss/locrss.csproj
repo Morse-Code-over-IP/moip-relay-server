@@ -135,9 +135,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Noise1.wav" />
-    <Content Include="Resources\Noise2.wav" />
-    <Content Include="Resources\Noise3.wav" />
-    <Content Include="Resources\Noise4.wav" />
+    <Content Include="Resources\Static1.wav" />
+    <Content Include="Resources\Static2.wav" />
+    <Content Include="Resources\Static3.wav" />
+    <Content Include="Resources\Static4.wav" />
+    <Content Include="Resources\Static5.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

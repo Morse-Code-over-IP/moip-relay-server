@@ -161,7 +161,7 @@ namespace com.dc3.morse
 			set { _volume = value; }
 		}
 
-		public int StartLatency
+		public int RiseFallTime
 		{
 			get { return _riseFallTime; }
 			set { _riseFallTime = value; }

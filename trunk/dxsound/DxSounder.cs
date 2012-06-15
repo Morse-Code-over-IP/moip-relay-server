@@ -29,6 +29,9 @@
 // 02-Jun-11	rbd		1.8.0 - Disposals to prevent memory leaks
 // 28-Nov-11	rbd		1.9.0 - (*SF #3432844) Add parameter for sound device 
 //						selection to constructor.
+// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime (finally), then
+//						remove start latency code as it is no longer used and there
+//						is no rise/fall for spark sounds.
 //
 using System;
 using System.Collections.Generic;
@@ -45,7 +48,6 @@ namespace com.dc3.morse
         private Device _deviceSound= null;										// [sentinel]
 		private int _sounder;
 		private int _ditMs;
-		private int _startLatency;
 		private float _volume;
 		private int _rawVol;
 
@@ -101,10 +103,10 @@ namespace com.dc3.morse
 			}
 		}
 
-		public int StartLatency
+		public int RiseFallTime
 		{
-			get { return _startLatency; }
-			set { _startLatency = value; }
+			get { throw new ApplicationException("Rise-fall not supported for sounder sounds"); }
+			set { throw new ApplicationException("Rise-fall not supported for sounder sounds"); }
 		}
 
 		public float Volume
@@ -138,7 +140,7 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			PreciseDelay.Wait(_ditMs - _startLatency);
+			PreciseDelay.Wait(_ditMs);
 		}
 
 		public void PlayFor(int ms)
