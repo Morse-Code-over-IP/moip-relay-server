@@ -42,6 +42,7 @@
 //						lengthen the total duration by half the rise/fall time so
 //						that the tone is the proper duration at its half amplitude
 //						level. 
+// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime (finally)
 //						
 //
 using System;
@@ -192,7 +193,7 @@ namespace com.dc3.morse
 			}
 		}
 
-		public int StartLatency														// Misnomer for DX but I was lazy
+		public int RiseFallTime
 		{
 			get { return _riseFallTime; }
 			set { _riseFallTime = value; }

@@ -479,10 +479,10 @@ namespace com.dc3
 			this.llHelp.AutoSize = true;
 			this.llHelp.Location = new System.Drawing.Point(350, 208);
 			this.llHelp.Name = "llHelp";
-			this.llHelp.Size = new System.Drawing.Size(46, 13);
+			this.llHelp.Size = new System.Drawing.Size(50, 13);
 			this.llHelp.TabIndex = 10;
 			this.llHelp.TabStop = true;
-			this.llHelp.Text = "Help me";
+			this.llHelp.Text = "Help Me!";
 			this.toolTip.SetToolTip(this.llHelp, "Click to see RSS Morse help");
 			this.llHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llHelp_LinkClicked);
 			// 
@@ -519,11 +519,11 @@ namespace com.dc3
 			this.llRSSFeeds.AutoSize = true;
 			this.llRSSFeeds.Location = new System.Drawing.Point(351, 185);
 			this.llRSSFeeds.Name = "llRSSFeeds";
-			this.llRSSFeeds.Size = new System.Drawing.Size(58, 13);
+			this.llRSSFeeds.Size = new System.Drawing.Size(66, 13);
 			this.llRSSFeeds.TabIndex = 9;
 			this.llRSSFeeds.TabStop = true;
-			this.llRSSFeeds.Text = "RSS feeds";
-			this.toolTip.SetToolTip(this.llRSSFeeds, "Click to see Yahoo! RSS Feeds");
+			this.llRSSFeeds.Text = "Some Feeds";
+			this.toolTip.SetToolTip(this.llRSSFeeds, "Click to see RSS and Atom feeds in the help document");
 			this.llRSSFeeds.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llRSSFeeds_LinkClicked);
 			// 
 			// picSoundCfg
@@ -545,10 +545,10 @@ namespace com.dc3
 			this.llSoundCfg.AutoSize = true;
 			this.llSoundCfg.Location = new System.Drawing.Point(351, 162);
 			this.llSoundCfg.Name = "llSoundCfg";
-			this.llSoundCfg.Size = new System.Drawing.Size(56, 13);
+			this.llSoundCfg.Size = new System.Drawing.Size(71, 13);
 			this.llSoundCfg.TabIndex = 8;
 			this.llSoundCfg.TabStop = true;
-			this.llSoundCfg.Text = "Sound cfg";
+			this.llSoundCfg.Text = "Sound Config";
 			this.toolTip.SetToolTip(this.llSoundCfg, "Click for sound output settings");
 			this.llSoundCfg.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llSoundCfg_LinkClicked);
 			// 
@@ -697,7 +697,7 @@ namespace com.dc3
 			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse News V2.5";
+			this.Text = "Morse News V2.6";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.statusStrip1.ResumeLayout(false);

@@ -59,6 +59,9 @@
 // 30-Apr-12	rbd		2.5.0 - SF #3460283 support COM ports > 9 per 
 //								http://support.microsoft.com/kb/115831
 // 20-May-12	rbd		2.5.0 - SF #3522625 ASIO support
+// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime in sound 
+//						interfaces to reflect its true purpose.
+//
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
 
@@ -298,7 +301,7 @@ namespace com.dc3.morse
 				_dxTones.Frequency = _toneFreq;
 				_dxTones.DitMilliseconds = _ctime;
 				_dxTones.Volume = tbVolume.Value / 10.0F;
-				_dxTones.StartLatency = _riseFallMs;					// Actually rise/fall time
+				_dxTones.RiseFallTime = _riseFallMs;
 
 				if (_dxSounder != null)
 					_dxSounder.Dispose();
@@ -318,7 +321,7 @@ namespace com.dc3.morse
 				_asioTones.Frequency = _toneFreq;
 				_asioTones.DitMilliseconds = _ctime;
 				_asioTones.Volume = tbVolume.Value / 10.0F;
-				_asioTones.StartLatency = _riseFallMs;					// Actually rise/fall time
+				_asioTones.RiseFallTime = _riseFallMs;					// Actually rise/fall time
 				_asioTones.Start();										// Make it run now!
 
 				if (_dxSounder != null)
@@ -364,12 +367,12 @@ namespace com.dc3.morse
 			_riseFallMs = (int)nudRiseFallMs.Value;
 			if (_selSoundDev.type == SoundDevType.DirectX)
 			{
-				_dxTones.StartLatency = _riseFallMs;
+				_dxTones.RiseFallTime = _riseFallMs;
 				_dxTones.PlayFor(100);
 			}
 			else
 			{
-				_asioTones.StartLatency = _riseFallMs;
+				_asioTones.RiseFallTime = _riseFallMs;
 				_asioTones.PlayFor(100);
 			}
 		}

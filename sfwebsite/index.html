@@ -32,7 +32,7 @@ Released   : 20091206
 		<div class="post">
 			<h2 class="title"><a href="#">Morse News </a></h2>
 			<div class="entry">
-				<p><strong>Morse  News</strong> (formerly RSS Morse) periodically reads one <em>or more</em> RSS (news) and/or Twitter feeds and translates the received messages into precisely timed International or American (railroad) Morse code. The Morse code can be played as CW radio tones, old-fashioned CW spark-gap sounds, telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. Split speeds are supported for Farnsworth effects. American code generation includes timing nuances that make it sound natural. </p>
+				<p><strong>Morse  News</strong> periodically reads one <em>or more</em> RSS (news) and/or Twitter feeds and translates the received messages into precisely timed International (radio) or American (railroad) Morse code. The Morse code can be played as CW radio tones, old-fashioned  spark-gap sounds, telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. Split speeds are supported for Farnsworth effects. American code generation includes timing nuances that make it sound natural. The CW and spark-gap sounds can optionally be enhanced with realistic noise, static crashes, and ionospheric-style fading.</p>
 				<div align="center"><a href="rssmorsedoc/news.html" target="_blank"><img src="images/RSSMorseWindow.png" alt="pic" width="446" height="337" title="Click this image to see the documentation for this program" border="0" /></a><br />
 					&nbsp;<br />
 					Click <a href="rssmorsedoc/news.html" target="_blank">this link</a> or the picture to see the help page for this program</div>
@@ -41,10 +41,27 @@ Released   : 20091206
 		<div class="post">
 			<h2 class="title"><a href="#">Morse Keyer</a></h2>
 			<div class="entry">
-				<p>Morse Keyer is a software keyer that can be keyed via the mouse or a key/paddle connected to a serial port. It supports straight keying, semi-automatic (bug) keying, and Iambic A or B mode automatic keying. The Morse code can be played as CW radio tones or telegraph sounder click/clack sounds. Optionally, the keyer can key an external telegraph sounder or loop, or a ham rig (while still playing the sound). Since it supports semi-auto keying, it can be used to send American morse code (a single-lever paddle is best for this).</p>
+				<p>Morse Keyer is a software keyer that can be keyed via the mouse or a key/paddle connected to a serial port. It supports straight keying, semi-automatic (bug) keying, and Iambic A or B mode automatic keying. The Morse code can be played as CW radio tones or telegraph sounder click/clack sounds, and <a href="http://en.wikipedia.org/wiki/Audio_Stream_Input/Output" target="_blank">low-latency ASIO sound driver</a> output is supported. Optionally, the keyer can key an external telegraph sounder or loop, or a ham rig (while still playing the sound). Since it supports semi-auto keying, it can be used to send American morse code (a single-lever paddle is best for this). </p>
 				<div align="center"><a href="keyerdoc/keyer.html" target="_blank"><img src="images/MorseKeyerWindow.png" width="442" height="338" alt="pic" title="Click this image to see the documentation for this program" border="0"/></a><br />
 					&nbsp;<br />
 					Click <a href="keyerdoc/keyer.html" target="_blank">this link</a> or the picture to see the help page for this program</div>
+			</div>
+		</div>
+		<div class="post">
+			<h2 class="title"><a href="#">Additional Tools in Source</a></h2>
+			<div class="entry">
+				<p><a href="mailto:rdenny@dc3.com">Contact the author</a> for information on these tools. They require some advanced system admin skills to install. Sources are available via SVN or browsing in the <a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank">Morse Code Tools SourceForge project</a>, under Develop.</p>
+				<ul>
+					<li>
+						<p>News robot for <a href="http://www.mrx.com.au/d_cwcom.htm" target="_blank">CW Communicator</a> and <a href="http://home.comcast.net/~morsekob/" target="_blank">MorseKOB</a> - sends news to the relay server(s) for these programs. The author is currently feeding several channels/wires with news and practice words at several speeds using this tool. Available only in the source code tree (complex installation and setup). Can install as a Windows Service. Supports multiple Morse code feeds and can receive from multiple RSS feeds.</p>
+					</li>
+					<li>
+						<p>An internet relay server (&quot;Ionosphere&quot; or &quot;KOBServer&quot;) for <a href="http://www.mrx.com.au/d_cwcom.htm" target="_blank">CW Communicator</a> and <a href="http://home.comcast.net/~morsekob/" target="_blank">MorseKOB</a>. Has a built-in web site that allows seeing who is connected on which channel or wire number. Can install as a Windows Service. You can see the relay server that the author runs at   <a href="http://morsecode.dc3.com:7890/">http://morsecode.dc3.com:7890/</a>.</p>
+					</li>
+					<li>
+						<p>A .NET assembly that encodes text into International or American morse code, with full control over code and character timing (for Farnsworth effects). It has callbacks for &quot;dotscii&quot;, MorseMail, and CWCom formats. It also has full MSDN style CHM file documentation, and will show full IntelliSense if referenced from your .NET project.</p>
+					</li>
+				</ul>
 			</div>
 		</div>
 	</div>
@@ -57,7 +74,7 @@ Released   : 20091206
 			</li>
 			<li>
 				<h2>Downloading &amp; Installing</h2>
-				<p>The two programs come together in a packaged installer. <span style="color: yellow">Current  is V2.4</span>.<br />
+				<p>The two programs come together in a packaged installer. <span style="color: yellow">Current  is V2.6</span>.<br />
 					&nbsp;<br />
 				</p>
 				<div align="center"><a href="http://sourceforge.net/projects/morse-rss-news/files/Morse Code Tools 2.4/MorseTools24Setup.exe/download"><img src="images/Download.png" width="150" height="50" alt="" /></a></div>
@@ -67,15 +84,13 @@ Released   : 20091206
 				<p><span style="color: yellow;">Use these services please.</span> Yes, it's inconvenient, but the program is free, <span style="color: yellow;">so help me help you.</span> I can't monitor a bunch of other forums. 
 				<ul>
 					<li>
-						<p><a href="http://sourceforge.net/projects/morse-rss-news/forums/forum/1101823" target="_blank">Help Using the Program</a></p></li>
-					<li>
-						<p><a href="http://sourceforge.net/projects/morse-rss-news/forums/forum/1101822" target="_blank">General Discussion</a></p></li>
+						<p><a href="http://tech.groups.yahoo.com/group/MorseTools/" target="_blank">Discussion and Help</a> (Yahoo!)</p></li>
 					<li>
 						<p><a href="http://sourceforge.net/tracker/?group_id=308183&amp;atid=1298050" target="_blank">Bug Reports</a></p></li>
 					<li>
 						<p><a href="http://sourceforge.net/tracker/?group_id=308183&amp;atid=1298053" target="_blank">Feature Requests</a></p></li>
 				</ul>
-				<p>Please don't file a bug unless you're certain that your issue is really a bug! If in doubt, ask in the Help section.</p>
+				<p>Please don't file a bug unless you're certain that your issue is really a bug! If in doubt, ask in the <a href="http://tech.groups.yahoo.com/group/MorseTools/" target="_blank">Yahoo! group</a> please..</p>
 				<p><br /><div align="center"><a href="http://sourceforge.net/donate/index.php?group_id=308183"><img src="http://images.sourceforge.net/images/project-support.jpg" width="88" height="32" border="0" alt="Support This Project" /></a></div></p>
 			</li>
 			<li>
@@ -92,19 +107,14 @@ Released   : 20091206
 				<p>To download a book, right-click on its link and choose "save link as..." or "save target as" depending on what browser you're using.</p>
 			</li>
 			<li>
-				<h2>Additional Tools in Source</h2>
-				<p><a href="mailto:rdenny@dc3.com">Contact the author</a> for information on these tools. They require some advanced system admin skills to install. Sources are available via SVN or browsing in the <a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank">Morse Code Tools SourceForge project</a>, under Develop.</p>
-				<ul>
-					<li>
-						<p>News robot for <a href="http://www.mrx.com.au/d_cwcom.htm" target="_blank">CW Communicator</a> and <a href="http://home.comcast.net/~morsekob/" target="_blank">MorseKOB</a> - sends news to the relay server(s) for these programs. The author is currently feeding several channels/wires with news and practice words at several speeds using this tool. Available only in the source code tree (complex installation and setup). Can install as a Windows Service. Supports multiple Morse code feeds and can receive from multiple RSS feeds.</p>
-					</li>
-					<li>
-						<p>An internet relay server (&quot;Ionosphere&quot; or &quot;KOBServer&quot;) for <a href="http://www.mrx.com.au/d_cwcom.htm" target="_blank">CW Communicator</a> and <a href="http://home.comcast.net/~morsekob/" target="_blank">MorseKOB</a>. Has a built-in web site that allows seeing who is connected on which channel or wire number. Can install as a Windows Service</p>
-					</li>
-					<li>
-						<p>A .NET assembly that encodes text into International or American morse code, with full control over code and character timing (for Farnsworth effects). It has callbacks for &quot;dotscii&quot;, MorseMail, and CWCom formats. It also has full MSDN style CHM file documentation, and will show full IntelliSense if referenced from your .NET project.</p>
-					</li>
-				</ul>
+				<h2>Your Own Radio Station</h2>
+				<p>You can use the <a href="rssmorsedoc/news.html" target="_blank">Morse News</a> program together with the <span style="text-decoration:underline;">free version</span> of the <a href="http://www.microsoft.com/expression/products/Encoder4_Overview.aspx" target="_blank">Microsoft Expression Encoder</a> to create your own streaming internet broadcast of Morse code news or whatever you want. </p>
+			</li>
+			<li>
+				<p>Any application that can receive <a href="http://en.wikipedia.org/wiki/Real_Time_Streaming_Protocol" target="_blank">Real Time Streaming Protocol</a> (rtsp://) or the old <a href="http://en.wikipedia.org/wiki/Microsoft_Media_Server" target="_blank">Microsoft Media Server</a> (mms://) streaming content can receive this. Apps are available on all platforms including mobile devices. </p>
+			</li>
+			<li>
+				<p>Instructions on how to do this are available at <a href="streaming.html">Creating Your Own Internet Morse Code Broadcast</a>. This page also lists apps on various platforms that can be used to receive these broadcasts.</p>
 			</li>
 		</ul>
 	</div>

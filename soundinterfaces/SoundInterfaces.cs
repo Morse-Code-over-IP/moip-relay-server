@@ -22,6 +22,7 @@
 // 07-May-10	rbd		1.5.0 - Refactoring into separate assy. Make interfaces
 //						public. Add Down() and Up().
 // 11-May-10	rbd		1.5.0 - Add Voume to both, remove Amplitude froom ITone.
+// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime (finally)
 //
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace com.dc3.morse
 	{
 		float Frequency { get; set; }
 		float Volume { get; set; }
-		int StartLatency { get; set; }
+		int RiseFallTime { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();
 		void Dah();
@@ -48,7 +49,7 @@ namespace com.dc3.morse
 	{
 		int SoundIndex { get; set; }
 		float Volume { get; set; }
-		int StartLatency { get; set; }
+		int RiseFallTime { get; set; }
 		int DitMilliseconds { get; set; }
 		void Dit();
 		void Dah();

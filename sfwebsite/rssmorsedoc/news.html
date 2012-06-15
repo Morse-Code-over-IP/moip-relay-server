@@ -4,11 +4,11 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=Windows-1252">
 		<meta http-equiv="Content-Style-Type" content="text/css">
 		<link rel="STYLESHEET" type="text/css" href="dc3doc.css">
-		<title>Morse News 2.4</title>
+		<title>Morse News 2.6</title>
 </head>
 	<body>
-	<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 2.5	(20-May-2012, command line options)</h1>
-	<p>Morse News periodically reads one <em>or more</em> <a href="http://news.yahoo.com/sitemap/" target="_blank">RSS</a> (news), <a href="http://hosted2.ap.org/APDEFAULT/APNewsFeeds" target="_blank">Atom</a> (news), and/or <a href="http://twitter.com/" target="_blank">Twitter</a> feeds and translates the received messages into International or American Morse Code, which is output as CW radio tones, or telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. This  document will hopefully be all you need to get going. <span class="underline">You'll miss out on important features if you skip reading this</span>!</p>
+	<h1><a href="https://sourceforge.net/projects/morse-rss-news/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 2.6	(14-Jun-2012)</h1>
+	<p>Morse News periodically reads one <em>or more</em> <a href="http://news.yahoo.com/sitemap/" target="_blank">RSS</a> (news or Facebook), <a href="http://hosted2.ap.org/APDEFAULT/APNewsFeeds" target="_blank">Atom</a> (news), and/or <a href="http://twitter.com/" target="_blank">Twitter</a> feeds and translates the received messages into International or American Morse Code, which is output as CW radio tones, old-fashioned spark-gap radio sounds, telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. The CW/spark-gap radio tones can be augmented by noise/QRN, static crashes, and realistic ionospheric fading. This  document will hopefully be all you need to get going. <span class="underline">You'll miss out on important features if you skip reading this</span>!</p>
 	<p><span class="yellowbg">Hover the mouse over the controls on the window to get hints on what they do.</span></p>
 	<p><span class="yellowbg">If the program crashes when trying to make sounds, you probably can't use it as it requires Microsoft DirectX</span>.</p>
 	<h2>Quick Start</h2>
@@ -22,7 +22,7 @@
 	<p class="alert"><strong>Please Note:</strong> Before writing off Twitter, please read the <a href="#twit">Twitter section</a> below. You can create a separate dedicated Twitter account for use as a news feed then have it follow commercial news services' tweets.</p>
 <h2><img src="big_rss.png" alt="RSS" width="32" height="32" hspace="8" align="absmiddle">RSS and Atom News Feeds and URLs</h2>
 	<p>RSS and Atom feeds are similar and Morse News understands both formats automatically. These feeds contain digests of articles, most often news articles. It's beyond the scope of this document to describe these feed technologies, how to use them, how to find  feeds, etc. Start with the Wikipedia articles on <a href="http://en.wikipedia.org/wiki/RSS" target="_blank">RSS</a> and <a href="http://en.wikipedia.org/wiki/Atom_(standard)" target="_blank">Atom</a> if you want detailed info and go from there. Morse News was tested with Yahoo! RSS News feeds. It comes pre-set with several of these feeds. The Yahoo! feeds are clean copies of Associated Press, Reuters, etc. news wire services, not cluttered with junk and verbal decoration. I suggest you start with these. The Feed URL list is pre-filled with a few Yahoo! RSS feeds and a &quot;Top 100 words&quot; practice feed from my web site. Of course you can type in your own URLs. If you actually <em>use</em> a feed you typed in, it will be remembered in the list. Up to the latest 16 feeds used are remembered. <span class="alert">If you want to reset the list to the original set, right click and select <strong>Reset to original list</strong></span>.</p>
-	<h3>RSS and Atom Feeds</h3>
+	<h3><a name="feeds"></a>RSS and Atom Feeds</h3>
 	<p>There's sort of an art to discovering the actual feed URL for RSS and Atom feeds. Sometimes it's enough to right-click on the RSS/Atom icon and select Copy Link or Copy Shortcut (depending on your browser). Looking at the bottom status area of your browser while hovering over a feed icon is another trick. Here are some news-type  sources:</p>
 	
 	<p><a href="http://news.yahoo.com/sitemap/" target="_blank"><strong>Yahoo! News</strong></a> - These are clean news feeds from Reuters, AP, and others and they result in clean telegraphic news.<br>
@@ -43,49 +43,54 @@
 <ol>
 	<li>Along the top of your Facebook page, in the blue bar, the globe icon is where you see your notifications. Click the globe and at the bottom select <strong>see all notifications</strong>.</li>
 	<li>At the top of the Your Notifications page that appears, see <span style="color:gray">Get notifications via:</span> <span style="color: blue">RSS</span>. The <span style="color:blue">RSS</span> is a hyperlink to your Facebook RSS feed. As usual, right click and select Copy Link or Copy Shortcut (depending on your browser).</li>
-</ol>
-	<h2><a name="twit"></a><a href="http://twitter.com/" target="_blank"><img src="twitter_logo.png" alt="Twitter" width="140" height="62" border="0" align="absmiddle"></a>&nbsp;&nbsp;Using Twitter to Feed Morse News</h2>
+	</ol>
+<p>Stories made from Facebook notifications will be &quot;from&quot; <strong>FBK</strong> instead of RSS or Atom. </p>
+<h2><a name="twit"></a><a href="http://twitter.com/" target="_blank"><img src="twitter_logo.png" alt="Twitter" width="140" height="62" border="0" align="absmiddle"></a>&nbsp;&nbsp;Using Twitter to Feed Morse News</h2>
 	<p>You can monitor your Twitter timeline (and <em>much</em> more) with Morse News. Assuming you have a Twitter account, all you have to do to monitor your home timeline is use a Feed URL of <span class="fixed">twitter://timeline</span>. You'll notice that this is one of the default items in the Feed URL dropdown list. Try it! The first time you do, you'll see a web browser open to allow you to authorize Morse News to access your Twitter account. This happens only once. <span class="alert">Please note that Morse News asks <strong>only for read access</strong> to your Twitter account. It cannot possibly post tweets or make any changes</span>.</p>
 <h3>Why Twitter? It's an excellent way to get news!</h3>
 <p>Even if you don't	use Twitter, it's a useful way to get news of multiple specialized topics. There are a couple of ways to do this:</p>
 <ol>
-	<li>Set up a special Twitter account just for Morse News. Then &quot;follow&quot; one or more Twitter timelines like <a href="http://twitter.com/nasa" target="_blank">@NASA</a>, <a href="http://twitter.com/FoxBusiness" target="_blank">@Reuters</a>, or <a href="http://twitter.com/dxzone" target="_blank">@dxzone</a>. Most interesting Twitter timelines are low-bandwidth so follow more than one to get a decent amount of traffic. Once you've set this Twitter account up and have followed your choices, use the simple Feed URL of <span class="fixed">twitter://timeline</span> to read the traffic in Morse Code.</li>
-	<li><a href="http://support.twitter.com/articles/76460-how-to-use-twitter-lists" target="_blank">Create a list</a> of news feeds in your existing Twitter account. Visit each Twitter news source (or whatever) and add them to your list. Then use the (advanced) Feed URL of <span class="fixed">twitter://list?name=mylist</span> to read the tweets from the sources in your list. The disadvantage of this approach is that all of this news will also appear in your home timeline. </li>
+	<li>Set up a special Twitter account just for Morse News. Then &quot;follow&quot; one or more Twitter timelines like <a href="http://twitter.com/nasa" target="_blank">@NASA</a>, <a href="http://twitter.com/FoxBusiness" target="_blank">@Reuters</a>, or <a href="http://twitter.com/dxzone" target="_blank">@dxzone</a>. Most interesting Twitter timelines are low-bandwidth so follow more than one to get a decent amount of traffic. Once you've set this Twitter account up and have followed your choices, use the simple Feed URL of <span class="fixed">twitter://<em>username</em>/timeline</span> to read the traffic in Morse Code, where <em>username</em> is the desired Twitter account screen or user name.</li>
+	<li><a href="http://support.twitter.com/articles/76460-how-to-use-twitter-lists" target="_blank">Create a list</a> of news feeds in your existing Twitter account. Visit each Twitter news source (or whatever) and add them to your list. Then use the (advanced) Feed URL of <span class="fixed">twitter://<em>username</em>/list?name=mylist</span> to read the tweets from the sources in your list. Again <em>username</em> is your Twitter screen or user name. The disadvantage of this approach is that all of this news will also appear in your home timeline. </li>
 </ol>
-<h3>Advanced Twitter Features and Feed URLs</h3>
-<p>The Twitter reader in Morse News supports many forms of Feed URLs which can be used to feed various kinds of information from Twitter:</p>
+<h3>Advanced Twitter Features and Feed URIs</h3>
+<p>The Twitter reader in Morse News supports many forms of Feed URLs which can be used to feed various kinds of information from Twitter. In the URLs below, <em>username</em> is the screen or user name for the Twitter account you want to feed from:</p>
 <dl>
-	<dt>twitter://timeline</dt>
+	<dt>twitter://<em>username</em>/timeline</dt>
 	<dd>The home timeline</dd>
-	<dt>twitter://user</dt>
+	<dt>twitter://<em>username</em>/user</dt>
 	<dd>Your tweets only</dd>
-	<dt>twitter://user?screen_name=abcdefg</dt>
+	<dt>twitter://<em>username</em>/user?screen_name=abcdefg</dt>
 	<dd>The tweets of the user whose screen name is <strong>abcdefg</strong>.</dd>
-	<dt>twitter://public</dt>
+	<dt>twitter://<em>username</em>/public</dt>
 	<dd>The public timeline. This is typically extremely busy and full of junk.</dd>
-	<dt>twitter://mentions</dt>
+	<dt>twitter://<em>username</em>/mentions</dt>
 	<dd>Tweets which contain a mention of you</dd>
-	<dt>twitter://list?list_name=mylist</dt>
+	<dt>twitter://<em>username</em>/list?list_name=mylist</dt>
 	<dd>Timeline produced from your saved list named <strong>mylist</strong></dd>
-	<dt>twitter://list?screen_name=abcdefg&amp;list_name=alist</dt>
+	<dt>twitter://<em>username</em>/list?screen_name=abcdefg&amp;list_name=alist</dt>
 	<dd>Timeline produced from the <em>public</em> list <strong>alist</strong> of user <strong>abcdefg</strong></dd>
-	<dt>twitter://messages</dt>
-	<dd>Your direct messages (as opposed to tweets)</dd>
-	<dt>twitter://search?query=xyzzy</dt>
+	<dt>twitter://<em>username</em>/search?query=xyzzy</dt>
 	<dd>A timeline resulting from a Twitter search with search term <strong>xyzzy</strong>. Useful for feeding trending topics via hashtags like <strong>#astronomy</strong> or <strong>#justinbieber</strong>.</dd>
-	<dt>twitter://search?query=#morsecode&amp;result_type=popular</dt>
+	<dt>twitter://<em>username</em>/search?query=#morsecode&amp;result_type=popular</dt>
 	<dd>A timeline resulting from a Twitter search for hashtag <strong>#morsecode</strong>, and returning only <strong>popular</strong> tweets. The choices for <strong>result_type</strong> are <strong>popular</strong>, <strong>recent</strong>, and <strong>mixed</strong> (containing both).</dd>
 </dl>
+<h3>Twitter Authentication - oAuth</h3>
+<p>Morse News uses the advanced and secure <a href="https://dev.twitter.com/docs/auth/oauth/faq" target="_blank">oAuth protocol</a> to authenticate with Twitter. When you first use a<span class="fixed"> twitter://</span> feed URL, you'll see your default browser open. At this point you may be asked to log into Twitter (if you didn't ask the browser to remember you). Eventually, you'll see a 6 digit PIN that you need to copy into the PIN window that Morse News shows. If it is correct, you'll be authenticated as the user that your browser is logged in as. From there on, Morse News will not need to re-authenticate during routine use. </p>
+<p>If you have authenticated and wish to switch Morse News to a new Twitter account, just change the username part of the <span class="fixed">twitter://</span> URL. You will be led through the steps needed. You can save time by first logging into the new Twitter account with your default browser. This will allow Morse News to take you directly to the PIN stage. </p>
+<h3>Twitter URL for &quot;Current User&quot;</h3>
+<p>If you use a URL of the form <span class="fixed">twitter:///</span> (3 slashes, without anything in  the username part) Morse News will interpret this as &quot;current user&quot;. If Morse News has authenticated in the past, it will jsut continue to use the last used Twitter account. If it has not logged in, it will take you theough the oAuth dance with whatever account is logged into your default web browser, or if your web browser is not logged into Twitter, it will ask you to log into Twitter in your browser first. After that, the username check will be skipped, so it will take whatever account you logged in with. This form is most useful in a feed list (as described below).</p>
 <h2>Multiple Feeds - Aggregation</h2>
-<p>To make things even more interesting, you can read multiple RSS, Atom, and Twitter feeds, combining all of their articles into an aggregated feed. Instead of putting a single feed URL into the field, you put the URL of a local file which contains a <strong>list of feed URLs</strong> (you can mix<strong> http://</strong> for RSS/Atom and <strong>twitter://</strong>). Clicking the <strong>Get Feed List</strong> button opens a file browser with which you can select the feed list file (type of <strong>.txt</strong>). For example:</p>
+<p>To make things even more interesting, you can read multiple RSS, Atom, and Twitter feeds, combining all of their articles into an aggregated feed. Instead of putting a single feed URL into the field, you put the URL of a local file which contains a <strong>list of feed URLs</strong> (you can mix<strong> http://</strong> for RSS/Atom and <strong>twitter:///</strong>). Clicking the <strong>Get Feed List</strong> button opens a file browser with which you can select the feed list file (type of <strong>.txt</strong>). For example:</p>
 <pre>;
 ; Morse News feed list for Joe Mama
 ;
 http://rss.upi.com/news/news.rss
 http://rss.cnn.com/rss/cnn_crime.rss
-twitter://timeline                          ; My home timeline<br>twitter://messages                          ; My direct messages (PVT)
+twitter:///timeline                         ; My home timeline (note the &quot;current user&quot; form of URL)<br>twitter:///messages                         ; My direct messages (PVT)
 </pre>
-<p>When you select the feed list file in the file browser, you'll notice that a <strong>file:// </strong>URL appears in the Feed URL field, and the file has a type of <strong>.txt</strong>. <span class="alert">If you enter a <strong>file://</strong> URL of a file of type <strong>.xml</strong>, it is assumed to contain RSS or Atom info, which will be fed. You can put one of these into a feed list file!</span><br>
+<p>When you select the feed list file in the file browser, you'll notice that a <strong>file:// </strong>URL appears in the Feed URL field, and the file has a type of <strong>.txt</strong>. <span class="underline">Note that the Twitter URLs in the list are of the &quot;current user&quot; form</span>. You cannot mix Twitter URLs for diffierent accounts in a feed list, therefore it's best practice to avoid putting the username in the Twitter URL altogether.</p>
+<p><span class="alert">If you include a <strong>file://</strong> URL of a file of type <strong>.xml</strong>, it is assumed to contain RSS or Atom info, which will be fed. You can put one of these into a feed list file!</span><br>
 </p>
 <h2>Article Control</h2>
 <p>Each time a feed (or a set of feeds) is read, it supplies a bunch of &quot;recent&quot; articles. <span class="underline">They are sorted newest to oldest</span>. Morse News has some filtering to prevent the same articles from being seen &quot;too often&quot;. That's what the <strong>Story Age</strong> setting does. The default setting of 120 (minutes) means the same story won't be sent via Morse unless it hasn't been seen for two hours. The <strong>Clear Cache</strong> button immediately deletes all to the &quot;seen&quot; titles instead of waiting for each to expire. </p>
@@ -99,7 +104,8 @@ twitter://timeline                          ; My home timeline<br>twitter://mess
 	<p>You can select to have CW radio tone, old-time CW spark gap tone, or telegraph sounder output. <span class="alert">Selecting <strong>Telegraph Sounder</strong> also changes the format of the Morse Code output</span>. Telegraph sounds cause the output messages (e.g., news summaries) to be in the format of a telegram with old-fashioned date/time. <strong>CW Radio Tone</strong> and <strong>CW Spark Gap </strong>cause the messages to be in the format of a radio message. </p>
 	<p>If you select <strong>CW Radio Tone</strong>, clicking the up and down arrow in the <strong>Tone Freq</strong>. box will play a short tone at the new frequency. If you select <strong>CW Spark Gap</strong> you can cycle through the available spark gap sounds. If you select <strong>Telegraph Sounder</strong>, you can cycle through the available sounder sounds in the same way.</p>
 	<h3>Sound Options &amp; Selecting the Sound Output Device</h3>
-	<p>On the main window there is a little hyperlink <span class="underline">Sound cfg</span>. This opens the Sound Settings window where you can select the Windows sound device that is used for audio output and the CW tone envelope rise and fall times. In addition, you can add noise to the output to simulate receiving with static/QRN. Note that version 2.3 and later support only DirectX sound output, therefore your sound card/device must support DirectX or the program cannot be used. If you want to use a sound output device (&quot;sound card&quot;) other than the one currently selected in Windows, you can select it in the dropdown list. To use the one selected in Windows, select <strong>Primary Sound Driver</strong>.</p>
+	<p>On the main window there is a little hyperlink <span class="underline">Sound cfg</span>. This opens the Sound Settings window where you can select the Windows sound device that is used for audio output and the CW tone envelope rise and fall times. If you want to use a sound output device (&quot;sound card&quot;) other than the one currently selected in Windows, you can select it in the dropdown list. To use the one selected in Windows, select <strong>Primary Sound Driver</strong>.</p>
+	<p>The other controls in this window allow you to create realistic sounding Morse Code radio over HF. You can vary the level of background noise/QRN, as well as enable and disable static crashes and ionospheric fading. When fading is enabled, the average level of the signal (as controlled by the volume slider on the main window) will decrease by around 5dB. In the real world, the signal level can increase and decrease from it's ground-wave equivalent due to constructive and destructive addition of fading components. The fading profile is a baseband Rayleigh fading envelope generated by a MATLAB program. The fading values, if you're curious, are contained in the file fading.txt and there are 2048 of them. Their values range from just above zero to 1.0 max. There is no AGC so when the signal fades, the background will not increase in volume.</p>
 	<h2>Command Line Options</h2>
 	<p>You can use a command line to run the Morse RSS News program. With command line options, you can specify the feed URL as well as tell it to start without you needing to click the Start button:</p>
 	<dt>-f or --feedurl <i>xxxxx</i></dt>

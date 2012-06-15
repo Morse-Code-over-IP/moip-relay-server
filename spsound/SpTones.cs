@@ -143,7 +143,7 @@ namespace com.dc3.morse
 			set { }
 		}
 
-		public int StartLatency
+		public int RiseFallTime
 		{
 			get { return _startLatency; }
 			set { _startLatency = value; }

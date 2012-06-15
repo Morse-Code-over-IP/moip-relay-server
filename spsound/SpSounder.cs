@@ -75,7 +75,7 @@ namespace com.dc3.morse
 			set { }
 		}
 
-		public int StartLatency
+		public int RiseFallTime
 		{
 			get { return _startLatency; }
 			set { _startLatency = value; }
@@ -99,7 +99,7 @@ namespace com.dc3.morse
 
 		public void Space()
 		{
-			PreciseDelay.Wait(_ditMs - StartLatency);
+			PreciseDelay.Wait(_ditMs - RiseFallTime);
 		}
 
 		//

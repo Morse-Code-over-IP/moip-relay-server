@@ -5,6 +5,10 @@
 // 28-Nov-11	rbd		2.2.0 - (SF #3444355) Hide DirectX checkbox, 
 //						effectively hardwire to DirectX. SF #3432844 Add 
 //						sound device selection.
+// 11-Jun-12	rbd		2.6.0 - SF #3534418 Static crashes and HF fading.
+//						Rename timing comp items to rise fall to reflect 
+//						their true purpose. Remove old DirectX control and
+//						members. No more SF tones.
 //
 using System;
 using System.Collections.Generic;
@@ -50,18 +54,10 @@ namespace com.dc3
 			get { return _soundDevGUID; }
 		}
 
-		public int TimingComp	// TODO Rename to envelope time, also nudTimingComp control name
+		public int RiseFall
 		{
-			get { return (int)nudTimingComp.Value; }
-			set { nudTimingComp.Value = (decimal)value; }
-		}
-
-		public bool UseDirectX
-		{
-			//get { return chkDirectX.Checked; }
-			//set { chkDirectX.Checked = value; }
-			get { return true; }
-			set { }
+			get { return (int)nudRiseFall.Value; }
+			set { nudRiseFall.Value = (decimal)value; }
 		}
 
 		public int NoiseLevel
@@ -70,24 +66,22 @@ namespace com.dc3
 			set { trkNoise.Value = value; }
 		}
 
+		public bool StaticCrashes
+		{
+			get { return chkStatic.Checked; }
+			set { chkStatic.Checked = value; }
+		}
+
+		public bool HfFading
+		{
+			get { return chkFading.Checked; }
+			set { chkFading.Checked = value; }
+		}
+
 		private void cbSoundDevs_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			_soundDevGUID = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid.ToString();
 		}
-
-		//private void chkDirectX_CheckedChanged(object sender, EventArgs e)
-		//{
-		//    if (chkDirectX.Checked)
-		//    {
-		//        lblTiming.Text = "Rise/Fall (ms)";
-		//        toolTip.SetToolTip(nudTimingComp, "Sets the envelope rise and fall times");
-		//    }
-		//    else
-		//    {
-		//        lblTiming.Text = "Timing comp (ms)";
-		//        toolTip.SetToolTip(nudTimingComp, "Reduce inter-character spacing for sound latency");
-		//    }
-		//}
 	}
 
 }

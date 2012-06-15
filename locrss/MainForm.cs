@@ -84,6 +84,22 @@
 //								http://support.microsoft.com/kb/115831
 // 20-May-12	rbd		2.5.0 - SF #3527171 command line options for autostart and specified
 //								feed URL or list.
+// 11-Jun-12	rbd		2.6.0 - SF #3534418 Static crashes and HF fading.
+//								Rename StartLatency in sound interface to RiseFallTime to
+//								reflect its true purpose. Remove old non-DirectX code. 
+//								Rename _timingComp to _riseFall to reflect its true purpose.
+// 12-Jun-12	rbd		2.6.0 - Switch noise to use DirectX like static crashes. Overhaul noise
+//								and static files. Much more realistic now. SF #3534417 Remove
+//								ellipsis. Also convert (REUTERS) to REUTERS like AP.
+// 14-Jun-12	rbd		2.6.0 - Allow Xml failures and just trace them, skipping the story. 
+//								Same with other RSS/Atom content problems, just skip the story. 
+//								Don't let them kill the	the app. Add MUCH more debug tracing.
+//								Filter old articles immediately after retrieval, trace them too.
+//								Add more tweet types, for other than SCH and PVT. Tracing
+//								revealed BUG in GetPubDateUtc()!!!!! Remove direct message 
+//								support. New permission model would need to grant R/W to this
+//								app to access direct messages. Nope.
+//
 //
 using System;
 using System.Collections.Generic;
@@ -102,6 +118,7 @@ using System.Threading;
 using System.Web;
 using System.Windows.Forms;
 using System.Xml;
+using Microsoft.DirectX.DirectSound;
 
 using TwitterVB2;
 
@@ -153,11 +170,12 @@ namespace com.dc3
 		private int _pollInterval;
 		private int _codeSpeed;
 		private int _charSpeed;
-		private bool _directX;
 		private string _soundDevGUID;
 		private int _toneFreq;
 		private int _noiseLevel;
-		private int _timingComp;
+		private bool _staticCrashes;
+		private bool _hfFading;
+		private int _riseFall;
 		private int _sounderNum;
 		private int _sparkNum;
 		private int _storyAge;
@@ -179,7 +197,8 @@ namespace com.dc3
 		private ITone _tones;
 		private IAudioWav _sounder;
 		private IAudioWav _spark;
-		private SoundPlayer _noise;
+		private Thread _noiseFadeThread = null;
+		private Thread _staticThread = null;
 		private DateTime _lastPollTime;
 		private DateTime _lastMsgSendDate = DateTime.MinValue;					// [sentinel]
 		private ComPortCtrl _serialPort;
@@ -201,15 +220,12 @@ namespace com.dc3
 			nudCharSpeed.Value = Properties.Settings.Default.CharSpeed;
 			nudCharSpeed.Minimum = (decimal)_codeSpeed;
 			_charSpeed = (int)nudCharSpeed.Value;
-			// ------ FROM SOUND CONFIG FORM -------
-			// SF #3444355 _directX = Properties.Settings.Default.DirectX;
-			_directX = true;
 			_soundDevGUID = Properties.Settings.Default.SoundDevGUID;
-			if (_directX)
-				_timingComp = Properties.Settings.Default.RiseFall;
-			else
-				_timingComp = (int)Properties.Settings.Default.TimingComp;
+			_riseFall = Properties.Settings.Default.RiseFall;
 			_noiseLevel = Properties.Settings.Default.NoiseLevel;
+			// -- CONTROLS NOT ON MAIN FORM - MANUALLY BOUND TOO --
+			_staticCrashes = Properties.Settings.Default.StaticCrashes;
+			_hfFading = Properties.Settings.Default.HfFading;
 			// -------------------------------------
 			_toneFreq = (int)nudToneFreq.Value;
 			_sounderNum = (int)nudSounder.Value;
@@ -218,7 +234,6 @@ namespace com.dc3
 			_serialPortNum = (int)nudSerialPort.Value;
 			_useSerial = chkUseSerial.Checked;
 			_serialPort = null;
-			_noise = null;
 			_run = false;
 
 			if (Properties.Settings.Default.CodeMode == 0)
@@ -264,8 +279,15 @@ namespace com.dc3
 			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
 			this.Top = Properties.Settings.Default.SavedWinY;
 
+			if (_debugTracing)
+				Trace.WriteLine("Starting up the program...", _traceCatMorseNews);
+
 			if (Program.s_bAutoStart && btnStartStop.Enabled)					// If can start and autostart
+			{
+				if (_debugTracing)
+					Trace.WriteLine("Auto-start option given, starting news now.", _traceCatMorseNews);
 				btnStartStop_Click(new Object(), new EventArgs());
+			}
 
 		}
 
@@ -273,6 +295,9 @@ namespace com.dc3
 		{
 			Properties.Settings.Default.SavedWinX = this.Left;
 			Properties.Settings.Default.SavedWinY = this.Top;
+
+			if (_debugTracing)
+				Trace.WriteLine("Shutting down the program...", _traceCatMorseNews);
 
 			if (_titleExpireThread != null)
 			{
@@ -283,6 +308,16 @@ namespace com.dc3
 			{
 				_runThread.Interrupt();
 				_runThread.Join(1000);
+			}
+			if (_staticThread != null)
+			{
+				_staticThread.Interrupt();
+				_staticThread.Join(1000);
+			}
+			if (_noiseFadeThread != null)
+			{
+				_noiseFadeThread.Interrupt();
+				_noiseFadeThread.Join(1000);
 			}
 			if (_serialPort != null)
 				_serialPort.Close();
@@ -304,7 +339,6 @@ namespace com.dc3
 				cbFeedUrl.SelectedIndex = index;
 				Properties.Settings.Default.LastListDir = Path.GetDirectoryName(ofnDlg.FileName);
 			}
-
 		}
 
 		private void cbFeedUrl_TextChanged(object sender, EventArgs e)
@@ -476,6 +510,8 @@ namespace com.dc3
 			{
 				_titleCache.Clear();
 			}
+			if (_debugTracing)
+				Trace.WriteLine("Clear cache button clicked. Seen stories forgotten.", _traceCatMorseNews);
 			MessageBox.Show("Seen stories have been forgotten", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
@@ -501,6 +537,8 @@ namespace com.dc3
 			foreach (XmlNode item in items)
 				cbFeedUrl.Items.Add(item.InnerText);
 			cbFeedUrl.Text = items.Item(0).InnerText;
+			if (_debugTracing)
+				Trace.WriteLine("LRU list reset to the default list.", _traceCatMorseNews);
 		}
 
 		private void llSoundCfg_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -511,34 +549,25 @@ namespace com.dc3
 		private void picSoundCfg_Click(object sender, EventArgs e)
 		{
 			SoundCfgForm sf = new SoundCfgForm(_soundDevGUID);
-			sf.UseDirectX = Properties.Settings.Default.DirectX;
 			sf.NoiseLevel = Properties.Settings.Default.NoiseLevel;
-			if (sf.UseDirectX)
-				sf.TimingComp = Properties.Settings.Default.RiseFall;
-			else
-				sf.TimingComp = (int)Properties.Settings.Default.TimingComp;
+			sf.StaticCrashes = Properties.Settings.Default.StaticCrashes;
+			sf.HfFading = Properties.Settings.Default.HfFading;
+			sf.RiseFall = Properties.Settings.Default.RiseFall;
 			if (sf.ShowDialog(this) == DialogResult.OK)
 			{
 				_soundDevGUID = sf.SoundDevGUID;
-				_timingComp = sf.TimingComp;
-				_tones.StartLatency = _timingComp;
-				_sounder.StartLatency = _timingComp;
-				_spark.StartLatency = _timingComp;
-				//if (_directX != sf.UseDirectX)									// Switching sound technology
-				//{
-				//	_directX = sf.UseDirectX;
-					SetupSound();
-				//}
-				//else
-				//	_directX = sf.UseDirectX;
-				//if (_directX)
-					Properties.Settings.Default.RiseFall = _timingComp;
-				//else
-				//	Properties.Settings.Default.TimingComp = (decimal)_timingComp;
-				Properties.Settings.Default.DirectX = _directX;
+				_riseFall = sf.RiseFall;
+				_tones.RiseFallTime = _riseFall;
+				Properties.Settings.Default.RiseFall = _riseFall;
 				_noiseLevel = sf.NoiseLevel;
 				Properties.Settings.Default.NoiseLevel = _noiseLevel;
 				Properties.Settings.Default.SoundDevGUID = _soundDevGUID;
+				_staticCrashes = sf.StaticCrashes;
+				Properties.Settings.Default.StaticCrashes = _staticCrashes;
+				_hfFading = sf.HfFading;
+				Properties.Settings.Default.HfFading = _hfFading;
+				Properties.Settings.Default.Save();
+				SetupSound();
 			}
 		}
 
@@ -559,25 +588,16 @@ namespace com.dc3
 
 		private void picRSS_Click(object sender, EventArgs e)
 		{
-			System.Diagnostics.Process.Start("http://news.yahoo.com/page/rss");
+			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\news.html#feeds");
 		}
 
 		private void SetupSound()
 		{
 #if !MONO_BUILD
-			if (_directX)
-			{
-				Guid guid = new Guid(_soundDevGUID);
-				_tones = new DxTones(this, guid, 1000);
-				_sounder = new DxSounder(this, guid);
-				_spark = new DxSpark(this, guid);
-			}
-			else
-			{
-				_tones = new SpTones();
-				_sounder = new SpSounder();
-				_spark = new SpSpark();
-			}
+			Guid guid = new Guid(_soundDevGUID);
+			_tones = new DxTones(this, guid, 1000);
+			_sounder = new DxSounder(this, guid);
+			_spark = new DxSpark(this, guid);
 #else
 			_tones = new SpTones();
 			_sounder = new SpSounder();
@@ -585,13 +605,11 @@ namespace com.dc3
 #endif
 			_tones.Frequency = _toneFreq;
 			_tones.Volume = tbVolume.Value / 10.0F;
-			_tones.StartLatency = _timingComp;
+			_tones.RiseFallTime = _riseFall;
 			_sounder.SoundIndex = _sounderNum;
 			_sounder.Volume = tbVolume.Value / 10.0F;
-			_sounder.StartLatency = _timingComp;
 			_spark.SoundIndex = _sparkNum;
 			_spark.Volume = tbVolume.Value / 10.0F;
-			_spark.StartLatency = _timingComp;
 		}
 
 		private void UpdateUI()
@@ -625,6 +643,8 @@ namespace com.dc3
 		{
 			if (!_run)
 			{
+				if (_debugTracing)
+					Trace.WriteLine("Start button clicked; starting news.", _traceCatMorseNews);
 				if (!cbFeedUrl.Items.Contains(cbFeedUrl.Text))					// Add new URIs to combo box when actually USED!
 				{
 					while (cbFeedUrl.Items.Count > 16)							// Safety catch only
@@ -644,15 +664,40 @@ namespace com.dc3
 						cbFeedUrl.Text = uri;
 					}
 				}
-
+				//
+				// RUN
+				//
 				_runThread = new Thread(new ThreadStart(Run));
 				_runThread.Name = "RSS engine";
 				_runThread.Start();
+				//
+				// NOISE
+				//
+				if (_noiseLevel > 0 && _soundMode != SoundMode.Sounder)
+				{
+					_noiseFadeThread = new Thread(new ThreadStart(NoiseFadeThread));
+					_noiseFadeThread.Name = "B/G Noise";
+					_noiseFadeThread.Start();
+				}
+				//
+				// STATIC
+				//
+				if (_staticCrashes && _soundMode != SoundMode.Sounder)
+				{
+					_staticThread = new Thread(new ThreadStart(StaticThread));
+					_staticThread.Name = "Static Crashes";
+					_staticThread.Start();
+				}
 				btnStartStop.Text = "Stop";
 				_run = true;
 			}
 			else
 			{
+				if (_debugTracing)
+					Trace.WriteLine("Stop button clicked; stopping news.", _traceCatMorseNews);
+				btnStartStop.Text = "Stopping...";
+				btnStartStop.Enabled = false;
+
 				switch (_soundMode)
 				{
 					case SoundMode.Tone:
@@ -670,10 +715,21 @@ namespace com.dc3
 					_runThread.Interrupt();
 					_runThread.Join(1000);
 				}
+				if (_noiseFadeThread != null)
+				{
+					_noiseFadeThread.Interrupt();
+					_noiseFadeThread.Join(1000);
+				}
+				if (_staticThread != null)
+				{
+					_staticThread.Interrupt();
+					_staticThread.Join(1000);
+				}
 				if (_serialPort != null)
 					_serialPort.Close();
 				_serialPort = null;
 				btnStartStop.Text = "Start";
+				btnStartStop.Enabled = true;
 				_run = false;
 			}
 			statBarCrawl.Text = "";
@@ -741,7 +797,10 @@ namespace com.dc3
 			else
 			{
 				if (_run)
-					btnStartStop_Click(new object(), new EventArgs());
+				{
+					_runThread = null;											// Skip interrupt/join on run thread
+					btnStartStop_Click(new object(), new EventArgs());			// It's gonna exit when this method returns!
+				}
 			}
 		}
 
@@ -758,14 +817,16 @@ namespace com.dc3
 		private string GetMorseInputText(string stuff)
 		{
 			string buf = HttpUtility.HtmlDecode(stuff);							// Decode HTML entities, etc.
-			buf = Regex.Replace(buf, "http://[\\S]*", "", RegexOptions.IgnoreCase); // Remove URLs
+			buf = Regex.Replace(buf, "https*://[\\S]*", "", RegexOptions.IgnoreCase); // Remove URLs
 			buf = Regex.Replace(buf, "<[^>]*>", " ");							// Remove HTML tags completely
 			buf = Regex.Replace(buf, "[\\~\\^\\%\\|\\#\\<\\>\\*\\u00A0]", " ");	// Some characters we don't have translations for => space
 			buf = Regex.Replace(buf, "[\\‘\\’\\`]", "'");						// Unicode left/right single quote, backtick -> ASCII single quote
 			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
 			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
 			buf = Regex.Replace(buf, "[—–]", "-");								// Unicode emdash/endash -> hyphen
+			buf = buf.Replace("...*", "");										// Toss .. and ... ellipses completely
 			buf = buf.Replace("(AP)", "AP");									// Special case for AP Atom feeds
+			buf = buf.Replace("(REUTERS)", "REUTERS");							// Same here for Reuters RSS with similar style
 			buf = Regex.Replace(buf, "\\s\\s+", " ").Trim().ToUpper();			// Compress running whitespace, fold all to upper case
 
 			return buf;
@@ -784,18 +845,21 @@ namespace com.dc3
 			DateTime corrDate;
 
 			XmlNode n = item.SelectSingleNode("pubDate");						// Try RSS dfirst
-			if (n == null && nsmgr != null)
+			if (n == null)
 			{
-				n = item.SelectSingleNode("at:updated", nsmgr);					// Then try Atom:updated, then Atom:published
-				if (n == null)
+				if (nsmgr != null)
 				{
-					n = item.SelectSingleNode("at:published", nsmgr);
+					n = item.SelectSingleNode("at:updated", nsmgr);				// Then try Atom:updated, then Atom:published
 					if (n == null)
-						return DateTime.Now;									// Can't find the date, use 'Now'
+					{
+						n = item.SelectSingleNode("at:published", nsmgr);
+						if (n == null)
+							return DateTime.Now;								// Can't find the date, use 'Now' (typ)
+					}
 				}
+				else
+					return DateTime.Now;
 			}
-			else
-				return DateTime.Now;
 
 			string dateStr = n.InnerText;
 			if (!DateTime.TryParse(dateStr, out corrDate))						// This works on Atom dates!
@@ -836,7 +900,7 @@ namespace com.dc3
 
 		//
 		// Get the XML from a feed supporting a URL of the form
-		//   http://user:pass@domain/...
+		//   http[s]://user:pass@domain/...
 		// so can get authenticated feeds (e.g. Twitter). Cannot
 		// do this with XmlDocument.Load();
 		//
@@ -847,7 +911,7 @@ namespace com.dc3
 			NetworkCredential cred = null;										// [sentinel]
 
 			buf = authUrl;
-			buf = Regex.Replace(buf, "http://([^\\:]*\\:[^\\@]*)\\@.*", "$1");
+			buf = Regex.Replace(buf, "https*://([^\\:]*\\:[^\\@]*)\\@.*", "$1");
 			if (buf != authUrl)													// If found basic auth
 			{
 				string[] bits = buf.Split(new char[] { ':' });
@@ -861,6 +925,8 @@ namespace com.dc3
 				HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(authUrl);
 				if (cred != null)
 					req.Credentials = cred;
+				// Facebook requires something recognizeable just to return RSS!!!
+				req.UserAgent = req.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.56 Safari/536.5";
 				rsp = (HttpWebResponse)req.GetResponse();
 				if (rsp.StatusCode != HttpStatusCode.OK)
 					throw new ApplicationException("RSS server returned " + rsp.StatusDescription + ", check the URL");
@@ -916,9 +982,167 @@ namespace com.dc3
 						oldTitles.Add(title);
 				}
 				foreach (string title in oldTitles)
+				{
 					_titleCache.Remove(title);
+					if (_debugTracing)
+					{
+						string t = title;
+						if (t.Length > 60) t = t.Substring(0, 60) + "...";
+						Trace.WriteLine("Removed  \"" + t + "\" from title cache.", _traceCatMorseNews);
+					}
+				}
 			}
 		}
+
+		//
+		// Cross-thread support for noise and static DirectX.
+		//
+		delegate void SetCooperativeLevelCallback(Device dev);
+		private void SetCooperativeLevel(Device dev)
+		{
+			if (this.InvokeRequired)
+			{
+				SetCooperativeLevelCallback d = new SetCooperativeLevelCallback(SetCooperativeLevel);
+				this.Invoke(d, new object[] { dev });
+			}
+			else
+			{
+				dev.SetCooperativeLevel(Handle, CooperativeLevel.Normal);
+			}
+		}
+		//
+		// Separate thread for playing static via DirectX.
+		// Play random selection of Static<n> sounds at random volume
+		// and with random spacing, simulating static crashes. Requires 
+		// cross-thread op to set the buffer descriptor's coop-level, 
+		// hence the shenanigans above..
+		//
+		private void StaticThread()
+		{
+			try
+			{
+				Device devSnd = new Device(new Guid(_soundDevGUID));
+				//devSnd.SetCooperativeLevel(Handle, CooperativeLevel.Normal);
+				SetCooperativeLevel(devSnd);
+				BufferDescription bufDesc = new BufferDescription();
+				bufDesc.GlobalFocus = true;									// Enable audio when program is in background
+				bufDesc.ControlVolume = true;
+
+				Random rndSound = new Random();
+				Thread.Sleep(345);
+				Random rndSpacing = new Random();
+				Thread.Sleep(210);
+				Random rndVolume = new Random();
+
+				if (_debugTracing)
+					Trace.WriteLine("Starting static crash thread.", _traceCatMorseNews);
+				while (true)
+				{
+					int nSnd = rndSound.Next(1, 5);
+					SecondaryBuffer sound = new SecondaryBuffer(
+									Properties.Resources.ResourceManager.GetStream("Static" + nSnd),
+									bufDesc, devSnd);
+					double vol = (double)rndVolume.Next(3, 10) / 10.0;		// Range 0.3 = 1.0 (never silent)
+					// This is sicko way to get the static stronger.
+					vol *= (double)_noiseLevel / 2.5;						// Scale with noise level
+					if (vol > 1.0) vol = 1.0;								// But don't let exceed normalized
+					sound.Volume = -(int)Math.Pow((60 * (vol - 1.0F)), 2);	// Logarithmic volume response
+					sound.Play(0, BufferPlayFlags.Default);
+					Thread.Sleep(rndSpacing.Next(1, 16) * 500);				// 0.5 to 8 sec apart.
+					sound.Dispose();
+				}
+			}
+			catch (ThreadInterruptedException)
+			{
+				return;
+			}
+		}
+
+		//
+		// Separate thread for playing background noise via DirectX. Will not
+		// run if using telegraph sounder.
+		//
+		private void NoiseFadeThread()
+		{
+			SecondaryBuffer sound = null;										// [sentinel]
+			try
+			{
+				double vol = (double)_noiseLevel / 5.0;							// Range 0.0 - 1.0 (raw 1-5)
+				if (vol > 0.0)
+				{
+					if (_debugTracing)
+						Trace.WriteLine("Starting noise at level " + _noiseLevel + ".", _traceCatMorseNews);
+					Device devSnd = new Device(new Guid(_soundDevGUID));
+					//devSnd.SetCooperativeLevel(Handle, CooperativeLevel.Normal);
+					SetCooperativeLevel(devSnd);
+					BufferDescription bufDesc = new BufferDescription();
+					bufDesc.GlobalFocus = true;									// Enable audio when program is in background
+					bufDesc.ControlVolume = true;
+					sound = new SecondaryBuffer(
+										Properties.Resources.ResourceManager.GetStream("Noise1"),
+										bufDesc, devSnd);
+					sound.Volume = -(int)Math.Pow((60 * (vol - 1.0F)), 2);		// Logarithmic volume response
+					sound.Play(0, BufferPlayFlags.Looping);
+				}
+				//
+				// Double Duty: If fading is selected, do it here
+				//
+				if (_hfFading)
+				{
+					if (_debugTracing)
+						Trace.WriteLine("Starting ionospheric fading.", _traceCatMorseNews);
+					string fadeFile = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + 
+										Path.DirectorySeparatorChar + "fading.txt";
+					string[] fadeData = File.ReadAllText(fadeFile).Split(',');
+					float baseVol = 1.0F;
+					switch (_soundMode)
+					{
+						case SoundMode.Tone:
+							baseVol = _tones.Volume;
+							break;
+						case SoundMode.Spark:
+							baseVol = _spark.Volume;
+							break;
+						case SoundMode.Sounder:
+							throw new ApplicationException("ASSERT: No noise/fade for sounder!");
+					}
+					// For each fade. Ticks are 250ms (4Hz).
+					while (true)
+					{
+						for (int i = 0; i < fadeData.Length; i++)
+						{
+							switch (_soundMode)
+							{
+								case SoundMode.Tone:
+									_tones.Volume = baseVol * float.Parse(fadeData[i]);
+									break;
+								case SoundMode.Spark:
+									_spark.Volume = baseVol * float.Parse(fadeData[i]);
+									break;
+								default:
+									break;
+							}
+							Thread.Sleep(250);
+						}
+					}
+				}
+				else
+				{
+					if (vol == 0.0) return;									// NOTE!! Thread Exit if neither noise nor fading
+					while (true) Thread.Sleep(30000);
+				}
+			}
+			catch (ThreadInterruptedException)
+			{
+				if (sound != null)
+				{
+					sound.Stop();
+					sound.Dispose();
+				}
+				return;
+			}
+		}
+
 		//
 		// Sender delegate for the CwCom mode of Morse. This gets timing arrays, and calls
 		// the tone generator or twiddles the RTS line on the serial port
@@ -953,7 +1177,7 @@ namespace com.dc3
 					}
 				}
 				else
-					PreciseDelay.Wait(_useSerial ? -code[i] : -code[i] - _timingComp);
+					PreciseDelay.Wait(_useSerial ? -code[i] : -code[i] - _riseFall);
 			}
 			string ct = Regex.Replace(text, "\\s+", " ");						// Remove running spaces from crawler
 			AddToCrawler(ct);
@@ -982,34 +1206,58 @@ namespace com.dc3
 		}
 
 		//
-		// Log into Twitter, with OAuth. Saves the Twitter username and OAuth keypair in Settings. 
+		// Log into Twitter, with OAuth. Saves the OAuth keypair in Settings.
+		// Assures logged in as given user. If username is "" then it will 
+		// log in as "current" username
 		//
-		private TwitterAPI LoginTwitter()
+		private TwitterAPI LoginTwitter(string username)
 		{
 			TwitterAPI twConn = new TwitterAPI();
+			string u = (username == "") ? "<current user>" : username;
 
+			if (_debugTracing)
+				Trace.WriteLine("Authenticate with Twitter as " + u, _traceCatMorseNews);
 			if (Properties.Settings.Default.oAuthToken == "" ||
 				Properties.Settings.Default.oAuthTokenSecret == "")
 			{
+				if (_debugTracing)
+					Trace.WriteLine("No saved token/secret, must reauthenticate", _traceCatMorseNews);
+
 				string sUrl = twConn.GetAuthenticationLink("TP4s16loEhiwF6H4xmLPg",
 										"w8TRJ0lGGUXJ88rCopfpLRiTuh91r6vYtsK4Fr5kAIA");
 				Process.Start(sUrl);
+
+				if (_debugTracing)
+					Trace.WriteLine("Start browser with auth link " + sUrl, _traceCatMorseNews);
 
 				string sPin = "";
 				TwitterPin pinForm = new TwitterPin();
 				do
 				{
 					DialogResult ans = pinForm.ShowDialog();
-					if (ans == DialogResult.Cancel) return null;
+					if (ans == DialogResult.Cancel)
+					{
+						if (_debugTracing)
+							Trace.WriteLine("Pin input canceled, terminate login.", _traceCatMorseNews);
+						Properties.Settings.Default.oAuthToken = "";
+						Properties.Settings.Default.oAuthTokenSecret = "";
+						return null;
+					}
 					sPin = pinForm.txtPin.Text;
+					if (_debugTracing)
+						Trace.WriteLine("Got PIN = " + sPin, _traceCatMorseNews);
 				} while (!twConn.ValidatePIN(sPin));
 				//
 				// Got a good Pin, so the oAuth keypair is good!
 				//
 				Properties.Settings.Default.oAuthToken = twConn.OAuth_Token;
 				Properties.Settings.Default.oAuthTokenSecret = twConn.OAuth_TokenSecret;
+				if (_debugTracing)
+					Trace.WriteLine("PIN validated! oAuth token and secret were received from Twitter.", _traceCatMorseNews);
 			}
 
+			if (_debugTracing)
+				Trace.WriteLine("Authenticate with oAuth token and secret...", _traceCatMorseNews);
 			try
 			{
 				twConn.AuthenticateWith("TP4s16loEhiwF6H4xmLPg",
@@ -1022,8 +1270,36 @@ namespace com.dc3
 				throw new ApplicationException("Twitter authentication failed:\r\n" + ex.Message);
 			}
 
-			return twConn;
+			if (_debugTracing)
+				Trace.WriteLine("Authenticated successfully!", _traceCatMorseNews);
 
+			TwitterUser U = twConn.AccountInformation();
+			if (username != "")
+			{
+				Trace.WriteLine("Check that we authenticated as user '" + username + "'", _traceCatMorseNews);
+				if (U.ScreenName != username)
+				{
+					if (_debugTracing)
+						Trace.WriteLine("NOPE! We're logged in as " + U.ScreenName +
+									". Forget token/secret and start over.", _traceCatMorseNews);
+					MessageBox.Show("Morse News must re-authenticate with Twitter for user " +
+									username + ". Log your default browser into " + " Twitter as " +
+									username + ", then restart Morse News to get a " +
+									" new oAuth PIN for " + username + ".",
+									"Wrong Twitter User",
+									MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					Properties.Settings.Default.oAuthToken = "";
+					Properties.Settings.Default.oAuthTokenSecret = "";
+					return null;
+				}
+			}
+			else
+				Trace.WriteLine("URI was twitter:/// so we accept \"current user\" as login.", _traceCatMorseNews);
+
+			if (_debugTracing)
+				Trace.WriteLine("SUCCESS! Authenticated as " + U.ScreenName + ".", _traceCatMorseNews);
+
+			return twConn;
 		}
 
 
@@ -1051,17 +1327,8 @@ namespace com.dc3
 #else
 					_serialPort.Open("\\\\.\\COM" + _serialPortNum.ToString());
 #endif
-					_noise = null;
-				}
-				else
-				{
-					if (_noiseLevel > 0 && _soundMode != SoundMode.Sounder)		// No noise for telegraph sounder
-					{
-						_noise = new SoundPlayer(Properties.Resources.ResourceManager.GetStream("Noise" + _noiseLevel));
-						_noise.PlayLooping();
-					}
-					else
-						_noise = null;
+					if (_debugTracing)
+						Trace.WriteLine("Serial port #" + _serialPortNum + " opened.", _traceCatMorseNews);
 				}
 
 				// Remember the state of the title cache, we have a clear button!
@@ -1131,22 +1398,24 @@ namespace com.dc3
 							SetStatus("Getting Twitter feed data...", true);
 							if (_debugTracing)
 								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
-							TwitterAPI twConn = LoginTwitter();
+							TwitterAPI twConn = LoginTwitter(uri.Host);						// (Host is username) This alerts!!
+							if (twConn == null)
+								throw new ApplicationException("");							// Shut down news retrieval
 							List<TwitterStatus> sts = null;
 							string screen_name = null;
 							NameValueCollection opts = HttpUtility.ParseQueryString(uri.Query);
-							if (uri.Host == "search")
+							if (uri.AbsolutePath == "/search")
 							{
 								string srch = opts.Get("query");							// Either query= or q=
 								if (srch == null)
 									srch = opts.Get("q");
 								//
-								// THis strange logic handles the case where the search is for a hashtag
+								// This strange logic handles the case where the search is for a hashtag
 								// In this case the search string will be in the URI "Fragment" and the 
 								// query will be "query=", resulting in "" for srch below.
 								//
 								if (srch == null || (srch == "" && uri.Fragment == ""))
-									throw new ApplicationException("twitter://search requires ?query=xxx to qualify the search");
+									throw new ApplicationException("twitter:///search requires ?query=xxx to qualify the search");
 								if (srch == "")
 								{
 									srch = Regex.Replace(uri.Fragment, "&.*", "");			// Remove following query elements
@@ -1160,10 +1429,13 @@ namespace com.dc3
 								if (rtstr != null)
 								{
 									rtstr = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(rtstr);	// Tricky!
-									try {
+									try
+									{
 										rtype = (TwitterVB2.Globals.ResultType)Enum.Parse(typeof(TwitterVB2.Globals.ResultType), rtstr);
-									} catch (Exception) {
-										throw new ApplicationException("twitter://search?result_type= must be mixed, popular, or recent");
+									}
+									catch (Exception)
+									{
+										throw new ApplicationException("twitter:///search?result_type= must be mixed, popular, or recent");
 									}
 								}
 								TwitterSearchParameters tsp = new TwitterSearchParameters();
@@ -1176,39 +1448,64 @@ namespace com.dc3
 									Trace.WriteLine("Search API returned " + resList.Count + " tweets", _traceCatMorseNews);
 								foreach (TwitterSearchResult res in resList)
 								{
+									string t = res.Title;
+									if (t.Length > 60) t = t.Substring(0, 60) + "...";
+									string locTime = res.CreatedAtLocalTime.ToString("HH:mm:ss");
+									if (res.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
+									{
+										if (_debugTracing)
+											Trace.WriteLine("  TOO OLD " + locTime + " SCH: " + t, _traceCatMorseNews);
+										continue;											// Old, skip this story
+									}
+									if (_debugTracing)
+										Trace.WriteLine("  " + locTime + " SCH: " + t, _traceCatMorseNews);
 									DatedItem ni = new DatedItem();
 									ni.pubDate = res.CreatedAtLocalTime;
-									ni.twType = "SCH ";
+									ni.twType = "SCH";
 									ni.twScreenName = res.AuthorName;
 									ni.twRawText = res.Title;
 									stories.Add(ni);
 								}
 							}
-							else if (uri.Host == "messages")
-							{
-								List<TwitterDirectMessage> msgList = twConn.DirectMessages();
-								if (_debugTracing)
-									Trace.WriteLine("Found  " + msgList.Count + " direct message tweets", _traceCatMorseNews);
-								foreach (TwitterDirectMessage msg in msgList)
-								{
-									DatedItem ni = new DatedItem();
-									ni.pubDate = msg.CreatedAtLocalTime;
-									ni.twType = "PVT ";
-									ni.twScreenName = msg.SenderScreenName;
-									ni.twRawText = msg.Text;
-									stories.Add(ni);
-								}
-							}
+							//else if (uri.AbsolutePath == "/messages")
+							//{
+							//    List<TwitterDirectMessage> msgList = twConn.DirectMessages();
+							//    if (_debugTracing)
+							//        Trace.WriteLine("Found  " + msgList.Count + " direct message tweets", _traceCatMorseNews);
+							//    foreach (TwitterDirectMessage msg in msgList)
+							//    {
+							//        string t = msg.Text;
+							//        if (t.Length > 60) t = t.Substring(0, 60) + "...";
+							//        string locTime = msg.CreatedAtLocalTime.ToString("HH:mm:ss");
+							//        if (msg.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
+							//        {
+							//            if (_debugTracing)
+							//                Trace.WriteLine("  TOO OLD " + locTime + " PVT: " + t, _traceCatMorseNews);
+							//            continue;											// Old, skip this story
+							//        }
+							//        if (_debugTracing)
+							//            Trace.WriteLine("  " + locTime + " PVT: " + t, _traceCatMorseNews);
+							//        DatedItem ni = new DatedItem();
+							//        ni.pubDate = msg.CreatedAtLocalTime;
+							//        ni.twType = "PVT";
+							//        ni.twScreenName = msg.SenderScreenName;
+							//        ni.twRawText = msg.Text;
+							//        stories.Add(ni);
+							//    }
+							//}
 							else
 							{
+								string twType = "";
 								// TODO add parameter decoding here
-								switch (uri.Host)
+								switch (uri.AbsolutePath)
 								{
-									case "timeline":										// Auth user's home timeline
+									case "/timeline":										// Auth user's home timeline
+										twType = "HOM";
 										sts = twConn.HomeTimeline();
 										break;
 
-									case "user":
+									case "/user":
+										twType = "USR";
 										screen_name = opts.Get("screen_name");
 										if (screen_name == null)
 											sts = twConn.UserTimeline();					// Tweets by auth user
@@ -1216,56 +1513,81 @@ namespace com.dc3
 											sts = twConn.UserTimeline(screen_name);			// Tweets by given user
 										break;
 
-									case "public":											// Tweets mentioning auth user
+									case "/public":											// Public tweets
+										twType = "PUB";
 										sts = twConn.PublicTimeline();
 										break;
 
-									case "mentions":										// Tweets mentioning auth user
+									case "/mentions":										// Tweets mentioning auth user
+										twType = "MEN";
 										sts = twConn.Mentions();
 										break;
 
-									case "list":											// Tweets from give user's list (or auth user if not given)
+									case "/list":											// Tweets from give user's list (or auth user if not given)
+										twType = "LST";
 										screen_name = opts.Get("screen_name");
 										if (screen_name == null)
 											screen_name = twConn.AccountInformation().ScreenName;
 										string listName = opts.Get("list_name");
 										if (listName == null)
-											throw new ApplicationException("twitter://list requires ?list_name=xxx to identify the list");
+											throw new ApplicationException("twitter:///list requires ?list_name=xxx to identify the list");
 										sts = twConn.ListStatuses(screen_name, listName, 20);
 										break;
 
 									default:
-										throw new ApplicationException("Unknown twitter:// uri '" + uri.Host + "'");
+										throw new ApplicationException("Unknown twitter:/// URL type '" + uri.AbsolutePath + "'");
 								}
 								if (_debugTracing)
-									Trace.WriteLine("Found  " + sts.Count + " " + uri.Host + " tweets", _traceCatMorseNews);
+									Trace.WriteLine("Found  " + sts.Count + " " + uri.AbsolutePath + " tweets", _traceCatMorseNews);
 								foreach (TwitterStatus tw in sts)
 								{
+									string t = tw.Text;
+									if (t.Length > 60) t = t.Substring(0, 60) + "...";
+									string locTime = tw.CreatedAtLocalTime.ToString("HH:mm:ss");
+									if (tw.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
+									{
+										if (_debugTracing)
+											Trace.WriteLine("  TOO OLD " + locTime + " " + twType + ": " + t, _traceCatMorseNews);
+										continue;											// Old, skip this story
+									}
+									if (_debugTracing)
+										Trace.WriteLine("  " + locTime + " " + twType + ": " + t, _traceCatMorseNews);
 									DatedItem ni = new DatedItem();
 									ni.pubDate = tw.CreatedAtLocalTime;
-									ni.twType = ""; // "PUB ";
+									ni.twType = twType;
 									ni.twScreenName = tw.User.ScreenName;
 									ni.twRawText = tw.Text;
 									stories.Add(ni);
 								}
 							}
-							//if (stories.Count == 0)
-							//    throw new ApplicationException(feedUri + " resulted in no tweets!");
 						}
 						else
 						{
 							//
-							// ===
-							// RSS
-							// ===
+							// ========
+							// RSS/ATOM
+							// ========
 							//
+							if (_debugTracing)
+								Trace.WriteLine("========================", _traceCatMorseNews);
 							SetStatus("Getting RSS feed data...", true);
 							if (_debugTracing)
 								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
 							XmlDocument feedXml = new XmlDocument();
-							//feedXml.Load(feedUri);
-							feedXml.LoadXml(GetAuthFeedXml(feedUri));
-
+							string xml = GetAuthFeedXml(feedUri);
+							try
+							{
+								feedXml.LoadXml(xml);
+							}
+							catch (Exception ex)
+							{
+								if (_debugTracing)
+								{
+									Trace.WriteLine("XML is invalid at " + feedUri, _traceCatMorseNews);
+									Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
+								}
+								continue;													// Skip this one
+							}
 							//
 							// First try for RSS
 							//
@@ -1276,19 +1598,27 @@ namespace com.dc3
 									Trace.WriteLine("Found  " + items.Count + " RSS articles", _traceCatMorseNews);
 								foreach (XmlNode item in items)
 								{
+									string tshort = item.SelectSingleNode("title").InnerText;
+									if (tshort.Length > 60) tshort = tshort.Substring(0, 60) + "...";
 									DateTime pubUtc = GetPubDateUtc(item, null);			// See comments above, sick hack
 									if (pubUtc == DateTime.MinValue)
 									{
 										if (_debugTracing)
-										{
-											Trace.WriteLine("RSS article has bad pubDate " + item.SelectSingleNode("pubDate").InnerText, _traceCatMorseNews);
-											Trace.WriteLine("  " + item.SelectSingleNode("title").InnerText, _traceCatMorseNews);
-										}
+											Trace.WriteLine("  BAD DATE " + item.SelectSingleNode("pubDate").InnerText + " " + tshort, _traceCatMorseNews);
 										continue;											// Bad pubDate, skip this story
+									}
+									string locTime = pubUtc.ToLocalTime().ToString("HH:mm:ss");
+									if (pubUtc < DateTime.Now.AddMinutes(-_storyAge))
+									{
+										if (_debugTracing)
+											Trace.WriteLine("  TOO OLD " + locTime + " " + tshort, _traceCatMorseNews);
+										continue;											// Old, skip this story
 									}
 									//
 									// OK we have a story we can use, as we were able to parse the date.
 									//
+									if (_debugTracing)
+										Trace.WriteLine("  " + locTime + " " + tshort, _traceCatMorseNews);
 									DatedItem ni = new DatedItem();
 									ni.pubDate = pubUtc;
 									ni.rssItem = item;
@@ -1296,12 +1626,10 @@ namespace com.dc3
 								}
 							}
 							else
+							//
+							// Not RSS, is it Atom?
+							//
 							{
-								//
-								// ====
-								// ATOM
-								// ====
-								//
 								XmlNamespaceManager nsmgr = new XmlNamespaceManager(feedXml.NameTable);
 								nsmgr.AddNamespace("at", "http://www.w3.org/2005/Atom");
 								items = feedXml.SelectNodes("/at:feed/at:entry", nsmgr);
@@ -1311,19 +1639,27 @@ namespace com.dc3
 									Trace.WriteLine("Found  " + items.Count + " Atom articles", _traceCatMorseNews);
 								foreach (XmlNode item in items)
 								{
+									string tshort = item.SelectSingleNode("at:title", nsmgr).InnerText;
+									if (tshort.Length > 60) tshort = tshort.Substring(0, 60) + "...";
 									DateTime pubUtc = GetPubDateUtc(item, nsmgr);			// See comments above, sick hack
 									if (pubUtc == DateTime.MinValue)
 									{
 										if (_debugTracing)
-										{
-											Trace.WriteLine("RSS article has bad pubDate " + item.SelectSingleNode("pubDate").InnerText, _traceCatMorseNews);
-											Trace.WriteLine("  " + item.SelectSingleNode("title").InnerText, _traceCatMorseNews);
-										}
+											Trace.WriteLine("  BAD DATE " + item.SelectSingleNode("at:pubDate", nsmgr).InnerText + " " + tshort, _traceCatMorseNews);
 										continue;											// Bad pubDate, skip this story
+									}
+									string locTime = pubUtc.ToLocalTime().ToString("HH:mm:ss");
+									if (pubUtc < DateTime.Now.AddMinutes(-_storyAge))
+									{
+										if (_debugTracing)
+											Trace.WriteLine("  TOO OLD " + locTime + " " + tshort, _traceCatMorseNews);
+										continue;											// Old, skip this story
 									}
 									//
 									// OK we have a story we can use, as we were able to parse the date.
 									//
+									if (_debugTracing)
+										Trace.WriteLine("  " + locTime + " " + tshort, _traceCatMorseNews);
 									DatedItem ni = new DatedItem();
 									ni.pubDate = pubUtc;
 									ni.atomItem = item;
@@ -1331,8 +1667,6 @@ namespace com.dc3
 									stories.Add(ni);
 								}
 							}
-							//if (stories.Count == 0)
-							//    throw new ApplicationException("This RSS feed has strange or missing pub dates, thus it can't be used, sorry.");
 						}
 					}
 
@@ -1345,6 +1679,9 @@ namespace com.dc3
 					if (stories.Count > 1)
 						stories.Sort((x, y) => DateTime.Compare(y.pubDate, x.pubDate));	// x <-> y for sort decreasing
 
+					if (_debugTracing)
+						Trace.WriteLine(stories.Count + " total stories available", _traceCatMorseNews);
+
 					//
 					// Create a list of strings which are the final messages to be send in Morse
 					//
@@ -1356,9 +1693,6 @@ namespace com.dc3
 						string detail;
 						string msg;
 						string typ;
-
-						if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))	// If too old
-							continue;											// Skip it
 
 						if (story.twType != null)								// This one is from Twitter
 						{
@@ -1376,41 +1710,49 @@ namespace com.dc3
 							title = GetMorseInputText(story.atomItem.SelectSingleNode("at:title", story.atomNsMgr).InnerText);
 						}
 
+						time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
+
 						lock (_titleCache)
 						{
 							if (_titleCache.ContainsKey(title))
 							{
 								if (_debugTracing)
-								{
-									Trace.WriteLine("Found in cache and skipped:", _traceCatMorseNews);
-									Trace.WriteLine("  " + title, _traceCatMorseNews);
-								}
+									Trace.WriteLine("  ALREADY SENT " + time + " " + title, _traceCatMorseNews);
 								continue;										// Recently sent, skip
 							}
 						}
 
-
-						time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
 						if (story.twType != null)								// This one is from Twitter
 						{
 							detail = "";										// Entire tweet is title
-							typ = "TWT " + story.twType;	// From includes screen name
+							typ = "TWT " + story.twType;						// From includes screen name
 						}
 						else if (story.rssItem != null)
 						{
-							// ?? SHOULD I DO THIS ??
-							//if (story.pubDate < DateTime.Now.AddMinutes(-_storyAge))
-							//    continue;
 							//
-							// May be headline-only article, or a weird feed where the detail is much
-							// shorter than the title (Quote of the day, title is quote, detail is author)
+							// Handle Facebook specially - We use the title, NOT the description (which
+							// is just the title with a ton of hyperlinks and other HTML!). Also note from
+							// FBK not RSS. Cool.
 							//
-							XmlNode detNode = story.rssItem.SelectSingleNode("description");	// Try for description
-							if (detNode != null)
-								detail = GetMorseInputText(detNode.InnerText);
+							string x = story.rssItem.ParentNode.SelectSingleNode("webMaster").InnerText;
+							if (x.Contains("facebook"))
+							{
+								detail = "";									// Later, will use title
+								typ = "FBK";
+							}
 							else
-								detail = "";
-							typ = "RSS";
+							{
+								//
+								// May be headline-only article, or a weird feed where the detail is much
+								// shorter than the title (Quote of the day, title is quote, detail is author)
+								//
+								XmlNode detNode = story.rssItem.SelectSingleNode("description");	// Try for description
+								if (detNode != null)
+									detail = GetMorseInputText(detNode.InnerText);
+								else
+									detail = "";
+								typ = "RSS";
+							}
 						}
 						else
 						{
@@ -1437,10 +1779,18 @@ namespace com.dc3
 							string date = story.pubDate.ToUniversalTime().ToString("MMM d h mm tt") + " GMT";
 							msg = "NR _##_ " + typ + " FILED " + date + " = ";
 							if (detail.Length < title.Length)
-								msg += title + " " + detail;
+							{
+								msg += title;
+								if (detail.Length > 0) msg += " " + detail;
+							}
 							else
 								msg += detail;
 							msg += " END";
+						}
+
+						if (_debugTracing)
+						{
+							Trace.WriteLine("  " + time + " " + title, _traceCatMorseNews);
 						}
 
 						MorseMessage mMsg = new MorseMessage();
@@ -1541,12 +1891,17 @@ namespace com.dc3
 			}
 			catch (ThreadInterruptedException)
 			{
-				if (_noise != null) _noise.Stop();
+				return;
+			}
+			catch (ApplicationException ex)										// Alerted semi-normal exit
+			{
+				if (ex.Message != "")
+					MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				StopOnError();
 				return;
 			}
 			catch (Exception ex)
 			{
-				if (_noise != null) _noise.Stop();
 				if (_debugTracing)
 				{
 					Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
@@ -1555,7 +1910,7 @@ namespace com.dc3
 				else
 				{
 					MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-				}	
+				}
 				StopOnError();
 				return;
 			}
