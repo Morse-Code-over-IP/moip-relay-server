@@ -22,7 +22,7 @@
 // 07-May-10	rbd		1.5.0 - Refactoring into separate assy. Make interfaces
 //						public. Add Down() and Up().
 // 11-May-10	rbd		1.5.0 - Add Voume to both, remove Amplitude froom ITone.
-// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime (finally)
+// 11-Jun-12	rbd		3.0.0 - Rename StartLatency to RiseFallTime (finally)
 //
 using System;
 using System.Collections.Generic;
