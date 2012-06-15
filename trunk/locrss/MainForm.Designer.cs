@@ -61,8 +61,6 @@ namespace com.dc3
 			this.btnClearCache = new System.Windows.Forms.Button();
 			this.llHelp = new System.Windows.Forms.LinkLabel();
 			this.picHelp = new System.Windows.Forms.PictureBox();
-			this.picRSS = new System.Windows.Forms.PictureBox();
-			this.llRSSFeeds = new System.Windows.Forms.LinkLabel();
 			this.picSoundCfg = new System.Windows.Forms.PictureBox();
 			this.llSoundCfg = new System.Windows.Forms.LinkLabel();
 			this.cbFeedUrl = new System.Windows.Forms.ComboBox();
@@ -86,7 +84,6 @@ namespace com.dc3
 			((System.ComponentModel.ISupportInitialize)(this.picTestSerial)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.picHelp)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.picRSS)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.picSoundCfg)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nudStoryAge)).BeginInit();
@@ -477,7 +474,7 @@ namespace com.dc3
 			// llHelp
 			// 
 			this.llHelp.AutoSize = true;
-			this.llHelp.Location = new System.Drawing.Point(350, 208);
+			this.llHelp.Location = new System.Drawing.Point(350, 203);
 			this.llHelp.Name = "llHelp";
 			this.llHelp.Size = new System.Drawing.Size(50, 13);
 			this.llHelp.TabIndex = 10;
@@ -491,7 +488,7 @@ namespace com.dc3
 			this.picHelp.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.picHelp.Image = ((System.Drawing.Image)(resources.GetObject("picHelp.Image")));
 			this.picHelp.InitialImage = null;
-			this.picHelp.Location = new System.Drawing.Point(331, 207);
+			this.picHelp.Location = new System.Drawing.Point(331, 202);
 			this.picHelp.Name = "picHelp";
 			this.picHelp.Size = new System.Drawing.Size(16, 16);
 			this.picHelp.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -500,38 +497,12 @@ namespace com.dc3
 			this.toolTip.SetToolTip(this.picHelp, "Click to see RSS Morse help");
 			this.picHelp.Click += new System.EventHandler(this.picHelp_Click);
 			// 
-			// picRSS
-			// 
-			this.picRSS.Cursor = System.Windows.Forms.Cursors.Hand;
-			this.picRSS.Image = ((System.Drawing.Image)(resources.GetObject("picRSS.Image")));
-			this.picRSS.InitialImage = null;
-			this.picRSS.Location = new System.Drawing.Point(331, 183);
-			this.picRSS.Name = "picRSS";
-			this.picRSS.Size = new System.Drawing.Size(16, 17);
-			this.picRSS.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.picRSS.TabIndex = 15;
-			this.picRSS.TabStop = false;
-			this.toolTip.SetToolTip(this.picRSS, "Click to see Yahoo! RSS Feeds");
-			this.picRSS.Click += new System.EventHandler(this.picRSS_Click);
-			// 
-			// llRSSFeeds
-			// 
-			this.llRSSFeeds.AutoSize = true;
-			this.llRSSFeeds.Location = new System.Drawing.Point(351, 185);
-			this.llRSSFeeds.Name = "llRSSFeeds";
-			this.llRSSFeeds.Size = new System.Drawing.Size(66, 13);
-			this.llRSSFeeds.TabIndex = 9;
-			this.llRSSFeeds.TabStop = true;
-			this.llRSSFeeds.Text = "Some Feeds";
-			this.toolTip.SetToolTip(this.llRSSFeeds, "Click to see RSS and Atom feeds in the help document");
-			this.llRSSFeeds.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llRSSFeeds_LinkClicked);
-			// 
 			// picSoundCfg
 			// 
 			this.picSoundCfg.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.picSoundCfg.Image = ((System.Drawing.Image)(resources.GetObject("picSoundCfg.Image")));
 			this.picSoundCfg.InitialImage = null;
-			this.picSoundCfg.Location = new System.Drawing.Point(331, 160);
+			this.picSoundCfg.Location = new System.Drawing.Point(331, 172);
 			this.picSoundCfg.Name = "picSoundCfg";
 			this.picSoundCfg.Size = new System.Drawing.Size(16, 16);
 			this.picSoundCfg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -543,7 +514,7 @@ namespace com.dc3
 			// llSoundCfg
 			// 
 			this.llSoundCfg.AutoSize = true;
-			this.llSoundCfg.Location = new System.Drawing.Point(351, 162);
+			this.llSoundCfg.Location = new System.Drawing.Point(351, 174);
 			this.llSoundCfg.Name = "llSoundCfg";
 			this.llSoundCfg.Size = new System.Drawing.Size(71, 13);
 			this.llSoundCfg.TabIndex = 8;
@@ -675,8 +646,6 @@ namespace com.dc3
 			this.Controls.Add(this.btnFeedList);
 			this.Controls.Add(this.llSoundCfg);
 			this.Controls.Add(this.picSoundCfg);
-			this.Controls.Add(this.picRSS);
-			this.Controls.Add(this.llRSSFeeds);
 			this.Controls.Add(this.picHelp);
 			this.Controls.Add(this.llHelp);
 			this.Controls.Add(this.btnClearCache);
@@ -716,7 +685,6 @@ namespace com.dc3
 			((System.ComponentModel.ISupportInitialize)(this.picTestSerial)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nudSerialPort)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.picHelp)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.picRSS)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.picSoundCfg)).EndInit();
 			this.contextMenuStrip1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.nudStoryAge)).EndInit();
@@ -758,8 +726,6 @@ namespace com.dc3
 		private System.Windows.Forms.Button btnClearCache;
 		private System.Windows.Forms.LinkLabel llHelp;
 		private System.Windows.Forms.PictureBox picHelp;
-		private System.Windows.Forms.PictureBox picRSS;
-		private System.Windows.Forms.LinkLabel llRSSFeeds;
 		private System.Windows.Forms.NumericUpDown nudSpark;
 		private System.Windows.Forms.RadioButton rbSpark;
 		private System.Windows.Forms.Label label8;
