@@ -119,6 +119,7 @@ using System.Web;
 using System.Windows.Forms;
 using System.Xml;
 using Microsoft.DirectX.DirectSound;
+using Microsoft.Win32;
 
 using TwitterVB2;
 
@@ -579,16 +580,6 @@ namespace com.dc3
 		private void picHelp_Click(object sender, EventArgs e)
 		{
 			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\news.html");
-		}
-
-		private void llRSSFeeds_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			picRSS_Click(sender, new EventArgs());
-		}
-
-		private void picRSS_Click(object sender, EventArgs e)
-		{
-			System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\doc\\news.html#feeds");
 		}
 
 		private void SetupSound()
@@ -1241,6 +1232,7 @@ namespace com.dc3
 							Trace.WriteLine("Pin input canceled, terminate login.", _traceCatMorseNews);
 						Properties.Settings.Default.oAuthToken = "";
 						Properties.Settings.Default.oAuthTokenSecret = "";
+						Properties.Settings.Default.Save();
 						return null;
 					}
 					sPin = pinForm.txtPin.Text;
@@ -1252,6 +1244,7 @@ namespace com.dc3
 				//
 				Properties.Settings.Default.oAuthToken = twConn.OAuth_Token;
 				Properties.Settings.Default.oAuthTokenSecret = twConn.OAuth_TokenSecret;
+				Properties.Settings.Default.Save();
 				if (_debugTracing)
 					Trace.WriteLine("PIN validated! oAuth token and secret were received from Twitter.", _traceCatMorseNews);
 			}
@@ -1290,6 +1283,7 @@ namespace com.dc3
 									MessageBoxButtons.OK, MessageBoxIcon.Warning);
 					Properties.Settings.Default.oAuthToken = "";
 					Properties.Settings.Default.oAuthTokenSecret = "";
+					Properties.Settings.Default.Save();
 					return null;
 				}
 			}
@@ -1734,8 +1728,8 @@ namespace com.dc3
 							// is just the title with a ton of hyperlinks and other HTML!). Also note from
 							// FBK not RSS. Cool.
 							//
-							string x = story.rssItem.ParentNode.SelectSingleNode("webMaster").InnerText;
-							if (x.Contains("facebook"))
+							XmlNode x = story.rssItem.ParentNode.SelectSingleNode("webMaster");
+							if (x != null && x.InnerText.Contains("facebook"))
 							{
 								detail = "";									// Later, will use title
 								typ = "FBK";
