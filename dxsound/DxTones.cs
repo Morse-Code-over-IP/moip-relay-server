@@ -42,7 +42,7 @@
 //						lengthen the total duration by half the rise/fall time so
 //						that the tone is the proper duration at its half amplitude
 //						level. 
-// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime (finally)
+// 11-Jun-12	rbd		3.0.0 - Rename StartLatency to RiseFallTime (finally)
 //						
 //
 using System;

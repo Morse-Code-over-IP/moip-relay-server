@@ -59,7 +59,7 @@
 // 30-Apr-12	rbd		2.5.0 - SF #3460283 support COM ports > 9 per 
 //								http://support.microsoft.com/kb/115831
 // 20-May-12	rbd		2.5.0 - SF #3522625 ASIO support
-// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime in sound 
+// 11-Jun-12	rbd		3.0.0 - Rename StartLatency to RiseFallTime in sound 
 //						interfaces to reflect its true purpose.
 //
 

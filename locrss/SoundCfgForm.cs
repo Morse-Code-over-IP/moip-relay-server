@@ -5,7 +5,7 @@
 // 28-Nov-11	rbd		2.2.0 - (SF #3444355) Hide DirectX checkbox, 
 //						effectively hardwire to DirectX. SF #3432844 Add 
 //						sound device selection.
-// 11-Jun-12	rbd		2.6.0 - SF #3534418 Static crashes and HF fading.
+// 11-Jun-12	rbd		3.0.0 - SF #3534418 Static crashes and HF fading.
 //						Rename timing comp items to rise fall to reflect 
 //						their true purpose. Remove old DirectX control and
 //						members. No more SF tones.

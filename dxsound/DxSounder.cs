@@ -29,7 +29,7 @@
 // 02-Jun-11	rbd		1.8.0 - Disposals to prevent memory leaks
 // 28-Nov-11	rbd		1.9.0 - (*SF #3432844) Add parameter for sound device 
 //						selection to constructor.
-// 11-Jun-12	rbd		2.6.0 - Rename StartLatency to RiseFallTime (finally), then
+// 11-Jun-12	rbd		3.0.0 - Rename StartLatency to RiseFallTime (finally), then
 //						remove start latency code as it is no longer used and there
 //						is no rise/fall for spark sounds.
 //

@@ -1,14 +1,14 @@
-Morse Code Tools V2.6 (14-Jun-2012)
+Morse Code Tools V3.0 (15-Jun-2012)
 =====================
 
-The News application and the Keyer application have built-in help. Go there for usage and background info.
+The News and Keyer applications have built-in help (Help me! links). Go there for usage and background info.
 
 CHANGES AND ADDITIONS:
 
-Version 2.6:
+Version 3.0:
 -----------
 
-This is a fairly major update and includes numerous tweaks and fixes in Morse News for Facebook and Twitter. 
+This is a fairly major update and includes new features in both programs, plus numerous tweaks and fixes in Morse News for Facebook and Twitter, and revised documentation. A Yahoo! group has been opened for use as a discussion group at http://groups.yahoo.com/group/MorseTools/
 
 - More realistic noise, static crashes, and ionospheric fading to Morse News CW tone and spark-gap sound. 
 
@@ -18,11 +18,13 @@ This is a fairly major update and includes numerous tweaks and fixes in Morse Ne
 
 - The above is a consequence of new support for specifying the Twitter user/screen name for the feeds to be retrieved. This allows switching Morse News between Twitter feeds. You cannot mix Twitter feeds freom multiple accounts in a feed list though. Maybe some day, ha ha.
 
-- A great deal of additional Debug tracing has been added, revealiong a number of bugs including time-stamping of articles. 
+- RSS requests now include a real HTTP User-Agent: header (mimics Google Chrome). At some point in the past, this became required to successfully retrieve the Facebook notifications RSS feed. 
 
-- Debug tracing and DebugView have been documented. Handy even for end users.
+- A great deal of additional debug tracing has been added to Morse News, revealing a number of bugs including time-stamping of articles. If you're curious about the internals of Morse News, read about how to read this info in the Help me! doc.
 
-- Support for twitter:///messages has been removed. Twitter's permissions model prohibits apps from accessing direct messages unless they also have write permission. I did not want to give Morse News permission to write to peoples' Twitter timelines.
+- The Morse News documentation has been expanded in some areas that were a bit thin.
+
+- Support for Twitter "direct messages" has been removed. As of last year, Twitter's permissions model prohibits Twitter apps from accessing direct messages unless they also have write permission. I did not want to give Morse News permission to write to peoples' Twitter timelines.
 
 Version 2.5:
 -----------

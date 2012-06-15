@@ -84,14 +84,14 @@
 //								http://support.microsoft.com/kb/115831
 // 20-May-12	rbd		2.5.0 - SF #3527171 command line options for autostart and specified
 //								feed URL or list.
-// 11-Jun-12	rbd		2.6.0 - SF #3534418 Static crashes and HF fading.
+// 11-Jun-12	rbd		3.0.0 - SF #3534418 Static crashes and HF fading.
 //								Rename StartLatency in sound interface to RiseFallTime to
 //								reflect its true purpose. Remove old non-DirectX code. 
 //								Rename _timingComp to _riseFall to reflect its true purpose.
-// 12-Jun-12	rbd		2.6.0 - Switch noise to use DirectX like static crashes. Overhaul noise
+// 12-Jun-12	rbd		3.0.0 - Switch noise to use DirectX like static crashes. Overhaul noise
 //								and static files. Much more realistic now. SF #3534417 Remove
 //								ellipsis. Also convert (REUTERS) to REUTERS like AP.
-// 14-Jun-12	rbd		2.6.0 - Allow Xml failures and just trace them, skipping the story. 
+// 14-Jun-12	rbd		3.0.0 - Allow Xml failures and just trace them, skipping the story. 
 //								Same with other RSS/Atom content problems, just skip the story. 
 //								Don't let them kill the	the app. Add MUCH more debug tracing.
 //								Filter old articles immediately after retrieval, trace them too.
