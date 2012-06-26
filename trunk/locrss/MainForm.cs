@@ -99,6 +99,10 @@
 //								revealed BUG in GetPubDateUtc()!!!!! Remove direct message 
 //								support. New permission model would need to grant R/W to this
 //								app to access direct messages. Nope.
+// 18-Jun-2012	rbd		3.0.1	Fix removal of ... and (REUTERS) -> REUTERS. Fading caused too
+//								much lowering of average signal. Increase SNR by 6dB by clipping
+//								gain after 2X in NoiseFadeThread.
+// 25-Jun-2012	rbd		3.1.1	Make volume control work for signal level when fading is in effect.
 //
 //
 using System;
@@ -173,6 +177,7 @@ namespace com.dc3
 		private int _charSpeed;
 		private string _soundDevGUID;
 		private int _toneFreq;
+		private float _volLevel;
 		private int _noiseLevel;
 		private bool _staticCrashes;
 		private bool _hfFading;
@@ -453,7 +458,7 @@ namespace com.dc3
 
 		private void tbVolume_Scroll(object sender, EventArgs e)
 		{
-			_tones.Volume = _sounder.Volume = _spark.Volume = tbVolume.Value / 10.0F;
+			_volLevel = _tones.Volume = _sounder.Volume = _spark.Volume = tbVolume.Value / 10.0F;
 			if (_run) return;
 			switch (_soundMode)
 			{
@@ -584,6 +589,7 @@ namespace com.dc3
 
 		private void SetupSound()
 		{
+			_volLevel = tbVolume.Value / 10.0F;
 #if !MONO_BUILD
 			Guid guid = new Guid(_soundDevGUID);
 			_tones = new DxTones(this, guid, 1000);
@@ -595,12 +601,12 @@ namespace com.dc3
 			_spark = new SpSpark();
 #endif
 			_tones.Frequency = _toneFreq;
-			_tones.Volume = tbVolume.Value / 10.0F;
+			_tones.Volume = _volLevel;
 			_tones.RiseFallTime = _riseFall;
 			_sounder.SoundIndex = _sounderNum;
-			_sounder.Volume = tbVolume.Value / 10.0F;
+			_sounder.Volume = _volLevel;
 			_spark.SoundIndex = _sparkNum;
-			_spark.Volume = tbVolume.Value / 10.0F;
+			_spark.Volume = _volLevel;
 		}
 
 		private void UpdateUI()
@@ -815,9 +821,9 @@ namespace com.dc3
 			buf = Regex.Replace(buf, "[\\{\\[]", "(");							// Left brace/bracket -> left paren
 			buf = Regex.Replace(buf, "[\\}\\]]", ")");							// Right brace/bracket -> Right paren
 			buf = Regex.Replace(buf, "[—–]", "-");								// Unicode emdash/endash -> hyphen
-			buf = buf.Replace("...*", "");										// Toss .. and ... ellipses completely
-			buf = buf.Replace("(AP)", "AP");									// Special case for AP Atom feeds
-			buf = buf.Replace("(REUTERS)", "REUTERS");							// Same here for Reuters RSS with similar style
+			buf = Regex.Replace(buf, "\\.\\.\\.*", "");							// Toss .. and ... ellipses completely
+			buf = Regex.Replace(buf, "\\(AP\\)", "AP", RegexOptions.IgnoreCase);// Special case for AP Atom feeds
+			buf = Regex.Replace(buf, "\\(REUTERS\\)", "REUTERS", RegexOptions.IgnoreCase);	// Same here for Reuters RSS with similar style
 			buf = Regex.Replace(buf, "\\s\\s+", " ").Trim().ToUpper();			// Compress running whitespace, fold all to upper case
 
 			return buf;
@@ -1010,6 +1016,8 @@ namespace com.dc3
 		//
 		private void StaticThread()
 		{
+			if (_soundMode == SoundMode.Sounder)
+				throw new ApplicationException("ASSERT: No static for sounder!");
 			try
 			{
 				Device devSnd = new Device(new Guid(_soundDevGUID));
@@ -1061,6 +1069,8 @@ namespace com.dc3
 				double vol = (double)_noiseLevel / 5.0;							// Range 0.0 - 1.0 (raw 1-5)
 				if (vol > 0.0)
 				{
+					if (_soundMode == SoundMode.Sounder)
+						throw new ApplicationException("ASSERT: No noise for sounder!");
 					if (_debugTracing)
 						Trace.WriteLine("Starting noise at level " + _noiseLevel + ".", _traceCatMorseNews);
 					Device devSnd = new Device(new Guid(_soundDevGUID));
@@ -1080,35 +1090,30 @@ namespace com.dc3
 				//
 				if (_hfFading)
 				{
+					if (_soundMode == SoundMode.Sounder)
+						throw new ApplicationException("ASSERT: No fading for sounder!");
 					if (_debugTracing)
 						Trace.WriteLine("Starting ionospheric fading.", _traceCatMorseNews);
 					string fadeFile = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + 
 										Path.DirectorySeparatorChar + "fading.txt";
 					string[] fadeData = File.ReadAllText(fadeFile).Split(',');
-					float baseVol = 1.0F;
-					switch (_soundMode)
-					{
-						case SoundMode.Tone:
-							baseVol = _tones.Volume;
-							break;
-						case SoundMode.Spark:
-							baseVol = _spark.Volume;
-							break;
-						case SoundMode.Sounder:
-							throw new ApplicationException("ASSERT: No noise/fade for sounder!");
-					}
 					// For each fade. Ticks are 250ms (4Hz).
 					while (true)
 					{
 						for (int i = 0; i < fadeData.Length; i++)
 						{
+							// Give signal 6dB boost (2.0 * signal) by clipping at
+							// the high end.
+							float gain = Math.Min(1.0F, _volLevel * 2.0F * float.Parse(fadeData[i]));
+							if (i == 0 && _debugTracing)
+								Trace.WriteLine("New fade cycle. Gain[0] = " + gain.ToString("0.00"), _traceCatMorseNews);
 							switch (_soundMode)
 							{
 								case SoundMode.Tone:
-									_tones.Volume = baseVol * float.Parse(fadeData[i]);
+									_tones.Volume = gain;
 									break;
 								case SoundMode.Spark:
-									_spark.Volume = baseVol * float.Parse(fadeData[i]);
+									_spark.Volume = gain;
 									break;
 								default:
 									break;
