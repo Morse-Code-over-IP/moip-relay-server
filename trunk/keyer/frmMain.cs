@@ -61,6 +61,8 @@
 // 20-May-12	rbd		2.5.0 - SF #3522625 ASIO support
 // 11-Jun-12	rbd		3.0.0 - Rename StartLatency to RiseFallTime in sound 
 //						interfaces to reflect its true purpose.
+// 24-Dec-2012	rbd		3.1.1 -	Do not save window positions unless "normal" and fix up old
+//								saved window positions if minimized (-32000).
 //
 
 #define NEW_COM								// Define to use P/Invoke serial port I/O
@@ -148,9 +150,6 @@ namespace com.dc3.morse
 		public frmMain()
 		{
 			InitializeComponent();
-
-			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
-			this.Top = Properties.Settings.Default.SavedWinY;
 		}
 
 		private void _calcSpaceTime()					// Calculate space times for Farnsworth (word rate < char rate)
@@ -249,6 +248,12 @@ namespace com.dc3.morse
 
 			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
 			this.Top = Properties.Settings.Default.SavedWinY;
+			if (this.WindowState != FormWindowState.Normal || this.Left <= 0 || this.Top <= 0)	// Fix up old saved minimized coordinates
+			{
+				this.Left = 100;
+				this.Top = 80;
+				this.WindowState = FormWindowState.Normal;
+			}
 		}
 
 		private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -259,8 +264,11 @@ namespace com.dc3.morse
 				_dxTones.Dispose();
 			if (_dxSounder != null)
 				_dxSounder.Dispose();
-			Properties.Settings.Default.SavedWinX = this.Left;
-			Properties.Settings.Default.SavedWinY = this.Top;
+			if (this.WindowState == FormWindowState.Normal && this.Left > 0 && this.Top > 0) // Don't save position if minimized
+			{
+				Properties.Settings.Default.SavedWinX = this.Left;
+				Properties.Settings.Default.SavedWinY = this.Top;
+			}
 			Properties.Settings.Default.SoundDevGUID = ((SoundDev)cbSoundDevs.SelectedItem).info.DriverGuid.ToString();
 			if (_selSoundDev.type == SoundDevType.DirectX)
 			{

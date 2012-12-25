@@ -103,6 +103,8 @@
 //								much lowering of average signal. Increase SNR by 6dB by clipping
 //								gain after 2X in NoiseFadeThread.
 // 25-Jun-2012	rbd		3.1.1	Make volume control work for signal level when fading is in effect.
+// 24-Dec-2012	rbd		3.1.1	Do not save window positions unless "normal" and fix up old
+//								saved window positions if minimized (-32000).
 //
 //
 using System;
@@ -282,9 +284,14 @@ namespace com.dc3
 			_debugTracing = Properties.Settings.Default.DebugTracing;
 			_breakTimeMs = Properties.Settings.Default.BreakTime * 1000;
 
-			this.Left = Properties.Settings.Default.SavedWinX;					// TODO safety these
+			this.Left = Properties.Settings.Default.SavedWinX;
 			this.Top = Properties.Settings.Default.SavedWinY;
-
+			if (this.WindowState != FormWindowState.Normal || this.Left <= 0 || this.Top <= 0)	// Fix up old saved minimized coordinates
+			{
+				this.Left = 100;
+				this.Top = 80;
+				this.WindowState = FormWindowState.Normal;
+			}
 			if (_debugTracing)
 				Trace.WriteLine("Starting up the program...", _traceCatMorseNews);
 
@@ -299,9 +306,11 @@ namespace com.dc3
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			Properties.Settings.Default.SavedWinX = this.Left;
-			Properties.Settings.Default.SavedWinY = this.Top;
-
+			if (this.WindowState == FormWindowState.Normal && this.Left > 0 && this.Top > 0) // Don't save position if minimized
+			{
+				Properties.Settings.Default.SavedWinX = this.Left;
+				Properties.Settings.Default.SavedWinY = this.Top;
+			}
 			if (_debugTracing)
 				Trace.WriteLine("Shutting down the program...", _traceCatMorseNews);
 
