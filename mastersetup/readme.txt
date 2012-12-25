@@ -1,9 +1,19 @@
-Morse Code Tools V3.0 (15-Jun-2012)
+Morse Code Tools V3.1 (24-Dec-2012)
 =====================
 
 The News and Keyer applications have built-in help (Help me! links). Go there for usage and background info.
 
 CHANGES AND ADDITIONS:
+
+Version 3.1:
+-----------
+
+- Closing News or Keyer will no longer result in it being "stuck" minimized.
+
+- The volume control now works correctly in News when fading is in effect.
+
+- Fading has been made less severe. The volume was too low before.
+
 
 Version 3.0:
 -----------

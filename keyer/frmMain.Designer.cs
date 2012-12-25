@@ -487,7 +487,7 @@
 			this.MinimumSize = new System.Drawing.Size(169, 185);
 			this.Name = "frmMain";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse Keyer V3.0";
+			this.Text = "Morse Keyer V3.1";
 			this.Load += new System.EventHandler(this.frmMain_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
 			this.pnlHotSpot.ResumeLayout(false);
