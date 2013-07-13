@@ -10,9 +10,9 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("TwitterVB")> 
 <Assembly: AssemblyDescription("A .NET Twitter Library")> 
-<Assembly: AssemblyCompany("Disintegrator Software (3.1 by Bob Denny)")> 
+<Assembly: AssemblyCompany("Disintegrator Software (4.0 by Bob Denny)")> 
 <Assembly: AssemblyProduct("TwitterVB")> 
-<Assembly: AssemblyCopyright("Copyright © Duane Roelands 2010")> 
+<Assembly: AssemblyCopyright("Released to Public Domain by D. Roelands, 2011")> 
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)>
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("3.2.1.0")> 
-<Assembly: AssemblyFileVersion("3.2.1.0")> 
+<Assembly: AssemblyVersion("4.0.1.0")> 
+<Assembly: AssemblyFileVersion("4.0.1.0")> 

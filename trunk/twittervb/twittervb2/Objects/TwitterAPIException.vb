@@ -29,6 +29,8 @@
 '* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
+'* 
+'* 13-Jul-2013  RBD     4.0.1.0 - Remove OriginalException
 '*
 Public Class TwitterAPIException
     Inherits System.Exception
@@ -51,10 +53,4 @@ Public Class TwitterAPIException
     Public Response As System.Net.WebResponse
     Public Status As System.Net.WebExceptionStatus
     
-    <Obsolete("OriginalException is Obsolete, use InnerException instead")> _
-    Public ReadOnly Property OriginalException() As System.Exception
-        Get
-            Return InnerException
-        End Get
-    End Property
 End Class

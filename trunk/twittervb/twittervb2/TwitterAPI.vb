@@ -33,6 +33,8 @@
 '* Bob Denny    03-Jun-2011     3.1.1.0 - Fix TRENDS_XXX URL's per http://twittervb.codeplex.com/discussions/254990
 '* Bob Denny    10-Jun-2011     3.1.1.0 - Update documentation links in comments. 
 '*                              Missing/wrong documentation bits (many).
+'* Bob Denny    11-Jul-2013     4.0.1.0 - Starting conversion to API 1.1 (JSON)
+'* Bob Denny    13-Jul-2013     4.0.1.0 - For API 1.1 many changes
 '*
 Imports System.Net
 Imports System.Web
@@ -43,6 +45,9 @@ Imports System.Text.RegularExpressions
 Imports System.Collections.Specialized
 Imports System.Xml
 
+Imports System.Web.Script.Serialization
+
+'**WARNING*** THIS IS COPIED IN THE TWITTERVB PROJECT OF MORSE TOOLS!!!
 
 Namespace TwitterVB2
     ''' <summary>
@@ -69,64 +74,75 @@ Namespace TwitterVB2
         Public Sub New()
         End Sub
 
+#Region "Shared (Static) Support Methods"
+
+        ''' <exclude/>
+        Shared Function ConvertJSONDate(ByVal dt As String) As DateTime
+            Const jsFmt As String = "ddd MMM dd HH:mm:ss zzzz yyyy"
+
+            Return DateTime.ParseExact(dt, jsFmt, System.Globalization.CultureInfo.InvariantCulture)
+
+        End Function
+#End Region
 
 #Region "Twitter API Method Constants"
-        ' As Twitter begins rolling out changes to the API, some of these Urls will change.
-        ' Having them all in one place makes it easier to change them moving forward.
-        Const ACCOUNT_VERIFY_CREDENTIALS As String = "http://api.twitter.com/1/account/verify_credentials.xml"
-        Const ACCOUNT_UPDATE As String = "http://api.twitter.com/1/account/update_profile.xml"
-        Const BLOCKS_BLOCKING As String = "http://api.twitter.com/1/blocks/blocking.xml"
-        Const BLOCKS_BLOCKING_IDS As String = "http://api.twitter.com/1/blocks/blocking/ids.xml"
-        Const BLOCKS_CREATE As String = "http://api.twitter.com/1/blocks/create/{0}.xml"
-        Const BLOCKS_DESTROY As String = "http://api.twitter.com/1/blocks/destroy/{0}.xml"
-        Const DIRECT_MESSAGES As String = "http://api.twitter.com/1/direct_messages.xml"
-        Const DIRECT_MESSAGES_DESTROY As String = "http://api.twitter.com/1/direct_messages/destroy/{0}.xml"
-        Const DIRECT_MESSAGES_NEW As String = "http://api.twitter.com/1/direct_messages/new.xml"
-        Const DIRECT_MESSAGES_SENT As String = "http://api.twitter.com/1/direct_messages/sent.xml"
-        Const FAVORITES_CREATE As String = "http://api.twitter.com/1/favorites/create/{0}.xml"
-        Const FAVORITES_DESTROY As String = "http://api.twitter.com/1/favorites/destroy/{0}.xml"
-        Const FAVORITES_LIST As String = "http://api.twitter.com/1/favorites.xml"
-        Const FOLLOWERS_URL As String = "http://api.twitter.com/1/followers/ids.xml"
-        Const FRIENDS_URL As String = "http://api.twitter.com/1/friends/ids.xml"
-        Const FRIENDSHIP_CREATE As String = "http://api.twitter.com/1/friendships/create/{0}.xml"
-        Const FRIENDSHIP_SHOW As String = "http://api.twitter.com/1/friendships/show.xml?{0}={1}&{2}={3}"
-        Const FRIENDSHIP_DESTROY As String = "http://api.twitter.com/1/friendships/destroy/{0}.xml"
-        Const LISTS As String = "http://api.twitter.com/1/{0}/lists.xml"
-        Const LISTS_MEMBERS As String = "http://api.twitter.com/1/{0}/{1}/members.xml"
-        Const LISTS_MEMBERS_ID As String = "http://api.twitter.com/1/{0}/{1}/members/{2}.xml"
-        Const LISTS_MEMBERSHIPS As String = "http://api.twitter.com/1/{0}/lists/memberships.xml"
-        Const LISTS_SPECIFY As String = "http://api.twitter.com/1/{0}/lists/{1}.xml"
-        Const LISTS_STATUSES As String = "http://api.twitter.com/1/{0}/lists/{1}/statuses.xml"
-        Const LISTS_SUBSCRIBERS As String = "http://api.twitter.com/1/{0}/{1}/subscribers.xml"
-        Const LISTS_SUBSCRIBERS_ID As String = "http://api.twitter.com/1/{0}/{1}/subscribers/{2}.xml"
-        Const LISTS_SUBSCRIPTIONS As String = "http://api.twitter.com/1/{0}/lists/subscriptions.xml"
-        Const REPORT_SPAM As String = "http://api.twitter.com/1/report_spam.xml"
-        Const SEARCH_URL As String = "http://search.twitter.com/search.atom"
-        Const STATUSES_DESTROY As String = "http://api.twitter.com/1/statuses/destroy/{0}.xml"
-        Const STATUSES_FRIENDS As String = "http://api.twitter.com/1/statuses/friends.xml"
-        Const STATUSES_FOLLOWERS As String = "http://api.twitter.com/1/statuses/followers.xml"
-        Const STATUSES_FRIENDS_TIMELINE As String = "http://api.twitter.com/1/statuses/friends_timeline.xml"
-        Const STATUSES_HOME_TIMELINE As String = "http://api.twitter.com/1/statuses/home_timeline.xml"
-        Const STATUSES_MENTIONS As String = "http://api.twitter.com/1/statuses/mentions.xml"
-        Const STATUSES_PUBLIC_TIMELINE As String = "http://api.twitter.com/1/statuses/public_timeline.xml"
-        Const STATUSES_REPLIES As String = "http://api.twitter.com/1/statuses/replies.xml"
-        Const STATUSES_RETWEET As String = "http://api.twitter.com/1/statuses/retweet/{0}.xml"
-        Const STATUSES_RETWEETED_BY_ME As String = "http://api.twitter.com/1/statuses/retweeted_by_me.xml"
-        Const STATUSES_RETWEETED_TO_ME As String = "http://twitter.com/statuses/retweeted_to_me.xml"
-        Const STATUSES_RETWEETS As String = "http://api.twitter.com/1/statuses/retweets/id.xml"
-        Const STATUSES_RETWEETS_OF_ME As String = "http://api.twitter.com/1/statuses/retweets_of_me.xml"
-        Const STATUSES_SHOW As String = "http://api.twitter.com/1/statuses/show/{0}.xml"
-        Const STATUSES_UPDATE As String = "http://api.twitter.com/1/statuses/update.xml"
-        Const STATUSES_USER_TIMELINE As String = "http://api.twitter.com/1/statuses/user_timeline.xml"
-        Const TRENDS_CURRENT As String = "http:///api.twitter.com/1/trends/current.json"
-        Const TRENDS_DAILY As String = "http:///api.twitter.com/1/trends/daily.json"
-        Const TRENDS_URL As String = "http:///api.twitter.com/1/trends.json"
-        Const TRENDS_WEEKLY As String = "http:///api.twitter.com/1/trends/weekly.json"
-        Const TREND_LOCATIONS As String = "http://api.twitter.com/1/trends/available.xml"
-        Const TREND_LOCATION_TRENDS As String = "http://api.twitter.com/1/trends/{0}.json"
-        Const USERS_SEARCH As String = "http://api.twitter.com/1/users/search.xml"
-        Const USERS_SHOW As String = "http://api.twitter.com/1/users/show.xml"
-        Const UPDATE_PROFILE_IMAGE As String = "http://api.twitter.com/1/account/update_profile_image.xml"
+        ' The ones marked V1.1 have been checked against the 1.1 API, others may or may not be correct
+        Const ACCOUNT_VERIFY_CREDENTIALS As String = "https://api.twitter.com/1.1/account/verify_credentials.json"
+        Const ACCOUNT_UPDATE As String = "https://api.twitter.com/1.1/account/update_profile.json"
+        Const BLOCKS_BLOCKING As String = "https://api.twitter.com/1.1/blocks/blocking.json"
+        Const BLOCKS_BLOCKING_IDS As String = "https://api.twitter.com/1.1/blocks/blocking/ids.json"
+        Const BLOCKS_CREATE As String = "https://api.twitter.com/1.1/blocks/create/{0}.json"
+        Const BLOCKS_DESTROY As String = "https://api.twitter.com/1.1/blocks/destroy/{0}.json"
+        Const DIRECT_MESSAGES As String = "https://api.twitter.com/1.1/direct_messages.json" ' V1.1
+        Const DIRECT_MESSAGES_DESTROY As String = "https://api.twitter.com/1.1/direct_messages/destroy.json" ' V1.1 **CHANGED**
+        Const DIRECT_MESSAGES_NEW As String = "https://api.twitter.com/1.1/direct_messages/new.json" ' V1.1
+        Const DIRECT_MESSAGES_SENT As String = "https://api.twitter.com/1.1/direct_messages/sent.json" ' V1.1
+        Const DIRECT_MESSAGES_SHOW As String = "https://api.twitter.com/1.1/direct_messages/show.json" ' V1.1 **NOT IMPLEMENTED**
+        Const FAVORITES_CREATE As String = "https://api.twitter.com/1.1/favorites/create/{0}.json"
+        Const FAVORITES_DESTROY As String = "https://api.twitter.com/1.1/favorites/destroy/{0}.json"
+        Const FAVORITES_LIST As String = "https://api.twitter.com/1.1/favorites.json"
+        Const FOLLOWERS_URL As String = "https://api.twitter.com/1.1/followers/ids.json"
+        Const FRIENDS_URL As String = "https://api.twitter.com/1.1/friends/ids.json"
+        Const FRIENDSHIP_CREATE As String = "https://api.twitter.com/1.1/friendships/create/{0}.json"
+        Const FRIENDSHIP_SHOW As String = "https://api.twitter.com/1.1/friendships/show.xml?{0}={1}&{2}={3}"
+        Const FRIENDSHIP_DESTROY As String = "https://api.twitter.com/1.1/friendships/destroy/{0}.json"
+        Const LISTS As String = "https://api.twitter.com/1.1/{0}/lists.json"
+        Const LISTS_MEMBERS As String = "https://api.twitter.com/1.1/{0}/{1}/members.json"
+        Const LISTS_MEMBERS_ID As String = "https://api.twitter.com/1.1/{0}/{1}/members/{2}.json"
+        Const LISTS_MEMBERSHIPS As String = "https://api.twitter.com/1.1/{0}/lists/memberships.json"
+        Const LISTS_SPECIFY As String = "https://api.twitter.com/1.1/{0}/lists/{1}.json"
+        Const LISTS_STATUSES As String = "https://api.twitter.com/1.1/lists/statuses.json"
+        Const LISTS_SUBSCRIBERS As String = "https://api.twitter.com/1.1/{0}/{1}/subscribers.json"
+        Const LISTS_SUBSCRIBERS_ID As String = "https://api.twitter.com/1.1/{0}/{1}/subscribers/{2}.json"
+        Const LISTS_SUBSCRIPTIONS As String = "https://api.twitter.com/1.1/{0}/lists/subscriptions.json"
+        Const REPORT_SPAM As String = "https://api.twitter.com/1.1/report_spam.json"
+        Const SEARCH_TWEETS As String = "https://api.twitter.com/1.1/search/tweets.json"
+        Const STATUSES_DESTROY As String = "https://api.twitter.com/1.1/statuses/destroy/{0}.json"
+        Const STATUSES_FRIENDS As String = "https://api.twitter.com/1.1/statuses/friends.json"
+        Const STATUSES_FOLLOWERS As String = "https://api.twitter.com/1.1/statuses/followers.json"
+        Const STATUSES_FRIENDS_TIMELINE As String = "https://api.twitter.com/1.1/statuses/friends_timeline.json"
+        Const STATUSES_HOME_TIMELINE As String = "https://api.twitter.com/1.1/statuses/home_timeline.json" ' V1.1
+        Const STATUSES_MENTIONS_TIMELINE As String = "https://api.twitter.com/1.1/statuses/mentions_timeline.json" ' V1.1
+        Const STATUSES_PUBLIC_TIMELINE As String = "https://api.twitter.com/1.1/statuses/public_timeline.json"
+        Const STATUSES_REPLIES As String = "https://api.twitter.com/1.1/statuses/replies.json"
+        Const STATUSES_RETWEET As String = "https://api.twitter.com/1.1/statuses/retweet/{0}.json" ' V1.1
+        Const STATUSES_RETWEETED_BY_ME As String = "https://api.twitter.com/1.1/statuses/retweeted_by_me.json"
+        Const STATUSES_RETWEETED_TO_ME As String = "https://twitter.com/statuses/retweeted_to_me.json"
+        Const STATUSES_RETWEETS As String = "https://api.twitter.com/1.1/statuses/retweets/{0}.json" ' V1.1
+        Const STATUSES_RETWEETS_OF_ME As String = "https://api.twitter.com/1.1/statuses/retweets_of_me.json" ' V1.1
+        Const STATUSES_RETWEETERS As String = "https://api.twitter.com/1.1/statuses/retweeters/ids.json" ' V1.1 **NOT IMPLEMENTED**
+        Const STATUSES_SHOW As String = "https://api.twitter.com/1.1/statuses/show.json" ' V1.1
+        Const STATUSES_UPDATE As String = "https://api.twitter.com/1.1/statuses/update.json"
+        Const STATUSES_USER_TIMELINE As String = "https://api.twitter.com/1.1/statuses/user_timeline.json" ' V1.1
+        Const TRENDS_CURRENT As String = "https:///api.twitter.com/1.1/trends/current.json"
+        Const TRENDS_DAILY As String = "https:///api.twitter.com/1.1/trends/daily.json"
+        Const TRENDS_URL As String = "https:///api.twitter.com/1.1/trends.json"
+        Const TRENDS_WEEKLY As String = "https:///api.twitter.com/1.1/trends/weekly.json"
+        Const TREND_LOCATIONS As String = "https://api.twitter.com/1.1/trends/available.json"
+        Const TREND_LOCATION_TRENDS As String = "https://api.twitter.com/1.1/trends/{0}.json"
+        Const USERS_SEARCH As String = "https://api.twitter.com/1.1/users/search.json"
+        Const USERS_SHOW As String = "https://api.twitter.com/1.1/users/show.json"
+        Const UPDATE_PROFILE_IMAGE As String = "https://api.twitter.com/1.1/account/update_profile_image.json"
 #End Region
 
 #Region "API Rate Limit Properties"
@@ -241,7 +257,7 @@ Namespace TwitterVB2
         End Sub
 #End Region
 
-#Region "Support Methods"
+#Region "Private/Class Support Methods"
 
         '
         ' This region holds general support and utility methods.
@@ -420,150 +436,163 @@ Namespace TwitterVB2
         ' 
 
         ''' <exclude/>
-        Private Function ParseRelationships(ByVal Xml As String) As List(Of TwitterRelationship)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseRelationships(ByVal JSON As String) As List(Of TwitterRelationship)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim RelationshipList As ArrayList = JS.Deserialize(Of ArrayList)(JSON)
 
             Dim Relationships As New List(Of TwitterRelationship)
-            For Each RelationshipNode As XmlNode In XmlDoc.SelectNodes("//relationship")
-                Relationships.Add(New TwitterRelationship(RelationshipNode))
+            For Each RelationshipDict As Dictionary(Of String, Object) In RelationshipList
+                Relationships.Add(New TwitterRelationship(RelationshipDict))
             Next
 
             Return Relationships
         End Function
 
         ''' <exclude/>
-        Private Function ParseDirectMessages(ByVal Xml As String) As List(Of TwitterDirectMessage)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseDirectMessages(ByVal JSON As String) As List(Of TwitterDirectMessage)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim MesssageList As ArrayList = JS.Deserialize(Of ArrayList)(JSON)
 
             Dim Messages As New List(Of TwitterDirectMessage)
-            For Each DirectMessageNode As XmlNode In XmlDoc.SelectNodes("//direct_message")
-                Messages.Add(New TwitterDirectMessage(DirectMessageNode))
+            For Each MessageDict As Dictionary(Of String, Object) In MesssageList
+                Messages.Add(New TwitterDirectMessage(MessageDict))
             Next
 
             Return Messages
         End Function
 
         ''' <exclude/>
-        Private Function ParseLists(ByVal Xml As String) As List(Of TwitterList)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseLists(ByVal JSON As String) As List(Of TwitterList)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim ListList As ArrayList = JS.Deserialize(Of ArrayList)(JSON)
 
             Dim Lists As New List(Of TwitterList)
-            For Each ListNode As XmlNode In XmlDoc.SelectNodes("//list")
-                Lists.Add(New TwitterList(ListNode))
+            For Each ListDict As Dictionary(Of String, Object) In ListList
+                Lists.Add(New TwitterList(ListDict))
             Next
+
             Return Lists
         End Function
 
         ''' <exclude/>
-        Private Function ParseLists(ByVal Xml As String, ByRef NextCursor As Int64) As List(Of TwitterList)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseLists(ByVal JSON As String, ByRef NextCursor As Int64) As List(Of TwitterList)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim ParseDict As Dictionary(Of String, Object) = JS.Deserialize(Of Dictionary(Of String, Object))(JSON)
 
             Dim Lists As New List(Of TwitterList)
-            For Each ListNode As XmlNode In XmlDoc.SelectNodes("//list")
-                Lists.Add(New TwitterList(ListNode))
+            Dim ListsList As ArrayList = CType(ParseDict("lists"), ArrayList)
+            For Each ListDict As Dictionary(Of String, Object) In ListsList
+                Lists.Add(New TwitterList(ListDict))
             Next
 
-            NextCursor = Convert.ToInt64(XmlDoc.SelectSingleNode("//next_cursor").InnerText)
+            NextCursor = CLng(ParseDict("next_cursor"))
+
             Return Lists
         End Function
 
         ''' <exclude/>
-        Private Function ParseStatuses(ByVal Xml As String) As List(Of TwitterStatus)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
-
-            Dim Stripper As New XmlNamespaceStripper(XmlDoc)
-            XmlDoc = Stripper.StrippedXmlDocument
+        Private Function ParseStatuses(ByVal JSON As String) As List(Of TwitterStatus)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim StatusList As ArrayList = JS.Deserialize(Of ArrayList)(JSON)
 
             Dim Statuses As New List(Of TwitterStatus)
-            For Each StatusNode As XmlNode In XmlDoc.SelectNodes("//status")
-                Statuses.Add(New TwitterStatus(StatusNode))
+            For Each StatusDict As Dictionary(Of String, Object) In StatusList
+                Statuses.Add(New TwitterStatus(StatusDict))
             Next
             Return Statuses
         End Function
 
         ''' <exclude/>
-        Private Function ParseUsers(ByVal Xml As String) As List(Of TwitterUser)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseSingleUser(ByVal JSON As String) As TwitterUser
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim UserDict As Dictionary(Of String, Object) = JS.Deserialize(Of Dictionary(Of String, Object))(JSON)
+            Return New TwitterUser(UserDict)
+        End Function
+
+        ''' <exclude/>
+        Private Function ParseUsers(ByVal JSON As String) As List(Of TwitterUser)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim UserList As ArrayList = JS.Deserialize(Of ArrayList)(JSON)
 
             Dim Users As New List(Of TwitterUser)
-            For Each UserNode As XmlNode In XmlDoc.SelectNodes("//user")
-                Users.Add(New TwitterUser(UserNode))
+            For Each StatusDict As Dictionary(Of String, Object) In UserList
+                Users.Add(New TwitterUser(StatusDict))
             Next
+
             Return Users
         End Function
 
         ''' <exclude/>
-        Private Function ParseUsers(ByVal Xml As String, ByRef NextCursor As Int64) As List(Of TwitterUser)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseUsers(ByVal JSON As String, ByRef NextCursor As Int64) As List(Of TwitterUser)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim ParseDict As Dictionary(Of String, Object) = JS.Deserialize(Of Dictionary(Of String, Object))(JSON)
 
             Dim Users As New List(Of TwitterUser)
-            For Each UserNode As XmlNode In XmlDoc.SelectNodes("//user")
-                Users.Add(New TwitterUser(UserNode))
+            Dim UsersList As ArrayList = CType(ParseDict("users"), ArrayList)
+            For Each UserDict As Dictionary(Of String, Object) In UsersList
+                Users.Add(New TwitterUser(UserDict))
             Next
 
-            NextCursor = Convert.ToInt64(XmlDoc.SelectSingleNode("//next_cursor").InnerText)
-            Return Users
+            NextCursor = CLng(ParseDict("next_cursor"))
 
+            Return Users
         End Function
 
         ''' <exclude/>
-        Private Function ParseBlockedIDs(ByVal Xml As String) As List(Of Int64)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseBlockedIDs(ByVal JSON As String, ByRef NextCursor As Int64) As List(Of Int64)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim ParseDict As Dictionary(Of String, Object) = JS.Deserialize(Of Dictionary(Of String, Object))(JSON)
 
             Dim IDs As New List(Of Int64)
-            For Each IDNode As XmlNode In XmlDoc.SelectNodes("//id")
-                IDs.Add(Int64.Parse(IDNode.InnerText))
+            Dim IDList As List(Of String) = CType(ParseDict("ids"), List(Of String))
+            For Each ID As String In IDList
+                IDs.Add(Int64.Parse(ID))
             Next
+
+            NextCursor = CLng(ParseDict("next_cursor"))
+
             Return IDs
         End Function
 
         ''' <exclude/>
         Private Function ParseSearchResults(ByVal Xml As String) As List(Of TwitterSearchResult)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+            Throw New ApplicationException("ParseSearchResults() should no longer be needed!")
+            'Dim XmlDoc As New XmlDocument
+            'XmlDoc.LoadXml(Xml)
 
-            Dim Stripper As New XmlNamespaceStripper(XmlDoc)
-            XmlDoc = Stripper.StrippedXmlDocument
+            'Dim Stripper As New XmlNamespaceStripper(XmlDoc)
+            'XmlDoc = Stripper.StrippedXmlDocument
 
-            Dim Results As New List(Of TwitterSearchResult)
-            For Each SearchResultNode As XmlNode In XmlDoc.SelectNodes("//entry")
-                Results.Add(New TwitterSearchResult(SearchResultNode))
-            Next
-            Return Results
+            'Dim Results As New List(Of TwitterSearchResult)
+            'For Each SearchResultNode As XmlNode In XmlDoc.SelectNodes("//entry")
+            '    Results.Add(New TwitterSearchResult(SearchResultNode))
+            'Next
+            'Return Results
         End Function
 
         ''' <exclude/>
-        Private Function ParseSocialGraph(ByVal Xml As String, ByRef NextCursor As Int64) As List(Of Int64)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
+        Private Function ParseSocialGraph(ByVal JSON As String, ByRef NextCursor As Int64) As List(Of Int64)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim ParseDict As Dictionary(Of String, Object) = JS.Deserialize(Of Dictionary(Of String, Object))(JSON)
 
             Dim SocialGraph As New List(Of Int64)
-            For Each IDNode As XmlNode In XmlDoc.SelectNodes("//id")
-                SocialGraph.Add(Convert.ToInt64(IDNode.InnerText))
+            Dim IDList As List(Of String) = CType(ParseDict("ids"), List(Of String))
+            For Each ID As String In IDList
+                SocialGraph.Add(Int64.Parse(ID))
             Next
 
-            NextCursor = Convert.ToInt64(XmlDoc.SelectSingleNode("//next_cursor").InnerText)
+            NextCursor = CLng(ParseDict("next_cursor"))
+
             Return SocialGraph
         End Function
 
-        Private Function ParseTrendLocations(ByVal Xml As String) As List(Of TwitterTrendLocation)
-            Dim XmlDoc As New XmlDocument
-            XmlDoc.LoadXml(Xml)
-
-            Dim Stripper As New XmlNamespaceStripper(XmlDoc)
-            XmlDoc = Stripper.StrippedXmlDocument
+        Private Function ParseTrendLocations(ByVal JSON As String) As List(Of TwitterTrendLocation)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim TrendLocationList As ArrayList = JS.Deserialize(Of ArrayList)(JSON)
 
             Dim Results As New List(Of TwitterTrendLocation)
-            For Each SearchResultNode As XmlNode In XmlDoc.SelectNodes("//location")
-                Results.Add(New TwitterTrendLocation(SearchResultNode))
+            For Each TrendLocationDict As Dictionary(Of String, Object) In TrendLocationList
+                Results.Add(New TwitterTrendLocation(TrendLocationDict))
             Next
             Return Results
         End Function
@@ -725,46 +754,43 @@ Namespace TwitterVB2
 #Region "Twitter API Methods"
 
         '
-        ' The methods in this region implement the methods documented in the Twitter API Documentation found at
+        ' The methods in this region implement the methods documented in the Twitter API 1.1 Documentation found at
         ' http://dev.twitter.com/doc
         '
         ' These methods have been grouped into regions that mirrors the groupings in the API documentation so that
         ' it is easier to find the method you are looking for (or where to put the method that you are writing).
         '
         ' The only methods that should be in this region are methods that directly implement a Twitter API method.
-        ' If in doubt, ask Duane. :)
+        ' If in doubt, ask Duane or Bob. :)
         '
 
 #Region "Search API Methods"
         ''' <summary>
-        ''' Performs a basic Twitter search for the provided text. For more information see The <a href="http://dev.twitter.com/doc/get/search">Twitter Search API</a>
-        ''' and <a href="http://dev.twitter.com/pages/using-the-twitter-search-api">Using the Twitter Search API</a>.
+        ''' Performs a basic Twitter search for the provided text. For more information see <a href="https://dev.twitter.com/docs/api/1.1/get/search/tweets">GET seaarch/tweets</a>
+        ''' and <a href="https://dev.twitter.com/docs/using-search">Using the Twitter Search API</a>.
         ''' </summary>
-        ''' <param name="SearchTerm">The text for which to search.</param>
-        ''' <returns>A <c>List(Of TwitterSearchResult)</c> representing the tweets returned by the search.</returns>
+        ''' <param name="SearchTerm">The search query string, which can be in many forms.</param>
+        ''' <returns>A <c>TwitterSearchResult</c> representing the tweets returned by the search and metadata.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Basic Search" lang="vbnet" title="Performing a search"></code>
         ''' </remarks>
-        Public Function Search(ByVal SearchTerm As String) As List(Of TwitterSearchResult)
-            Dim Parameters As New TwitterSearchParameters
-            Parameters.Add(TwitterSearchParameterNames.SearchTerm, SearchTerm)
-
-            Dim Url As String = Parameters.BuildUrl(SEARCH_URL)
-            Return ParseSearchResults(PerformWebRequest(Url, "GET"))
+        Public Function Search(ByVal SearchTerm As String) As TwitterSearchResult
+            Dim Url As String = SEARCH_TWEETS & "&q=" & System.Uri.EscapeDataString(SearchTerm)    ' Base query
+            Return New TwitterSearchResult(PerformWebRequest(Url, "GET"))
         End Function
 
         ''' <summary>
-        ''' Performs an advanced Twitter search. For more information see The <a href="http://dev.twitter.com/doc/get/search">Twitter Search API</a>
-        ''' and <a href="http://dev.twitter.com/pages/using-the-twitter-search-api">Using the Twitter Search API</a>.
+        ''' Performs an advanced Twitter search. For more information see <a href="https://dev.twitter.com/docs/api/1.1/get/search/tweets">GET seaarch/tweets</a>
+        ''' and <a href="https://dev.twitter.com/docs/using-search">Using the Twitter Search API</a>.
         ''' </summary>
         ''' <param name="Parameters">A <see cref="TwitterSearchParameters" /> object that defines the search.</param>
-        ''' <returns>A <c>List(Of TwitterSearchResult)</c> that represents the list of tweets found by the search.</returns>
+        ''' <returns>A <c>TwitterSearchResult</c>  representing the tweets returned by the search and metadata.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Advanced Search" lang="vbnet" title="Performing a search"></code>
         ''' </remarks>
-        Public Function Search(ByVal Parameters As TwitterSearchParameters) As List(Of TwitterSearchResult)
-            Dim Url As String = Parameters.BuildUrl(SEARCH_URL)
-            Return ParseSearchResults(PerformWebRequest(Url, "GET"))
+        Public Function Search(ByVal Parameters As TwitterSearchParameters) As TwitterSearchResult
+            Dim Url As String = Parameters.BuildUrl(SEARCH_TWEETS)
+            Return New TwitterSearchResult(PerformWebRequest(Url, "GET"))
         End Function
 
         ''' <summary>
@@ -815,33 +841,6 @@ Namespace TwitterVB2
 #End Region
 
 #Region "Timeline Methods"
-        ''' <summary>
-        ''' Gets the 20 most recent tweets from the public timeline
-        ''' </summary>
-        ''' <returns>A <c>List(Of TwitterStatus)</c> containing the requested tweets.</returns>
-        ''' <remarks>
-        ''' <code source="TwitterVB2\examples.vb" region="Get Public Timeline" lang="vbnet" title="Getting the public timeline"></code>
-        ''' </remarks>
-        Public Function PublicTimeline() As List(Of TwitterStatus)
-            Return PublicTimeline(Nothing)
-        End Function
-
-        ''' <summary>
-        ''' Gets recent tweets from the public timeline
-        ''' </summary>
-        ''' <param name="Parameters">A <see cref="TwitterParameters" /> object defining how the request should be executed.</param>
-        ''' <returns>A <c>List(Of TwitterStatus)</c> containing the requested tweets.</returns>
-        ''' <remarks>
-        ''' <code source="TwitterVB2\examples.vb" region="Get Public Timeline" lang="vbnet" title="Getting the public timeline"></code>
-        ''' </remarks>
-        Public Function PublicTimeline(ByVal Parameters As TwitterParameters) As List(Of TwitterStatus)
-            Dim Url As String = STATUSES_PUBLIC_TIMELINE
-            If Parameters IsNot Nothing Then
-                Url = Parameters.BuildUrl(Url)
-            End If
-            Return ParseStatuses(PerformWebRequest(Url, "GET"))
-        End Function
-
         ''' <summary>
         ''' Retrieves tweets from the authenticated user and the authenticated user's friends
         ''' </summary>
@@ -962,7 +961,7 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Get Mentions" lang="vbnet" title="Getting entions"></code>
         ''' </remarks>
         Public Function Mentions(ByVal Parameters As TwitterParameters) As List(Of TwitterStatus)
-            Dim Url As String = STATUSES_MENTIONS
+            Dim Url As String = STATUSES_MENTIONS_TIMELINE
             If Parameters IsNot Nothing Then
                 Url = Parameters.BuildUrl(Url)
             End If
@@ -1064,7 +1063,9 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Show a Tweet" lang="vbnet" title="Retrieving a tweet"></code>
         ''' </remarks>
         Public Function ShowUpdate(ByVal ID As Int64) As TwitterStatus
-            Return ParseStatuses(PerformWebRequest(String.Format(STATUSES_SHOW, ID), "GET"))(0)
+            Dim tp As New TwitterParameters
+            tp.Add(TwitterParameterNames.ID, ID)
+            Return ParseStatuses(PerformWebRequest(tp.BuildUrl(STATUSES_SHOW), "GET"))(0)
         End Function
         ''' <summary>
         ''' Updates the User Image in Twitter
@@ -1077,11 +1078,8 @@ Namespace TwitterVB2
             Dim btContents() As Byte = File.ReadAllBytes(Image)
             If btContents.Length > 700000 Then
                 Throw New TwitterAPIException("Image too large")
-
             End If
-
-
-            Return ParseUsers(PerformWebUpLoad(UPDATE_PROFILE_IMAGE, "POST", Image, "image"))(0)
+            Return ParseSingleUser(PerformWebUpLoad(UPDATE_PROFILE_IMAGE, "POST", Image, "image"))
         End Function
         ''' <summary>
         ''' Posts a tweet.
@@ -1164,20 +1162,20 @@ Namespace TwitterVB2
         ''' </remarks>
         Public Function Retweets(ByVal ID As Int64, ByVal Count As Int64) As List(Of TwitterStatus)
             Dim tp As New TwitterParameters
-            tp.Add(TwitterParameterNames.ID, ID)
             tp.Add(TwitterParameterNames.Count, Count)
-            Dim Url As String = tp.BuildUrl(STATUSES_RETWEETS)
+            Dim Url As String = tp.BuildUrl(String.Format(STATUSES_RETWEETS, ID.ToString))
             Return ParseStatuses(PerformWebRequest(Url, "GET"))
         End Function
 
         ''' <summary>
-        ''' Retireves of list of tweets that are replies to tweets posted by the selected user.
+        ''' Retrieves of list of tweets that are replies to tweets posted by the selected user.
         ''' </summary>
         ''' <returns>A <c>List(Of TwitterStatus)</c> containing the requested tweets.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Get Replies" lang="vbnet" title="Getting replies"></code>
         ''' </remarks>
         Public Function Replies() As List(Of TwitterStatus)
+            Throw New ApplicationException("Replies() is not implemented yet.")
             Return Replies(Nothing)
         End Function
 
@@ -1211,7 +1209,7 @@ Namespace TwitterVB2
             Dim tp As New TwitterParameters
             tp.Add(TwitterParameterNames.ID, ID)
             Dim Url As String = tp.BuildUrl(USERS_SHOW)
-            Return ParseUsers(PerformWebRequest(Url, "GET"))(0)
+            Return ParseSingleUser(PerformWebRequest(Url, "GET"))
         End Function
 
         ''' <summary>
@@ -1226,7 +1224,7 @@ Namespace TwitterVB2
             Dim tp As New TwitterParameters
             tp.Add(TwitterParameterNames.ScreenName, ScreenName)
             Dim Url As String = tp.BuildUrl(USERS_SHOW)
-            Return ParseUsers(PerformWebRequest(Url, "GET"))(0)
+            Return ParseSingleUser(PerformWebRequest(Url, "GET"))
         End Function
 
         ''' <summary>
@@ -1481,7 +1479,12 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Get List Statuses" lang="vbnet" title="Getting list statuses"></code>
         ''' </remarks>
         Public Function ListStatuses(ByVal Username As String, ByVal ListID As String, Optional ByVal Count As Int64 = 20) As List(Of TwitterStatus)
-            Dim Url As String = String.Format(LISTS_STATUSES & "?per_page={2}", Username, ListID, Count.ToString)
+            Dim Url As String = LISTS_STATUSES
+            Dim Parameters As New TwitterParameters
+            Parameters.Add(TwitterParameterNames.ListSlug, ListID)
+            Parameters.Add(TwitterParameterNames.ListOwnerScreenName, Username)
+            Parameters.Add(TwitterParameterNames.Count, Count)
+            Url = Parameters.BuildUrl(Url)
             Return ParseStatuses(PerformWebRequest(Url, "GET"))
         End Function
 
@@ -1779,7 +1782,7 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Follow User" lang="vbnet" title="Following a user"></code>
         ''' </remarks>
         Public Function Follow(ByVal ID As Int64) As TwitterUser
-            Return ParseUsers(PerformWebRequest(String.Format(FRIENDSHIP_CREATE, ID), "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(String.Format(FRIENDSHIP_CREATE, ID), "POST"))
         End Function
 
         ''' <summary>
@@ -1791,7 +1794,7 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Follow User" lang="vbnet" title="Following a user"></code>
         ''' </remarks>
         Public Function Follow(ByVal ScreenName As String) As TwitterUser
-            Return ParseUsers(PerformWebRequest(String.Format(FRIENDSHIP_CREATE, ScreenName), "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(String.Format(FRIENDSHIP_CREATE, ScreenName), "POST"))
         End Function
 
         ''' <summary>
@@ -1803,7 +1806,7 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Unfollow User" lang="vbnet" title="Unfollowing a user"></code>
         ''' </remarks>
         Public Function UnFollow(ByVal ID As Int64) As TwitterUser
-            Return ParseUsers(PerformWebRequest(String.Format(FRIENDSHIP_DESTROY, ID), "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(String.Format(FRIENDSHIP_DESTROY, ID), "POST"))
         End Function
 
         ''' <summary>
@@ -1815,7 +1818,7 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Unfollow User" lang="vbnet" title="Unfollowing a user"></code>
         ''' </remarks>
         Public Function UnFollow(ByVal ScreenName As String) As TwitterUser
-            Return ParseUsers(PerformWebRequest(String.Format(FRIENDSHIP_DESTROY, ScreenName), "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(String.Format(FRIENDSHIP_DESTROY, ScreenName), "POST"))
         End Function
 
         ''' <summary>
@@ -2028,7 +2031,7 @@ Namespace TwitterVB2
         ''' <code source="TwitterVB2\examples.vb" region="Get Account Information" lang="vbnet" title="Retrieving account information"></code>
         ''' </remarks>
         Public Function AccountInformation() As TwitterUser
-            Return ParseUsers(PerformWebRequest(ACCOUNT_VERIFY_CREDENTIALS, "GET"))(0)
+            Return ParseSingleUser(PerformWebRequest(ACCOUNT_VERIFY_CREDENTIALS, "GET"))
         End Function
 
 
@@ -2041,7 +2044,7 @@ Namespace TwitterVB2
             If Description.Length <= 160 Then UpdateString &= "&description=" & TwitterOAuth.OAuthUrlEncode(Description)
             If UpdateString <> String.Empty Then UpdateString = "?" & UpdateString.Substring(1, UpdateString.Length - 1)
 
-            Return ParseUsers(PerformWebRequest(String.Format(ACCOUNT_UPDATE & UpdateString), "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(String.Format(ACCOUNT_UPDATE & UpdateString), "POST"))
         End Function
 
 #End Region
@@ -2108,7 +2111,6 @@ Namespace TwitterVB2
         ''' <param name="ID">The ID of the user to be blocked.</param>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Block User" lang="vbnet" title="Blocking a user"></code>
-        ''' You can read more about blocking at <a href="http://help.twitter.com/forums/10711/entries/15355">http://help.twitter.com/forums/10711/entries/15355</a>.
         ''' </remarks>
         Public Sub BlockUser(ByVal ID As Int64)
             PerformWebRequest(String.Format(BLOCKS_CREATE, ID), "POST")
@@ -2120,7 +2122,6 @@ Namespace TwitterVB2
         ''' <param name="ScreenName">The screen name of the user to be blocked.</param>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Block User" lang="vbnet" title="Blocking a user"></code>
-        ''' You can read more about blocking at <a href="http://help.twitter.com/forums/10711/entries/15355">http://help.twitter.com/forums/10711/entries/15355</a>.
         ''' </remarks>
         Public Sub BlockUser(ByVal ScreenName As String)
             PerformWebRequest(String.Format(BLOCKS_CREATE, ScreenName), "POST")
@@ -2132,7 +2133,6 @@ Namespace TwitterVB2
         ''' <param name="ID">The ID of the user to be un-blocked.</param>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Unblock User" lang="vbnet" title="Unblocking a user"></code>
-        ''' You can read more about blocking at <a href="http://help.twitter.com/forums/10711/entries/15355">http://help.twitter.com/forums/10711/entries/15355</a>.
         ''' </remarks>
         Public Sub UnblockUser(ByVal ID As Int64)
             PerformWebRequest(String.Format(BLOCKS_DESTROY, ID), "POST")
@@ -2144,7 +2144,6 @@ Namespace TwitterVB2
         ''' <param name="ScreenName">The screen name of the user to be un-blocked.</param>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Unblock User" lang="vbnet" title="Unblocking a user"></code>
-        ''' You can read more about blocking at <a href="http://help.twitter.com/forums/10711/entries/15355">http://help.twitter.com/forums/10711/entries/15355</a>.
         ''' </remarks>
         Public Sub UnblockUser(ByVal ScreenName As String)
             PerformWebRequest(String.Format(BLOCKS_DESTROY, ScreenName), "POST")
@@ -2156,10 +2155,10 @@ Namespace TwitterVB2
         ''' <returns>A <c>List(Of Int64)</c>representing the blocked IDs.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Get Blocked IDs" lang="vbnet" title="Getting blocked IDs"></code>
-        ''' You can read more about blocking at <a href="http://help.twitter.com/forums/10711/entries/15355">http://help.twitter.com/forums/10711/entries/15355</a>.
         ''' </remarks>
         Public Function BlockedIDs() As List(Of Int64)
-            Return ParseBlockedIDs(PerformWebRequest(BLOCKS_BLOCKING_IDS, "GET"))
+            Throw (New System.ApplicationException("BlockedIDs() is not implemented yet"))
+            ''Return ParseBlockedIDs(PerformWebRequest(BLOCKS_BLOCKING_IDS, "GET"))
         End Function
 
         ''' <summary>
@@ -2168,7 +2167,6 @@ Namespace TwitterVB2
         ''' <returns>A <c>List(Of TwitterUser)</c> representing the blocked users.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Get Blocked Users" lang="vbnet" title="Getting blocked users"></code>
-        ''' You can read more about blocking at <a href="http://help.twitter.com/forums/10711/entries/15355">http://help.twitter.com/forums/10711/entries/15355</a>.
         ''' </remarks>
         Public Function BlockedUsers() As List(Of TwitterUser)
             Return BlockedUsers(1)
@@ -2193,7 +2191,7 @@ Namespace TwitterVB2
         ''' Reports a user to Twitter as a spammer.
         ''' </summary>
         ''' <param name="ID">The ID of the user who is posting spam.</param>
-        ''' <returns>A <c>TwitterStatus</c> object representing the user being reported.</returns>
+        ''' <returns>A <c>TwitterUser</c> object representing the user being reported.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Reporting a Spammer" lang="vbnet" title="Reporting a Spammer"></code>
         ''' </remarks>
@@ -2201,14 +2199,14 @@ Namespace TwitterVB2
             Dim tp As New TwitterParameters
             tp.Add(TwitterParameterNames.ID, ID)
             Dim Url As String = tp.BuildUrl(REPORT_SPAM)
-            Return ParseUsers(PerformWebRequest(Url, "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(Url, "POST"))
         End Function
 
         ''' <summary>
         ''' Reports a user to Twitter as a spammer.
         ''' </summary>
         ''' <param name="ScreenName">The ID of the user who is posting spam.</param>
-        ''' <returns>A <c>TwitterStatus</c> object representing the user being reported.</returns>
+        ''' <returns>A <c>TwitterUser</c> object representing the user being reported.</returns>
         ''' <remarks>
         ''' <code source="TwitterVB2\examples.vb" region="Reporting a Spammer" lang="vbnet" title="Reporting a Spammer"></code>
         ''' </remarks>
@@ -2216,7 +2214,7 @@ Namespace TwitterVB2
             Dim tp As New TwitterParameters
             tp.Add(TwitterParameterNames.ScreenName, ScreenName)
             Dim Url As String = tp.BuildUrl(REPORT_SPAM)
-            Return ParseUsers(PerformWebRequest(Url, "POST"))(0)
+            Return ParseSingleUser(PerformWebRequest(Url, "POST"))
         End Function
 #End Region
 

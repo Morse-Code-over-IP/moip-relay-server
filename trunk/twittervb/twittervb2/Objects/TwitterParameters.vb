@@ -30,7 +30,7 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
-'* Bob Denny    10-Jun-2011     3.1.1.0 - Update documentation links in comments
+'* Bob Denny    12-Jul-2013     4.0.1.0 - For API 1.1 many changes
 '*
 Imports System
 Imports System.Collections.Generic
@@ -60,7 +60,7 @@ Namespace TwitterVB2
         Since
 
         ''' <summary>
-        ''' Returns tweets posted after a certain tweet.
+        ''' Returns results with an ID greater than (that is, more recent than) the specified ID. There are limits to the number of Tweets which can be accessed through the API. If the limit of Tweets has occured since the since_id, the since_id will be forced to the oldest ID available.
         ''' </summary>
         ''' <remarks></remarks>
         SinceID
@@ -91,6 +91,36 @@ Namespace TwitterVB2
         ''' <remarks></remarks>
         ScreenName
 
+        ''' <summary>
+        ''' The numerical id of the list
+        ''' </summary>
+        ''' <remarks></remarks>
+        ListID
+
+        ''' <summary>
+        ''' The slug identification (name) of the list
+        ''' </summary>
+        ''' <remarks>If a list is identified by slyug (list name) the <c>owner_id</c> or <c>owner_screen_name</c> must also be given.</remarks>
+        ListSlug
+
+        ''' <summary>
+        ''' The screen name of the user who owns the list being requested by a slug.
+        ''' </summary>
+        ''' <remarks></remarks>
+        ListOwnerScreenName
+
+        ''' <summary>
+        ''' The numeric user ID of the user who owns the list being requested by a slug.
+        ''' </summary>
+        ''' <remarks></remarks>
+        ListOwnerID
+
+        ''' <summary>
+        ''' When the parameter is included the list timeline will contain native retweets (if they exist) in addition to the standard stream of tweets. The output format of retweeted tweets is identical to the representation you see in home_timeline.
+        ''' </summary>
+        ''' <remarks></remarks>
+        ListIncludeRetweets
+
         '''' <summary>
         '''' The ID of the tweet being replied to
         '''' </summary>
@@ -100,14 +130,14 @@ Namespace TwitterVB2
         ''' <summary>
         ''' The Cursor for cursorbased Requests.
         ''' </summary>
-        ''' <remarks>This Parmaeter is hidden because only used internal</remarks>
+        ''' <remarks>This Parameter is hidden because only used internal</remarks>
         <EditorBrowsable(EditorBrowsableState.Never)> _
         Cursor
 
         ''' <summary>
         ''' The query for user searches
         ''' </summary>
-        ''' <remarks>This Parmaeter is hidden because only used internal</remarks>
+        ''' <remarks>This Parameter is hidden because only used internal</remarks>
         <EditorBrowsable(EditorBrowsableState.Never)> _
         SearchQuery
 
@@ -167,6 +197,16 @@ Namespace TwitterVB2
                         ParameterString = String.Format("{0}&cursor={1}", ParameterString, Me(Key))
                     Case TwitterParameterNames.SearchQuery
                         ParameterString = String.Format("{0}&q={1}", ParameterString, Me(Key))
+                    Case TwitterParameterNames.ListID
+                        ParameterString = String.Format("{0}&list_id={1}", ParameterString, Me(Key))
+                    Case TwitterParameterNames.ListSlug
+                        ParameterString = String.Format("{0}&slug={1}", ParameterString, Me(Key))
+                    Case TwitterParameterNames.ListOwnerID
+                        ParameterString = String.Format("{0}&owner_id={1}", ParameterString, Me(Key))
+                    Case TwitterParameterNames.ListOwnerScreenName
+                        ParameterString = String.Format("{0}&owner_screen_name={1}", ParameterString, Me(Key))
+                    Case TwitterParameterNames.ListIncludeRetweets
+                        ParameterString = String.Format("{0}include_rts", ParameterString, Me(Key))
                 End Select
             Next
 

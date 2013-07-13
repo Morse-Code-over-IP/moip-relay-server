@@ -31,6 +31,8 @@
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
 '* Bob Denny    10-Jun-2011     3.1.1.0 - Add enum for result type
+'* Bob Denny    10-Jul-2013     3.2.1.0 - For API 1.1
+'*
 '*
 Namespace TwitterVB2
     ''' <summary>

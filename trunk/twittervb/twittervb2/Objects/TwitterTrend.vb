@@ -31,6 +31,7 @@
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
 '* Bob Denny    10-Jun-2011     3.1.1.0 - Update documentation links in comments
+'* Bob Denny    13-Jul-2013     4.0.1.0 - For API 1.1 many changes
 '*
 Namespace TwitterVB2
     ''' <summary>
@@ -85,8 +86,6 @@ Namespace TwitterVB2
         ''' <returns></returns>
         ''' <remarks>
         ''' If you called <c>TrendsDaily()</c> or <c>TrendsWeekly()</c>, you will usually see multiple trends in the list with different dates.
-        ''' For more information, see <a href="http://dev.twitter.com/doc/get/trends/daily">http://dev.twitter.com/doc/get/trends/daily</a>
-        ''' or <a href="http://dev.twitter.com/doc/get/trends/weekly">http://dev.twitter.com/doc/get/trends/weekly</a>
         ''' </remarks>
         Public Property AsOf() As DateTime
             Get
