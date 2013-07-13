@@ -30,13 +30,20 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
+'* http://stackoverflow.com/questions/7895105/json-deserialize-c-sharp
+'* http://www.tomasvera.com/programming/using-javascriptserializer-to-parse-json-objects/
+'*
+'* 13-Jul-2013  rbd     4.0.1.0 - For API 1.1 JSON many changes
+'*
+Imports System.Web.Script.Serialization
+
 Namespace TwitterVB2
     ''' <summary>
     ''' An individual Twitter post.
     ''' </summary>
     ''' <remarks></remarks>
+    ''' 
     Public Class TwitterStatus
-        Inherits XmlObjectBase
 
         Private _ID As Int64
         Private _CreatedAt As DateTime
@@ -193,7 +200,7 @@ Namespace TwitterVB2
                 Return _Source
             End Get
             Set(ByVal value As String)
-                _Source = Value
+                _Source = value
             End Set
         End Property
 
@@ -208,7 +215,7 @@ Namespace TwitterVB2
                 Return _Truncated
             End Get
             Set(ByVal value As Boolean)
-                _Truncated = Value
+                _Truncated = value
             End Set
         End Property
 
@@ -223,7 +230,7 @@ Namespace TwitterVB2
                 Return _User
             End Get
             Set(ByVal value As TwitterUser)
-                _User = Value
+                _User = value
             End Set
         End Property
 
@@ -293,37 +300,45 @@ Namespace TwitterVB2
         ''' <summary>
         ''' Creates a new <c>TwitterStatus</c> object.
         ''' </summary>
-        ''' <param name="StatusNode">An <c>XmlNode</c> from the Twitter API response representing a status.</param>
-        ''' <remarks></remarks>
+        ''' <param name="StatusDict">A deserialized <c>JSON</c> block from the Twitter API response representing a status.</param>
+        ''' <remarks>This TwitterStatus class represents only a subset of those in the Twitter API 1.1 status object.</remarks>
         ''' <exclude/>
-        Public Sub New(ByVal StatusNode As System.Xml.XmlNode)
-
-            Me.CreatedAt = XmlDate_Get(StatusNode("created_at"))
-            Me.Favorited = XmlBoolean_Get(StatusNode("favorited"))
-            Me.ID = XmlInt64_Get(StatusNode("id"))
-            Me.InReplyToScreenName = XmlString_Get(StatusNode("in_reply_to_screen_name"))
-            Me.InReplyToStatusID = XmlInt64_Get(StatusNode("in_reply_to_status_id"))
-            Me.InReplyToUserID = XmlString_Get(StatusNode("in_reply_to_user_id"))
-            Me.Source = XmlString_Get(StatusNode("source"))
-            Me.Text = XmlString_Get(StatusNode("text"))
-            Me.Truncated = XmlBoolean_Get(StatusNode("truncated"))
-            If StatusNode("user") IsNot Nothing Then
-                Me.User = New TwitterUser(StatusNode("user"))
-            End If
-
-            If StatusNode("retweeted_status") IsNot Nothing Then
-                Me.RetweetedStatus = New TwitterStatus(StatusNode("retweeted_status"))
-            End If
-
-            ' Geotag parsing
-            Dim GeoTag As String = XmlString_Get(StatusNode("geo"))
-            If Not String.IsNullOrEmpty(GeoTag) Then
-                Dim LatLongArray() As String = GeoTag.Split(New Char() {" "c})
-                If LatLongArray.Length = 2 Then
-                    Me.GeoLat = LatLongArray(0)
-                    Me.GeoLong = LatLongArray(1)
+        Public Sub New(ByVal StatusDict As Dictionary(Of String, Object))
+            Dim KV As KeyValuePair(Of String, Object)
+            For Each KV In StatusDict
+                If Not KV.Value Is Nothing Then
+                    Select Case KV.Key
+                        Case "created_at"
+                            Me.CreatedAt = TwitterAPI.ConvertJSONDate(KV.Value.ToString())
+                        Case "favorited"
+                            Me.Favorited = CBool(KV.Value)
+                        Case "id"
+                            Me.ID = CLng(KV.Value)
+                        Case "in_reply_to_screen_name"
+                            Me.InReplyToScreenName = KV.Value.ToString()
+                        Case "in_reply_to_status_id"
+                            Me.InReplyToStatusID = CLng(KV.Value)
+                        Case "in_reply_to_user_id"
+                            Me.InReplyToUserID = KV.Value.ToString()
+                        Case "source"
+                            Me.Source = KV.Value.ToString()
+                        Case "text"
+                            Me.Text = KV.Value.ToString()
+                        Case "truncated"
+                            Me.Truncated = CBool(KV.Value)
+                        Case "user"
+                            Me.User = New TwitterUser(CType(KV.Value, Dictionary(Of String, Object)))
+                        Case "retweeted_status"
+                            Me.RetweetedStatus = New TwitterStatus(CType(KV.Value, Dictionary(Of String, Object)))
+                        Case "geo"
+                            Dim LatLongArray() As String = KV.Value.ToString().Split(New Char() {" "c})
+                            If LatLongArray.Length = 2 Then
+                                Me.GeoLat = LatLongArray(0)
+                                Me.GeoLong = LatLongArray(1)
+                            End If
+                    End Select
                 End If
-            End If
+            Next
         End Sub
     End Class
 

@@ -666,7 +666,7 @@ namespace com.dc3
 			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Morse News V3.1";
+			this.Text = "Morse News V3.2";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.statusStrip1.ResumeLayout(false);

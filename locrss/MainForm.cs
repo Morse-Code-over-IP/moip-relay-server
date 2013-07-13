@@ -105,6 +105,8 @@
 // 25-Jun-2012	rbd		3.1.1	Make volume control work for signal level when fading is in effect.
 // 24-Dec-2012	rbd		3.1.1	Do not save window positions unless "normal" and fix up old
 //								saved window positions if minimized (-32000).
+// 12-Jul-2013	rbd		3.2.1	New TwitterVB library for Twitter API 1.1 (JSON ONLY). Public
+//								is no longer supported here. No loss there.
 //
 //
 using System;
@@ -1398,10 +1400,8 @@ namespace com.dc3
 							// TWITTER
 							// =======
 							//
-							//
-							// Using the TwitterVB library, which puts an API on Twitter's "xml" 
-							// format. Yes, we could just use Twitter's RSS, but this gives us
-							// more flexibility.
+							// Using the TwitterVB V3 library, which puts an API on Twitter's V1.1
+							// JSON format. 
 							//
 							SetStatus("Getting Twitter feed data...", true);
 							if (_debugTracing)
@@ -1412,161 +1412,106 @@ namespace com.dc3
 							List<TwitterStatus> sts = null;
 							string screen_name = null;
 							NameValueCollection opts = HttpUtility.ParseQueryString(uri.Query);
-							if (uri.AbsolutePath == "/search")
+							string twType = "";
+							// TODO add parameter decoding here
+							switch (uri.AbsolutePath)
 							{
-								string srch = opts.Get("query");							// Either query= or q=
-								if (srch == null)
-									srch = opts.Get("q");
-								//
-								// This strange logic handles the case where the search is for a hashtag
-								// In this case the search string will be in the URI "Fragment" and the 
-								// query will be "query=", resulting in "" for srch below.
-								//
-								if (srch == null || (srch == "" && uri.Fragment == ""))
-									throw new ApplicationException("twitter:///search requires ?query=xxx to qualify the search");
-								if (srch == "")
-								{
-									srch = Regex.Replace(uri.Fragment, "&.*", "");			// Remove following query elements
-									string rq = Regex.Replace(uri.Fragment, "#[^&]*&", "");	//Get remaining query elements
-									NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
-									opts.Add(opts2);
-								}
-								string rtstr = opts.Get("result_type");						// Will be null if not in URI
-								TwitterVB2.Globals.ResultType rtype = Globals.ResultType.Mixed;	// Value is placeholder for compiler
+								case "/timeline":										// Auth user's home timeline
+									twType = "HOM";
+									sts = twConn.HomeTimeline();
+									break;
 
-								if (rtstr != null)
-								{
-									rtstr = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(rtstr);	// Tricky!
-									try
+								case "/user":
+									twType = "USR";
+									screen_name = opts.Get("screen_name");
+									if (screen_name == null)
+										sts = twConn.UserTimeline();					// Tweets by auth user
+									else
+										sts = twConn.UserTimeline(screen_name);			// Tweets by given user
+									break;
+
+								case "/mentions":										// Tweets mentioning auth user
+									twType = "MEN";
+									sts = twConn.Mentions();
+									break;
+
+								case "/list":											// Tweets from given user's list (or auth user if not given)
+									twType = "LST";
+									screen_name = opts.Get("screen_name");
+									if (screen_name == null)
+										screen_name = twConn.AccountInformation().ScreenName;
+									string listName = opts.Get("list_name");
+									if (listName == null)
+										throw new ApplicationException("twitter:///list requires ?list_name=xxx to identify the list");
+									sts = twConn.ListStatuses(screen_name, listName, 20);
+									break;
+								case "/search":
+									twType = "SCH"; 
+									string srch = opts.Get("query");							// Either query= or q=
+									if (srch == null)
+										srch = opts.Get("q");
+									//
+									// This strange logic handles the case where the search is for a hashtag
+									// In this case the search string will be in the URI "Fragment" and the 
+									// query will be "query=", resulting in "" for srch below.
+									//
+									if (srch == null || (srch == "" && uri.Fragment == ""))
+										throw new ApplicationException("twitter:///search requires ?query=xxx to qualify the search");
+									if (srch == "")
 									{
-										rtype = (TwitterVB2.Globals.ResultType)Enum.Parse(typeof(TwitterVB2.Globals.ResultType), rtstr);
+										srch = Regex.Replace(uri.Fragment, "&.*", "");			// Remove following query elements
+										string rq = Regex.Replace(uri.Fragment, "#[^&]*&", "");	//Get remaining query elements
+										NameValueCollection opts2 = HttpUtility.ParseQueryString(rq);
+										opts.Add(opts2);
 									}
-									catch (Exception)
+									string rtstr = opts.Get("result_type");						// Will be null if not in URI
+									TwitterVB2.Globals.ResultType rtype = Globals.ResultType.Mixed;	// Value is placeholder for compiler
+
+									// This test is also done in TwitterVB library, but,,,
+									if (rtstr != null)
 									{
-										throw new ApplicationException("twitter:///search?result_type= must be mixed, popular, or recent");
+										rtstr = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(rtstr);	// Tricky!
+										try
+										{
+											rtype = (TwitterVB2.Globals.ResultType)Enum.Parse(typeof(TwitterVB2.Globals.ResultType), rtstr);
+										}
+										catch (Exception)
+										{
+											throw new ApplicationException("twitter:///search?result_type= must be mixed, popular, or recent");
+										}
 									}
-								}
-								TwitterSearchParameters tsp = new TwitterSearchParameters();
-								tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
-								if (rtstr != null)
-									tsp.Add(TwitterSearchParameterNames.ResultType, rtype);
-								tsp.Add(TwitterSearchParameterNames.Rpp, 20);
-								List<TwitterSearchResult> resList = twConn.Search(tsp);
-								if (_debugTracing)
-									Trace.WriteLine("Search API returned " + resList.Count + " tweets", _traceCatMorseNews);
-								foreach (TwitterSearchResult res in resList)
-								{
-									string t = res.Title;
-									if (t.Length > 60) t = t.Substring(0, 60) + "...";
-									string locTime = res.CreatedAtLocalTime.ToString("HH:mm:ss");
-									if (res.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
-									{
-										if (_debugTracing)
-											Trace.WriteLine("  TOO OLD " + locTime + " SCH: " + t, _traceCatMorseNews);
-										continue;											// Old, skip this story
-									}
-									if (_debugTracing)
-										Trace.WriteLine("  " + locTime + " SCH: " + t, _traceCatMorseNews);
-									DatedItem ni = new DatedItem();
-									ni.pubDate = res.CreatedAtLocalTime;
-									ni.twType = "SCH";
-									ni.twScreenName = res.AuthorName;
-									ni.twRawText = res.Title;
-									stories.Add(ni);
-								}
+									TwitterSearchParameters tsp = new TwitterSearchParameters();
+									tsp.Add(TwitterSearchParameterNames.SearchTerm, srch);
+									if (rtstr != null)
+										tsp.Add(TwitterSearchParameterNames.ResultType, rtype);
+									tsp.Add(TwitterSearchParameterNames.Count, 20);
+									TwitterSearchResult tsr = twConn.Search(tsp);
+									sts = tsr.Statuses;
+									break;
+								default:
+									throw new ApplicationException("Unknown twitter:/// URL type '" + uri.AbsolutePath + "'");
 							}
-							//else if (uri.AbsolutePath == "/messages")
-							//{
-							//    List<TwitterDirectMessage> msgList = twConn.DirectMessages();
-							//    if (_debugTracing)
-							//        Trace.WriteLine("Found  " + msgList.Count + " direct message tweets", _traceCatMorseNews);
-							//    foreach (TwitterDirectMessage msg in msgList)
-							//    {
-							//        string t = msg.Text;
-							//        if (t.Length > 60) t = t.Substring(0, 60) + "...";
-							//        string locTime = msg.CreatedAtLocalTime.ToString("HH:mm:ss");
-							//        if (msg.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
-							//        {
-							//            if (_debugTracing)
-							//                Trace.WriteLine("  TOO OLD " + locTime + " PVT: " + t, _traceCatMorseNews);
-							//            continue;											// Old, skip this story
-							//        }
-							//        if (_debugTracing)
-							//            Trace.WriteLine("  " + locTime + " PVT: " + t, _traceCatMorseNews);
-							//        DatedItem ni = new DatedItem();
-							//        ni.pubDate = msg.CreatedAtLocalTime;
-							//        ni.twType = "PVT";
-							//        ni.twScreenName = msg.SenderScreenName;
-							//        ni.twRawText = msg.Text;
-							//        stories.Add(ni);
-							//    }
-							//}
-							else
+							if (_debugTracing)
+								Trace.WriteLine("Found  " + sts.Count + " " + uri.AbsolutePath + " tweets", _traceCatMorseNews);
+							foreach (TwitterStatus tw in sts)
 							{
-								string twType = "";
-								// TODO add parameter decoding here
-								switch (uri.AbsolutePath)
+								string t = tw.Text;
+								if (t.Length > 60) t = t.Substring(0, 60) + "...";
+								string locTime = tw.CreatedAtLocalTime.ToString("HH:mm:ss");
+								if (tw.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
 								{
-									case "/timeline":										// Auth user's home timeline
-										twType = "HOM";
-										sts = twConn.HomeTimeline();
-										break;
-
-									case "/user":
-										twType = "USR";
-										screen_name = opts.Get("screen_name");
-										if (screen_name == null)
-											sts = twConn.UserTimeline();					// Tweets by auth user
-										else
-											sts = twConn.UserTimeline(screen_name);			// Tweets by given user
-										break;
-
-									case "/public":											// Public tweets
-										twType = "PUB";
-										sts = twConn.PublicTimeline();
-										break;
-
-									case "/mentions":										// Tweets mentioning auth user
-										twType = "MEN";
-										sts = twConn.Mentions();
-										break;
-
-									case "/list":											// Tweets from give user's list (or auth user if not given)
-										twType = "LST";
-										screen_name = opts.Get("screen_name");
-										if (screen_name == null)
-											screen_name = twConn.AccountInformation().ScreenName;
-										string listName = opts.Get("list_name");
-										if (listName == null)
-											throw new ApplicationException("twitter:///list requires ?list_name=xxx to identify the list");
-										sts = twConn.ListStatuses(screen_name, listName, 20);
-										break;
-
-									default:
-										throw new ApplicationException("Unknown twitter:/// URL type '" + uri.AbsolutePath + "'");
+									if (_debugTracing)
+										Trace.WriteLine("  TOO OLD " + locTime + " " + twType + ": " + t, _traceCatMorseNews);
+									continue;											// Old, skip this story
 								}
 								if (_debugTracing)
-									Trace.WriteLine("Found  " + sts.Count + " " + uri.AbsolutePath + " tweets", _traceCatMorseNews);
-								foreach (TwitterStatus tw in sts)
-								{
-									string t = tw.Text;
-									if (t.Length > 60) t = t.Substring(0, 60) + "...";
-									string locTime = tw.CreatedAtLocalTime.ToString("HH:mm:ss");
-									if (tw.CreatedAtLocalTime < DateTime.Now.AddMinutes(-_storyAge))
-									{
-										if (_debugTracing)
-											Trace.WriteLine("  TOO OLD " + locTime + " " + twType + ": " + t, _traceCatMorseNews);
-										continue;											// Old, skip this story
-									}
-									if (_debugTracing)
-										Trace.WriteLine("  " + locTime + " " + twType + ": " + t, _traceCatMorseNews);
-									DatedItem ni = new DatedItem();
-									ni.pubDate = tw.CreatedAtLocalTime;
-									ni.twType = twType;
-									ni.twScreenName = tw.User.ScreenName;
-									ni.twRawText = tw.Text;
-									stories.Add(ni);
-								}
+									Trace.WriteLine("  " + locTime + " " + twType + ": " + t, _traceCatMorseNews);
+								DatedItem ni = new DatedItem();
+								ni.pubDate = tw.CreatedAtLocalTime;
+								ni.twType = twType;
+								ni.twScreenName = tw.User.ScreenName;
+								ni.twRawText = tw.Text.Trim();
+								stories.Add(ni);
 							}
 						}
 						else
@@ -1717,6 +1662,7 @@ namespace com.dc3
 						{
 							title = GetMorseInputText(story.atomItem.SelectSingleNode("at:title", story.atomNsMgr).InnerText);
 						}
+						title = title.Trim();									// Get rid of surrounding blanks
 
 						time = story.pubDate.ToUniversalTime().ToString("HHmm") + "Z";
 

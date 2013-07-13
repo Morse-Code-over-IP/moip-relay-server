@@ -34,6 +34,7 @@
 '*                              Clean leading '+' from SearchString
 '* Bob Denny    10-Jun-2011     3.1.1.0 - Update documentation links in comments. Change
 '*                              ResultType to an enum instead of a string.
+'* Bob Denny    13-Jul-2013     4.0.1.0 - For API 1.1, no more search/query string building here.
 '*
 
 Imports System
@@ -43,8 +44,8 @@ Imports System.Text
 Namespace TwitterVB2
 
     ''' <summary>
-    ''' The parameters that can be used to define a search. For more information see The <a href="http://dev.twitter.com/doc/get/search">Twitter Search API</a>
-    ''' and <a href="http://dev.twitter.com/pages/using-the-twitter-search-api">Using the Twitter Search API</a>.
+    ''' The parameters that can be used to define a search. For more information see The <a href="https://dev.twitter.com/docs/api/1.1/get/search/tweets">GET search/tweets</a>
+    ''' and <a href="https://dev.twitter.com/docs/using-search">Using the Twitter Search API</a>.
     ''' </summary>
     ''' <remarks></remarks>
     Public Enum TwitterSearchParameterNames
@@ -53,7 +54,7 @@ Namespace TwitterVB2
         ''' The text for which to search.
         ''' </summary>
         ''' <remarks> This can contain a number of <em>Search Operators</em> which modify the the behavior of the search. 
-        ''' See <a href="http://dev.twitter.com/pages/using-the-twitter-search-api">Using the Twitter Serarch API</a>, Search Operators section.
+        ''' See <a href="https://dev.twitter.com/docs/using-search">Using the Twitter Serarch API</a>, Search Operators section.
         ''' NOTE: Some of these are not really parameters, but convenient ways of building the searth term with search operators.
         ''' The <c>from:</c> and <c>to:</c> operators are implemented by the <c>FromUser</c>. <c>NotFromUser</c>, and <c>ToUser</c> 
         ''' parameters here. Any other operators must be explicitly included in the <c>SearchTerm</c> parameter string.</remarks>
@@ -77,7 +78,7 @@ Namespace TwitterVB2
         ''' The number of tweets to return per page, up to a max of 100.
         ''' </summary>
         ''' <remarks></remarks>
-        Rpp
+        Count
 
         ''' <summary>
         ''' The page number (starting at 1) to return, up to a max of roughly 1500 results (based on rpp).
@@ -94,34 +95,16 @@ Namespace TwitterVB2
         SinceID
 
         ''' <summary>
-        ''' Returns tweets after the given date.
+        ''' Returns tweets with status ids less than or equal to the given id.
         ''' </summary>
         ''' <remarks></remarks>
-        Since
+        MaxID
 
         ''' <summary>
         ''' Returns tweets before the given date.
         ''' </summary>
         ''' <remarks></remarks>
         Until
-
-        ''' <summary>
-        ''' Returns tweets excluded such from this user.
-        ''' </summary>
-        ''' <remarks></remarks>
-        NotFromUser
-
-        ''' <summary>
-        ''' Returns tweets from this user.
-        ''' </summary>
-        ''' <remarks></remarks>
-        FromUser
-
-        ''' <summary>
-        ''' Returns tweets addressed to this user.
-        ''' </summary>
-        ''' <remarks></remarks>
-        ToUser
 
         ''' <summary>
         ''' Specify the result type: <c>Mixed</c>, <c>Recent</c>, or <c>Popular</c>.
@@ -170,50 +153,33 @@ Namespace TwitterVB2
 
             For Each Key As TwitterSearchParameterNames In Keys
                 Select Case Key
-                    Case TwitterSearchParameterNames.Since
-                        ParameterString = String.Format("{0}&since={1}", ParameterString, MyBase.Item(Key).ToString)
-                    Case TwitterSearchParameterNames.SinceID
-                        ParameterString = String.Format("{0}&since_id={1}", ParameterString, MyBase.Item(Key).ToString)
-                    Case TwitterSearchParameterNames.Until
-                        ParameterString = String.Format("{0}&until={1}", ParameterString, MyBase.Item(Key).ToString)
-                    Case TwitterSearchParameterNames.Rpp
-                        ParameterString = String.Format("{0}&rpp={1}", ParameterString, MyBase.Item(Key).ToString)
-                    Case TwitterSearchParameterNames.Page
-                        ParameterString = String.Format("{0}&page={1}", ParameterString, MyBase.Item(Key).ToString)
+                    Case TwitterSearchParameterNames.SearchTerm
+                        ParameterString = String.Format("{0}&q={1}", ParameterString, System.Uri.EscapeDataString(MyBase.Item(Key).ToString))
                     Case TwitterSearchParameterNames.Lang
                         ParameterString = String.Format("{0}&lang={1}", ParameterString, MyBase.Item(Key).ToString)
                     Case TwitterSearchParameterNames.Locale
                         ParameterString = String.Format("{0}&locale={1}", ParameterString, MyBase.Item(Key).ToString)
-                    Case TwitterSearchParameterNames.SearchTerm
-                        SearchTermString = String.Format("{0}+{1}", SearchTermString, System.Uri.EscapeDataString(MyBase.Item(Key).ToString))
-                    Case TwitterSearchParameterNames.NotFromUser
-                        SearchTermString = String.Format("{0}+-from%3A{1}", SearchTermString, System.Uri.EscapeDataString(MyBase.Item(Key).ToString))
-                    Case TwitterSearchParameterNames.FromUser
-                        SearchTermString = String.Format("{0}+from%3A{1}", SearchTermString, System.Uri.EscapeDataString(MyBase.Item(Key).ToString))
-                    Case TwitterSearchParameterNames.ToUser
-                        SearchTermString = String.Format("{0}+to%3A{1}", SearchTermString, System.Uri.EscapeDataString(MyBase.Item(Key).ToString))
                     Case TwitterSearchParameterNames.ResultType
                         ParameterString = String.Format("{0}&result_type={1}", ParameterString, MyBase.Item(Key).ToString)
+                    Case TwitterSearchParameterNames.Count
+                        ParameterString = String.Format("{0}&count={1}", ParameterString, MyBase.Item(Key).ToString)
+                    Case TwitterSearchParameterNames.Until
+                        ParameterString = String.Format("{0}&until={1}", ParameterString, MyBase.Item(Key).ToString)
+                    Case TwitterSearchParameterNames.SinceID
+                        ParameterString = String.Format("{0}&since_id={1}", ParameterString, MyBase.Item(Key).ToString)
+                    Case TwitterSearchParameterNames.MaxID
+                        ParameterString = String.Format("{0}&max_id={1}", ParameterString, MyBase.Item(Key).ToString)
+                    Case TwitterSearchParameterNames.Page
+                        ParameterString = String.Format("{0}&page={1}", ParameterString, MyBase.Item(Key).ToString)
 
                 End Select
             Next
-
-            If SearchTermString.StartsWith("+") Then
-                SearchTermString = SearchTermString.Substring(1)
-            End If
-            'If ParameterString.StartsWith("&") Then
-            '    ParameterString = ParameterString.Substring(1)
-            'End If
-
-            ParameterString = String.Format("{0}&q={1}", ParameterString, SearchTermString)
-
 
             If String.IsNullOrEmpty(ParameterString) Then
                 Return Url
             End If
 
             ' First char of parameterString is a leading & that should be removed
-            Debug.WriteLine(String.Format("{0}?{1}", Url, ParameterString.Remove(0, 1)))
             Return String.Format("{0}?{1}", Url, ParameterString.Remove(0, 1))
 
         End Function
@@ -231,26 +197,15 @@ Namespace TwitterVB2
                 Exit Sub
             End If
 
-            Select Case Key
-                Case TwitterSearchParameterNames.Since
-                    If Not (TypeOf Value Is DateTime) Then
-                        Throw New ApplicationException("Value given for since was not a Date.")
-                    End If
+            If Key = TwitterSearchParameterNames.ResultType Then
+                If Not (TypeOf Value Is ResultType) Then
+                    Throw New ApplicationException("Value given for result type was not a ResultType.")
+                End If
+                MyBase.Add(Key, Value.ToString.ToLower)     ' lower case!
+            Else
+                MyBase.Add(Key, Value.ToString)
+            End If
 
-                    Dim DateValue As DateTime = CType(Value, DateTime)
-
-                    ' RFC1123 date string
-                    MyBase.Add(Key, DateValue.ToString("r"))
-
-                Case TwitterSearchParameterNames.ResultType
-                    If Not (TypeOf Value Is ResultType) Then
-                        Throw New ApplicationException("Value given for result type was not a ResultType.")
-                    End If
-                    MyBase.Add(Key, Value.ToString.ToLower)     ' lower case!
-
-                Case Else
-                    MyBase.Add(Key, Value.ToString)
-            End Select
         End Sub
     End Class
 

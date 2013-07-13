@@ -30,155 +30,124 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
+'* Bob Denny    13-Jul-2013     4.0.1.0 - For API 1.1 Completely changed
+'*
 Namespace TwitterVB2
     ''' <summary>
-    ''' An individual search result
+    ''' Result of a search. List of tweets and also metadata.
     ''' </summary>
     ''' <remarks>
-    ''' The search API returns results that are very different than the rest of the API.  Although a <c>TwitterSearchResult</c> does represent a
-    ''' tweet, it is not the same thing as a <c>TwitterStatus</c>.
+    ''' The API 1.1 returns a list of TwitterStatus objects (tweets) as well as some meta-data about the
+    ''' search operation. Included in the meta-data are SinceID and MaxID which can be used to page results.
     ''' </remarks>
     Public Class TwitterSearchResult
 
 #Region "Prvate Members"
-        Private _ID As String = String.Empty
-        Private _CreatedAt As DateTime
-        Private _StatusUrl As String = String.Empty
-        Private _Title As String = String.Empty
-        Private _Content As String = String.Empty
-        Private _ProfileImageUrl As String = String.Empty
-        Private _Source As String = String.Empty
-        Private _AuthorName As String = String.Empty
-        Private _AuthorUrl As String = String.Empty
+        Private _Statuses As New List(Of TwitterStatus)
+        Private _MaxID As Int64
+        Private _SinceID As Int64
+        Private _RefreshUrl As String = String.Empty
+        Private _NextResults As String = String.Empty
+        Private _Count As Int64
+        Private _CompletedIn As Double
+        Private _Query As String = String.Empty
 #End Region
 
 #Region "Public Properties"
+        ''' <summary>Returned tweets</summary>
+        ''' <returns>A list of TwitterStatus objects</returns>
+        ''' <remarks></remarks>
+        Public ReadOnly Property Statuses() As List(Of TwitterStatus)
+            Get
+                Return _Statuses
+            End Get
+        End Property
+
         ''' <summary>
-        ''' The ID of the tweet.
+        ''' The highest ID of the returned tweets
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public ReadOnly Property ID() As Int64
+        Public ReadOnly Property MaxID() As Int64
             Get
-                Dim Sections() As String = _ID.Split(Convert.ToChar(":"))
-                Return Int64.Parse(Sections(2))
+                Return _MaxID
             End Get
         End Property
 
         ''' <summary>
-        ''' The date and time that the tweet was created.
+        ''' Tweets returned with ID greater than this
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
-        ''' <remarks>
-        ''' This is UTC time.
-        ''' </remarks>
-        Public ReadOnly Property CreatedAt() As DateTime
+        ''' <remarks></remarks>
+        Public ReadOnly Property SinceID() As Int64
             Get
-                Return _CreatedAt
+                Return _SinceID
             End Get
         End Property
 
         ''' <summary>
-        ''' The date and time that the tweet was created.
+        ''' The URL query string to use for refreshing the search
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks>
         ''' This is local time.
         ''' </remarks>
-        Public ReadOnly Property CreatedAtLocalTime() As DateTime
+        Public ReadOnly Property RefreshUrl() As String
             Get
-                Return _CreatedAt.ToLocalTime
+                Return _RefreshURL
             End Get
         End Property
 
         ''' <summary>
-        ''' The Url of the tweet.
+        ''' The URL query string to use for the next block of results
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public ReadOnly Property StatusUrl() As String
+        Public ReadOnly Property NextResults() As String
             Get
-                Return _StatusUrl
+                Return _NextResults
             End Get
         End Property
 
         ''' <summary>
-        ''' The actual text of the tweet.
+        ''' Count of tweets returned
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public ReadOnly Property Title() As String
+        Public ReadOnly Property Count() As Int64
             Get
-                Return _Title
+                Return _Count
             End Get
         End Property
 
         ''' <summary>
-        ''' The text of the tweet, with some items rendered as HTML.
+        ''' Time (sec) for search to complete
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks>
         ''' Usernames are rendered as links in this text.
         ''' </remarks>
-        Public ReadOnly Property Content() As String
+        Public ReadOnly Property CompletedIn() As Double
             Get
-                Return _Content
+                Return _CompletedIn
             End Get
         End Property
 
         ''' <summary>
-        ''' The Url of the avatar of the user who posted the tweet.
+        ''' A copy of the search string used for this search
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public ReadOnly Property ProfileImageUrl() As String
+        Public ReadOnly Property Query() As String
             Get
-                Return _ProfileImageUrl
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' The source of the tweet.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks>
-        ''' This is usually the name of the application that posted the tweet.
-        ''' </remarks>
-        Public ReadOnly Property Source() As String
-            Get
-                Return _Source
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' The screen name of the user who posted the tweet.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property AuthorName() As String
-            Get
-                Return _AuthorName
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' The Url of the Twitter profile of the user who posted the tweet.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property AuthorUrl() As String
-            Get
-                Return _AuthorUrl
+                Return _Query
             End Get
         End Property
 
@@ -187,40 +156,39 @@ Namespace TwitterVB2
         ''' <summary>
         ''' Creates a <c>TwitterSearchResult</c> object.
         ''' </summary>
-        ''' <param name="SearchResultNode">An <c>XmlNode</c> from the Twitter API response representing a search result.</param>
-        ''' <remarks></remarks>
-        Public Sub New(ByVal SearchResultNode As Xml.XmlNode)
-            Me._ID = SearchResultNode("id").InnerText
+        ''' <param name="JSON">A <c>JSON</c> block from the Twitter API response representing a search result.</param>
+        ''' <remarks>This single JSON object contains within it the list of returned tweets plus metadata.</remarks>
+        Public Sub New(ByVal JSON As String)
+            Dim JS As JavaScriptSerializer = New JavaScriptSerializer()
+            Dim ResultDict As Dictionary(Of String, Object) = JS.Deserialize(Of Dictionary(Of String, Object))(JSON)
 
-            If SearchResultNode("published") IsNot Nothing Then
-                Me._CreatedAt = DateTime.Parse(SearchResultNode("published").InnerText)
-            End If
+            Dim KV As KeyValuePair(Of String, Object)
+            For Each KV In CType(ResultDict("search_metadata"), Dictionary(Of String, Object))
+                If Not KV.Value Is Nothing Then
+                    Select Case KV.Key
+                        Case "count"
+                            _Count = CLng(KV.Value)
+                        Case "max_id"
+                            _MaxID = CLng(KV.Value)
+                        Case "since_id"
+                            _SinceID = CLng(KV.Value)
+                        Case "refresh_url"
+                            _RefreshUrl = KV.Value.ToString
+                        Case "next_results"
+                            _NextResults = KV.Value.ToString
+                        Case "query"
+                            _Query = KV.Value.ToString
+                        Case "completed_in"
+                            _CompletedIn = CDbl(KV.Value)
+                    End Select
+                End If
+            Next
+            If _Count > 0 Then
+                Dim StatusList As ArrayList = CType(ResultDict("statuses"), ArrayList)
+                For Each StatusDict As Dictionary(Of String, Object) In StatusList
+                    Statuses.Add(New TwitterStatus(StatusDict))
+                Next
 
-            Dim Links As Xml.XmlNodeList = SearchResultNode.SelectNodes("link")
-            If Links(0).Attributes("href") IsNot Nothing Then
-                Me._StatusUrl = Links(0).Attributes("href").Value
-            End If
-            If Links(1).Attributes("href") IsNot Nothing Then
-                Me._ProfileImageUrl = Links(1).Attributes("href").Value
-            End If
-
-            If SearchResultNode("source") IsNot Nothing Then
-                Me._Source = SearchResultNode("source").InnerText
-            End If
-
-            If SearchResultNode("author") IsNot Nothing Then
-                Dim AuthorName As String = SearchResultNode("author").ChildNodes(0).InnerText
-                Me._AuthorName = AuthorName.Substring(0, AuthorName.IndexOf(" "))
-                'Me._AuthorName = Left(AuthorName, AuthorName.IndexOf(" "))
-                Me._AuthorUrl = SearchResultNode("author").ChildNodes(1).InnerText
-            End If
-
-            If SearchResultNode("title") IsNot Nothing Then
-                Me._Title = SearchResultNode("title").InnerText
-            End If
-
-            If SearchResultNode("content") IsNot Nothing Then
-                Me._Content = SearchResultNode("content").InnerText
             End If
         End Sub
     End Class

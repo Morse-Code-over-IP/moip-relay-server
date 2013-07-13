@@ -30,6 +30,8 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
+'* 13-Jul-2013  rbd     4.0.1.0 - For API 1.1 JSON many changes
+'*
 Namespace TwitterVB2
 
     ''' <summary>
@@ -52,6 +54,7 @@ Namespace TwitterVB2
         Private _Notifications As Boolean
         Private _ProfileBackgroundColor As String = String.Empty
         Private _ProfileBackgroundImageUrl As String = String.Empty
+        Private _ProfileUseBackgroundImage As Boolean
         Private _ProfileImageUrl As String = String.Empty
         Private _ProfileLinkColor As String = String.Empty
         Private _ProfileSidebarBorderColor As String = String.Empty
@@ -271,6 +274,21 @@ Namespace TwitterVB2
         End Property
 
         ''' <summary>
+        ''' Whether or not to use the user's profile background image.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        Public Property ProfileUseBackgroundImage() As Boolean
+            Get
+                Return _ProfileUseBackgroundImage
+            End Get
+            Set(ByVal value As Boolean)
+                _ProfileUseBackgroundImage = value
+            End Set
+        End Property
+
+        ''' <summary>
         ''' The user's profile image.
         ''' </summary>
         ''' <value></value>
@@ -457,35 +475,67 @@ Namespace TwitterVB2
         ''' <summary>
         ''' Creates a new <c>TwitterUser</c> object.
         ''' </summary>
-        ''' <param name="UserNode">An <c>XmlNode</c> from the Twitter API response representing a user.</param>
-        ''' <remarks></remarks>
-        Public Sub New(ByVal UserNode As Xml.XmlNode)
-            Me.ID = XmlInt64_Get(UserNode("id"))
-            Me.ScreenName = XmlString_Get(UserNode("screen_name"))
-            Me.CreatedAt = XmlDate_Get(UserNode("created_at"))
-            Me.Description = XmlString_Get(UserNode("description"))
-            Me.FavoritesCount = XmlInt64_Get(UserNode("favourites_count"))
-            Me.FollowersCount = XmlInt64_Get(UserNode("followers_count"))
-            Me.FriendsCount = XmlInt64_Get(UserNode("friends_count"))
-            Me.Location = XmlString_Get(UserNode("location"))
-            Me.Name = XmlString_Get(UserNode("name"))
-            Me.Notifications = XmlBoolean_Get(UserNode("notifications"))
-            Me.ProfileBackgroundColor = XmlString_Get(UserNode("profile_background_color"))
-            Me.ProfileBackgroundImageUrl = XmlString_Get(UserNode("profile_background_image_url"))
-            Me.ProfileImageUrl = XmlString_Get(UserNode("profile_image_url"))
-            Me.ProfileLinkColor = XmlString_Get(UserNode("profile_link_color"))
-            Me.ProfileSidebarBorderColor = XmlString_Get(UserNode("profile_sidebar_border_color"))
-            Me.ProfileSidebarFillColor = XmlString_Get(UserNode("profile_sidebar_fill_color"))
-            Me.ProfileTextColor = XmlString_Get(UserNode("profile_text_color"))
-            Me.Protected = XmlBoolean_Get(UserNode("protected"))
-            If UserNode("status") IsNot Nothing Then
-                Me.Status = New TwitterStatus(UserNode("status"))
-            End If
-            Me.StatusesCount = XmlInt64_Get(UserNode("statuses_count"))
-            Me.TimeZone = XmlString_Get(UserNode("time_zone"))
-            Me.Url = XmlString_Get(UserNode("url"))
-            Me.UTCOffset = XmlString_Get(UserNode("utc_offset"))
-            Me.Verified = XmlBoolean_Get(UserNode("verified"))
+        ''' <param name="UserDict">A deserialized <c>JSON</c> block from the Twitter API response representing a user.</param>
+        ''' <remarks>This TwitterUser class represents only a subset of those in the Twitter API 1.1 status object.</remarks>
+        ''' 
+        Public Sub New(ByVal UserDict As Dictionary(Of String, Object))
+            Dim KV As KeyValuePair(Of String, Object)
+            For Each KV In UserDict
+                If Not KV.Value Is Nothing Then
+                    Select Case KV.Key
+                        Case "id"
+                            Me.ID = CLng(KV.Value)
+                        Case "screen_name"
+                            Me.ScreenName = KV.Value.ToString()
+                        Case "created_at"
+                            Me.CreatedAt = TwitterAPI.ConvertJSONDate(KV.Value.ToString())
+                        Case "description"
+                            Me.Description = KV.Value.ToString()
+                        Case "favourites_count"
+                            Me.FavoritesCount = CLng(KV.Value)
+                        Case "followers_count"
+                            Me.FollowersCount = CLng(KV.Value)
+                        Case "friends_count"
+                            Me.FriendsCount = CLng(KV.Value)
+                        Case "location"
+                            Me.Location = KV.Value.ToString()
+                        Case "name"
+                            Me.Name = KV.Value.ToString()
+                        Case "notifications"
+                            Me.Notifications = CBool(KV.Value)
+                        Case "profile_background_color"
+                            Me.ProfileBackgroundColor = KV.Value.ToString()
+                        Case "profile_background_image_url"
+                            Me.ProfileBackgroundImageUrl = KV.Value.ToString()
+                        Case "profile_use_background_image"
+                            Me.ProfileUseBackgroundImage = CBool(KV.Value)
+                        Case "profile_image_url"
+                            Me.ProfileImageUrl = KV.Value.ToString()
+                        Case "profile_link_color"
+                            Me.ProfileLinkColor = KV.Value.ToString()
+                        Case "profile_sidebar_border_color"
+                            Me.ProfileSidebarBorderColor = KV.Value.ToString()
+                        Case "profile_sidebar_fill_color"
+                            Me.ProfileSidebarFillColor = KV.Value.ToString()
+                        Case "profile_text_color"
+                            Me.ProfileTextColor = KV.Value.ToString()
+                        Case "protected"
+                            Me.Protected = CBool(KV.Value)
+                        Case "status"
+                            Me.Status = New TwitterStatus(CType(KV.Value, Dictionary(Of String, Object)))
+                        Case "statuses_count"
+                            Me.StatusesCount = CLng(KV.Value)
+                        Case "time_zone"
+                            Me.TimeZone = KV.Value.ToString()
+                        Case "url"
+                            Me.Url = KV.Value.ToString()
+                        Case "utc_offset"
+                            Me.UTCOffset = KV.Value.ToString()
+                        Case "verified"
+                            Me.Verified = CBool(KV.Value)
+                    End Select
+                End If
+            Next
         End Sub
 
         ''' <summary>

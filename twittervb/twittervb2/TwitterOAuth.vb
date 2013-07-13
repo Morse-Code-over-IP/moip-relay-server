@@ -30,6 +30,8 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
+'* Bob Denny    11-Jul-2013     4.0.1.0 - For API 1.1
+'*
 Imports System
 Imports System.Security.Cryptography
 Imports System.Collections.Specialized
@@ -46,10 +48,10 @@ Namespace TwitterVB2
     Public Class TwitterOAuth
         Inherits OAuth
 
-        Public Const REQUEST_TOKEN As String = "http://twitter.com/oauth/request_token"
-        Public Const AUTHORIZE As String = "http://twitter.com/oauth/authorize"
-        Public Const ACCESS_TOKEN As String = "http://twitter.com/oauth/access_token"
-        Public Const AUTHENTICATE As String = "http://twitter.com/oauth/authenticate"
+        Public Const REQUEST_TOKEN As String = "https://api.twitter.com/oauth/request_token"
+        Public Const AUTHORIZE As String = "https://api.twitter.com/oauth/authorize"
+        Public Const ACCESS_TOKEN As String = "https://api.twitter.com/oauth/access_token"
+        Public Const AUTHENTICATE As String = "https://api.twitter.com/oauth/authenticate"
         Public Const XACCESS_TOKEN As String = "https://api.twitter.com/oauth/access_token"
 
         Public ConsumerKey As String = String.Empty

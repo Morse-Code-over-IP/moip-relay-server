@@ -30,13 +30,14 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
+'* Bob Denny    13-Jul-2013     4.0.1.0 - For API 1.1 many changes
+'*
 Namespace TwitterVB2
     ''' <summary>
     ''' A Twitter list.
     ''' </summary>
     ''' <remarks></remarks>
     Public Class TwitterList
-        Inherits XmlObjectBase
 
         Private _ID As Int64
         Private _Name As String = String.Empty
@@ -60,21 +61,36 @@ Namespace TwitterVB2
         ''' <summary>
         ''' Creates a new <c>List</c> object.
         ''' </summary>
-        ''' <param name="ListNode">An <c>XmlNode</c> from the Twitter API response representing a user.</param>
+        ''' <param name="ListDict">A deserialized <c>JSON</c> block from the Twitter API response representing a list.</param>
         ''' <remarks></remarks>
-        Public Sub New(ByVal ListNode As Xml.XmlNode)
-            With Me
-                .ID = XmlInt64_Get(ListNode("id"))
-                .Name = XmlString_Get(ListNode("name"))
-                .FullName = XmlString_Get(ListNode("full_name"))
-                .Slug = XmlString_Get(ListNode("slug"))
-                .Description = XmlString_Get(ListNode("description"))
-                .SubscriberCount = XmlInt64_Get(ListNode("subscriber_count"))
-                .MemberCount = XmlInt64_Get(ListNode("member_count"))
-                .Mode = XmlString_Get(ListNode("mode"))
-                .Url = XmlString_Get(ListNode("url"))
-                .User = New TwitterUser(ListNode("user"))
-            End With
+        Public Sub New(ByVal ListDict As Dictionary(Of String, Object))
+            Dim KV As KeyValuePair(Of String, Object)
+            For Each KV In ListDict
+                If Not KV.Value Is Nothing Then
+                    Select Case KV.Key
+                        Case "id"
+                            Me.ID = CLng(KV.Value)
+                        Case "name"
+                            Me.Name = KV.Value.ToString
+                        Case "full_name"
+                            Me.FullName = KV.Value.ToString
+                        Case "slug"
+                            Me.Slug = KV.Value.ToString
+                        Case "description"
+                            Me.Description = KV.Value.ToString
+                        Case "subscriber_count"
+                            Me.SubscriberCount = CLng(KV.Value)
+                        Case "member_count"
+                            Me.MemberCount = CLng(KV.Value)
+                        Case "mode"
+                            Me.Mode = KV.Value.ToString
+                        Case "url"
+                            Me.Url = KV.Value.ToString
+                        Case "user"
+                            Me.User = New TwitterUser(CType(KV.Value, Dictionary(Of String, Object)))
+                    End Select
+                End If
+            Next
         End Sub
 
         ''' <summary>

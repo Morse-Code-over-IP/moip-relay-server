@@ -30,9 +30,10 @@
 '* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 '* POSSIBILITY OF SUCH DAMAGE.
 '*
+'* Bob Denny    13-Jul-2013     4.0.1.0 - For API 1.1 many changes
+'*
 Namespace TwitterVB2
     Public Class TwitterDirectMessage
-        Inherits XmlObjectBase
 
         Private _ID As Int64
         Private _SenderID As Int64
@@ -201,25 +202,35 @@ Namespace TwitterVB2
         ''' <summary>
         ''' Creates a new <c>DirectMessage</c> object.
         ''' </summary>
-        ''' <param name="DirectMessageNode">An <c>XmlNode</c> from the Twitter API response representing a direct message.</param>
+        ''' <param name="DirectMessageDict">A deserialized <c>JSON</c> block containing the elements of a TwitterDirectMessage</param>
         ''' <remarks></remarks>
         ''' <exclude/>
-        Public Sub New(ByVal DirectMessageNode As System.Xml.XmlNode)
-            Me.ID = XmlInt64_Get(DirectMessageNode("id"))
-            Me.SenderID = XmlInt64_Get(DirectMessageNode("sender_id"))
-            Me.Text = XmlString_Get(DirectMessageNode("text"))
-            Me.RecipientID = XmlInt64_Get(DirectMessageNode("recipient_id"))
-            Me.CreatedAt = XmlDate_Get(DirectMessageNode("created_at"))
-            Me.SenderScreenName = XmlString_Get(DirectMessageNode("sender_screen_name"))
-            Me.RecipientScreenName = XmlString_Get(DirectMessageNode("recipient_screen_name"))
-
-            If DirectMessageNode("sender") IsNot Nothing Then
-                Me.Sender = New TwitterUser(DirectMessageNode("sender"))
-            End If
-
-            If DirectMessageNode("recipient") IsNot Nothing Then
-                Me.Recipient = New TwitterUser(DirectMessageNode("recipient"))
-            End If
+        Public Sub New(ByVal DirectMessageDict As Dictionary(Of String, Object))
+            Dim KV As KeyValuePair(Of String, Object)
+            For Each KV In DirectMessageDict
+                If Not KV.Value Is Nothing Then
+                    Select Case KV.Key
+                        Case "id"
+                            Me.ID = CLng(KV.Value)
+                        Case "sender_id"
+                            Me.SenderID = CLng(KV.Value)
+                        Case "text"
+                            Me.Text = KV.Value.ToString
+                        Case "recipient_id"
+                            Me.RecipientID = CLng(KV.Value)
+                        Case "created_at"
+                            Me.CreatedAt = TwitterAPI.ConvertJSONDate(KV.Value.ToString())
+                        Case "sender_screen_name"
+                            Me.SenderScreenName = KV.Value.ToString
+                        Case "recipient_screen_anme"
+                            Me.RecipientScreenName = KV.Value.ToString
+                        Case "sender"
+                            Me.Sender = New TwitterUser(CType(KV.Value, Dictionary(Of String, Object)))
+                        Case "recipient"
+                            Me.Recipient = New TwitterUser(CType(KV.Value, Dictionary(Of String, Object)))
+                    End Select
+                End If
+            Next
         End Sub
 
         ''' <summary>
