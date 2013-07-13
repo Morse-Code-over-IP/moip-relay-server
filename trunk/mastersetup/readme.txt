@@ -1,9 +1,14 @@
-Morse Code Tools V3.1 (24-Dec-2012)
+Morse Code Tools V3.2 (13-Jul-2013)
 =====================
 
 The News and Keyer applications have built-in help (Help me! links). Go there for usage and background info.
 
 CHANGES AND ADDITIONS:
+
+Version 3.2:
+-----------
+
+- Twitter communication overhauled to be compatible with Twitter's newer service. This was a major change and probably has bugs.
 
 Version 3.1:
 -----------
