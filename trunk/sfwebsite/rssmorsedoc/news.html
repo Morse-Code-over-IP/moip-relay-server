@@ -4,10 +4,10 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=Windows-1252">
 		<meta http-equiv="Content-Style-Type" content="text/css">
 		<link rel="STYLESHEET" type="text/css" href="dc3doc.css">
-		<title>Morse News 2.6</title>
+		<title>Morse News 3.3</title>
 </head>
 	<body>
-	<h1><a href="http://morse-rss-news.sourceforge.net/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 3.2	(12-Jul-2013)</h1>
+	<h1><a href="http://morse-rss-news.sourceforge.net/" target="_blank"><img src="RssMorseLogo.png" alt="pic" title="Go to the SourceForge project page"width="96" height="96" hspace="8" border="0" align="right"></a>Morse News 3.3	(07-Apr-2014)</h1>
 	<p>Morse News periodically reads one <em>or more</em> <a href="http://news.yahoo.com/sitemap/" target="_blank">RSS</a> (news or Facebook), <a href="http://hosted2.ap.org/APDEFAULT/APNewsFeeds" target="_blank">Atom</a> (news), and/or <a href="http://twitter.com/" target="_blank">Twitter</a> feeds and translates the received messages into International or American Morse Code, which is output as CW radio tones, old-fashioned spark-gap radio sounds, telegraph sounder click/clack sounds, or to a physical telegraph sounder connected to a serial port. The CW/spark-gap radio tones can be augmented by noise/QRN, static crashes, and realistic ionospheric fading. This  document will hopefully be all you need to get going. <span class="underline">You'll miss out on important features if you skip reading this</span>!</p>
 	<p><span class="yellowbg">Hover the mouse over the controls on the window to get hints on what they do.</span></p>
 	<h2><a href="http://tech.groups.yahoo.com/group/MorseTools/" target="_blank"><img src="ygroups.png" width="64" height="64" hspace="8" border="0" align="absmiddle"></a><a href="http://tech.groups.yahoo.com/group/MorseTools/" target="_blank">Morse Tools Discussion Group</a></h2>
@@ -87,7 +87,7 @@ http://rss.upi.com/news/news.rss
 http://rss.cnn.com/rss/cnn_crime.rss
 twitter:///timeline                         ; My home timeline (note the &quot;current user&quot; form of URL)<br></pre>
 <p>When you select the feed list file in the file browser, you'll notice that a <strong>file:// </strong>URL appears in the Feed URL field, and the file has a type of <strong>.txt</strong>. <span class="underline">Note that the Twitter URLs in the list are of the &quot;current user&quot; form</span>. You cannot mix Twitter URLs for diffierent accounts in a feed list, therefore it's best practice to avoid putting the username in the Twitter URL altogether.</p>
-<p><span class="alert">If you include a <strong>file://</strong> URL of a file of type <strong>.xml</strong>, it is assumed to contain RSS or Atom info, which will be fed. You can put one of these into a feed list file!</span><br>
+<p><span class="alert">If you include a <strong>file://</strong> URL of a file of type <strong>.xml, .rss</strong>, or <strong>.atom</strong> it is assumed to contain RSS or Atom info, which will be fed. You can put one of these into a feed list file!</span><br>
 </p>
 <h2>Article Control</h2>
 <p>Each time a feed (or a set of feeds) is read, it supplies a bunch of &quot;recent&quot; articles. <span class="underline">They are sorted newest to oldest</span>. Morse News has some filtering to prevent the same articles from being seen &quot;too often&quot;. That's what the <strong>Story Age</strong> setting does. The default setting of 120 (minutes) means the same story won't be sent via Morse unless it hasn't been seen for two hours. The <strong>Clear Cache</strong> button immediately deletes all to the &quot;seen&quot; titles instead of waiting for each to expire. </p>

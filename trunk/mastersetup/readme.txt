@@ -1,9 +1,13 @@
-Morse Code Tools V3.2 (13-Jul-2013)
+Morse Code Tools V3.3 (07-Apr-2014)
 =====================
 
 The News and Keyer applications have built-in help (Help me! links). Go there for usage and background info.
 
 CHANGES AND ADDITIONS:
+
+Version 3.3:
+
+- Fixed support for file:/// URI so that files ending with .xml would be read as input as already documented. This feature was broken when Twitter feeds and authenticated URIs were supported. Added .rss and .atom to the recognized file types for this.
 
 Version 3.2:
 -----------

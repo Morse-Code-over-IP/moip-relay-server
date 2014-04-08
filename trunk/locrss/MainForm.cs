@@ -107,6 +107,11 @@
 //								saved window positions if minimized (-32000).
 // 12-Jul-2013	rbd		3.2.1	New TwitterVB library for Twitter API 1.1 (JSON ONLY). Public
 //								is no longer supported here. No loss there.
+// 04-Apr-2014	rbd		3.3.1	Fix file:/// URI handling, broken when I stopped using 
+//								XmlDocument.Load() in favor of GetAuthFeedXml() (for twitter & auth
+//								feeds). Fix recognition of .xml files for direct input of RSS 
+//								(as opposed to input from feed list). Allow .rss for local RSS
+//								file as well as .xml.
 //
 //
 using System;
@@ -1353,7 +1358,8 @@ namespace com.dc3
 				if (uri.IsFile)
 				{
 					string p = uri.LocalPath;
-					if (Path.GetExtension(p) == ".txt")							// Assume this is a feed URI list
+					string pext = Path.GetExtension(p).ToLower();				// Reusable
+					if (pext == ".txt")											// Assume this is a feed URI list
 					{
 						string[] lines = File.ReadAllLines(p);
 						foreach (string l in lines)
@@ -1363,13 +1369,13 @@ namespace com.dc3
 							feedUrls.Add(line);									// Live line, add the feed URI
 						}
 					}
-					else if (Path.GetExtension(p) == "xml")						// Local RSS file
+					else if (pext == ".xml" || pext == ".rss" || pext == ".atom")	// Local RSS/Atom file
 					{
 						feedUrls.Add(_feedUrl);									// File path to RSS or 
 					}
 					else
 					{
-						throw new ApplicationException("file:// can only be .txt (feed list) or .xml (local RSS file)");
+						throw new ApplicationException("file:// can only be .txt (feed list) or .xml/.rss/.atom (local RSS or Atom file)");
 					}
 				}
 				else
@@ -1527,19 +1533,39 @@ namespace com.dc3
 							if (_debugTracing)
 								Trace.WriteLine("  " + feedUri, _traceCatMorseNews);
 							XmlDocument feedXml = new XmlDocument();
-							string xml = GetAuthFeedXml(feedUri);
-							try
+							if (new Uri(feedUri).IsFile)										// Use XML loader for file:///
 							{
-								feedXml.LoadXml(xml);
-							}
-							catch (Exception ex)
-							{
-								if (_debugTracing)
+								try
 								{
-									Trace.WriteLine("XML is invalid at " + feedUri, _traceCatMorseNews);
-									Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
+									feedXml.Load(feedUri);
 								}
-								continue;													// Skip this one
+								catch (Exception ex)
+								{
+									if (_debugTracing)
+									{
+										Trace.WriteLine("XML is invalid at " + feedUri, _traceCatMorseNews);
+										Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
+									}
+									continue;													// Skip this one
+								}
+
+							}
+							else
+							{
+								string xml = GetAuthFeedXml(feedUri);							// Only works on http/ftp/etc.
+								try
+								{
+									feedXml.LoadXml(xml);
+								}
+								catch (Exception ex)
+								{
+									if (_debugTracing)
+									{
+										Trace.WriteLine("XML is invalid at " + feedUri, _traceCatMorseNews);
+										Trace.WriteLine(ex.ToString(), _traceCatMorseNews);
+									}
+									continue;													// Skip this one
+								}
 							}
 							//
 							// First try for RSS
