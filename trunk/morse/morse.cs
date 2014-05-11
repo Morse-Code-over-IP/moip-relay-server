@@ -47,6 +47,8 @@
 //						space on " " just the real error code! Throw exception
 //						if WordWPM is changed to other than CharWPM when in
 //						American mode.
+// 11-May-14	rbd		1.8.1 - All of a sudden we're getting failures for index
+//						out of range on _cwCode[51]. Expand the array. 
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -410,6 +412,7 @@ namespace com.dc3.morse
 
 		private const string _errCodeIntl = "........";
 		private const string _errCodeAmer = "._._._._._. ";
+		private const int CWCODE_SIZE = 51;	// Not sure why (May 11, 2014)
 
 		private CodeMode _mode;
 		private string _errCode;			// Dotscii for error (Intl vs Amer)
@@ -442,7 +445,7 @@ namespace com.dc3.morse
 			_wstime = _stime * 4;
 			_accSpace = 1000;							// Leading space for very first character
 			_accWhite = "";
-			_cwCode = new Int32[51];					// Max size for CWCode 
+			_cwCode = new Int32[CWCODE_SIZE+10];		// Max size for CWCode + fudge for safety
 			_cwCount = 0;
 			_unkChar = null;
 		}
