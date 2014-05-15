@@ -49,11 +49,17 @@
 //						American mode.
 // 11-May-14	rbd		1.8.1 - All of a sudden we're getting failures for index
 //						out of range on _cwCode[51]. Expand the array. 
+// 14-May-14	rbd		1.8.2 - Add tracing to help diagnose this.
 //-----------------------------------------------------------------------------
 //
 using System;
 using System.Collections.Generic;
 using System.Text;
+#if DEBUG
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+#endif
 
 namespace com.dc3.morse
 {
@@ -428,6 +434,9 @@ namespace com.dc3.morse
 		private Int32[] _cwCode;			// Array for generated CWCode 
 		private int _cwCount;
 		private UnknownCharacterHandler _unkChar;
+#if DEBUG
+		string cwText = "nothing";
+#endif
 
 		/// <summary>
 		/// Constructor for the Morse class
@@ -445,9 +454,13 @@ namespace com.dc3.morse
 			_wstime = _stime * 4;
 			_accSpace = 1000;							// Leading space for very first character
 			_accWhite = "";
-			_cwCode = new Int32[CWCODE_SIZE+10];		// Max size for CWCode + fudge for safety
+			_cwCode = new Int32[CWCODE_SIZE];		// Max size for CWCode + fudge for safety
 			_cwCount = 0;
 			_unkChar = null;
+#if DEBUG
+			Trace.WriteLine("$cw [morse] Tracing enabled.");
+#endif
+
 		}
 
 		private void _calcSpaceTime()					// Calculate space times for Farnsworth (word rate < char rate)
@@ -957,116 +970,137 @@ namespace com.dc3.morse
 		///
 		public void CwCom(string Text, SendCode Sender)
 		{
+#if DEBUG
+			cwText = Text;
+#endif
 			if (Text == null || Text == "")
 				throw new ArgumentNullException("Text", "empty or null input string");
-
-			Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
-			string prosign = "";
-			bool inProsign = false;
-			bool sendProsign = false;
-
-			foreach (char c in Text.ToUpper())
+			//
+			// As of 1.8.1 this fails on mark_cw() for index out of range...
+			// Added this for debugging.
+			//
+			try
 			{
-				string dotscii;
-				char c2 = c;												// Allow modifying char
+				Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
+				string prosign = "";
+				bool inProsign = false;
+				bool sendProsign = false;
 
-				if (!inProsign)
-					start_cw();												// Not in prosign, start fresh
-				else if (c2 != '\\')										// In prosign (and not ending delim)
-					prosign += c2;											// Accumulate it for CwCode text
-
-				if (c2 == '\\')												// Prosign delimiter
+				foreach (char c in Text.ToUpper())
 				{
-					if (_mode == CodeMode.International)					// True prosign processing
+					string dotscii;
+					char c2 = c;												// Allow modifying char
+
+					if (!inProsign)
+						start_cw();												// Not in prosign, start fresh
+					else if (c2 != '\\')										// In prosign (and not ending delim)
+						prosign += c2;											// Accumulate it for CwCode text
+
+					if (c2 == '\\')												// Prosign delimiter
 					{
-						inProsign = !inProsign;
-						if (inProsign)										// Starting prosign
-							continue;
-						else												// Ending prosign
+						if (_mode == CodeMode.International)					// True prosign processing
 						{
-							c2 = ' ';
-							sendProsign = true;
+							inProsign = !inProsign;
+							if (inProsign)										// Starting prosign
+								continue;
+							else												// Ending prosign
+							{
+								c2 = ' ';
+								sendProsign = true;
+							}
+						}
+						else
+							c2 = '/';											// American, just change \ to /
+					}
+
+					if (dict.ContainsKey(c2))
+					{
+						dotscii = dict[c2];
+					}
+					else
+					{
+						if (_unkChar != null)
+						{
+							dotscii = " ";										// Caller knows so don't send error code
+							_unkChar(c2);
+						}
+						else
+							dotscii = _errCode;
+					}
+
+					for (int i = 0; i < dotscii.Length; i++)
+					{
+						char s = dotscii[i];
+						char s1 = (i == dotscii.Length - 1 ? '|' : dotscii[i + 1]);
+						switch (s)
+						{
+							case '.':											// Dit
+								mark_cw(_ctime);
+								space(_ctime);
+								break;
+							case '-':											// Dah = 3 dits
+								if (_mode == CodeMode.International)
+								{
+									mark_cw(_ctime * 3);
+									space(_ctime);
+								}
+								else											// American is more complicated
+								{
+									mark_cw((int)(s1 == '-' ? 2.7 * _ctime : 3.3 * _ctime));
+									space((int)(s1 == '-' ? 1.6 * _ctime : _ctime));
+								}
+								break;
+							//						---- American Only ----
+							case '_':											// Embedded space (American only)
+								_cwCode[_cwCount++] = (int)(-2.7 * _ctime);
+								_accSpace = 0;
+								break;
+							case '=':											// Four unit mark (American 'L')
+								mark_cw((int)(5.6 * _ctime));
+								space(_ctime);
+								break;
+							case '#':											// Five unit mark (American zero)
+								mark_cw((int)(8.9 * _ctime));
+								space(_ctime);
+								break;
+							//						-----------------------
+							case ' ':											// Word break
+								_accWhite += ' ';								// Accumulate whitespace for text
+								space(_wstime - _cstime);						// Preceding char has trailing character space
+								break;
 						}
 					}
-					else
-						c2 = '/';											// American, just change \ to /
-				}
-
-				if (dict.ContainsKey(c2))
-				{
-					dotscii = dict[c2];
-				}
-				else
-				{
-					if (_unkChar != null)
+					if (inProsign) continue;									// Still making prosign, don't send yet!
+					if (dotscii.Trim() != "" || sendProsign)					// Unless dotscii is just whitespace or prosign finished
 					{
-						dotscii = " ";										// Caller knows so don't send error code
-						_unkChar(c2);
+						Int32[] code = new Int32[_cwCount];						// Create "just right size" array
+						for (int i = 0; i < _cwCount; i++)
+							code[i] = _cwCode[i];
+						Sender(code, _accWhite + (sendProsign ? prosign + "\r\n" : c2.ToString()));  // Call delegate for this character
+						_accWhite = "";
+						sendProsign = false;
+						prosign = "";
 					}
-					else
-						dotscii = _errCode;
-				}
-
-				for (int i = 0; i < dotscii.Length; i++)
-				{
-					char s = dotscii[i];
-					char s1 = (i == dotscii.Length - 1 ? '|' : dotscii[i + 1]);
-					switch (s)
+					if (!inProsign || _mode == CodeMode.American)				// Unless doing prosign in International mode
 					{
-						case '.':											// Dit
-							mark_cw(_ctime);
-							space(_ctime);
-							break;
-						case '-':											// Dah = 3 dits
-							if (_mode == CodeMode.International)
-							{
-								mark_cw(_ctime * 3);
-								space(_ctime);
-							}
-							else											// American is more complicated
-							{
-								mark_cw((int)(s1 == '-' ? 2.7 * _ctime : 3.3 * _ctime));
-								space((int)(s1 == '-' ? 1.6 * _ctime : _ctime));
-							}
-							break;
-//						---- American Only ----
-						case '_':											// Embedded space (American only)
-							_cwCode[_cwCount++] = (int)(-2.7 * _ctime);
-							_accSpace = 0;
-							break;
-						case '=':											// Four unit mark (American 'L')
-							mark_cw((int)(5.6 * _ctime));
-							space(_ctime);
-							break;
-						case '#':											// Five unit mark (American zero)
-							mark_cw((int)(8.9 * _ctime));
-							space(_ctime);
-							break;
-//						-----------------------
-						case ' ':											// Word break
-							_accWhite += ' ';								// Accumulate whitespace for text
-							space(_wstime - _cstime);						// Preceding char has trailing character space
-							break;
+						space(_cstime);											// Character space
+						if (_mode == CodeMode.American && (dotscii == _errCode || _aSpaceEmph[c2]))
+							space(_ctime / 2);
 					}
-				}
-				if (inProsign) continue;									// Still making prosign, don't send yet!
-				if (dotscii.Trim() != "" || sendProsign)					// Unless dotscii is just whitespace or prosign finished
-				{
-					Int32[] code = new Int32[_cwCount];						// Create "just right size" array
-					for (int i = 0; i < _cwCount; i++)
-						code[i] = _cwCode[i];
-					Sender(code, _accWhite + (sendProsign ? prosign + "\r\n" : c2.ToString()));  // Call delegate for this character
-					_accWhite = "";
-					sendProsign = false;
-					prosign = "";
-				}
-				if (!inProsign || _mode == CodeMode.American)				// Unless doing prosign in International mode
-				{
-					space(_cstime);											// Character space
-					if (_mode == CodeMode.American && (dotscii == _errCode || _aSpaceEmph[c2]))
-						space(_ctime / 2);
-				}
 
+				}
+			}
+			catch (Exception ex)
+			{
+#if DEBUG
+				string prefix = "$cw [morse] ";
+				Trace.WriteLine(prefix + "CwCom failed:");
+				Trace.WriteLine(ex);
+				Trace.WriteLine(prefix + "Text input (length = " + cwText.Length + "):");
+				Trace.WriteLine(prefix + "[[" + cwText.Substring(0, 100) + "...]]");
+				Trace.WriteLine(prefix + "cwCount is " + _cwCount);
+				Trace.WriteLine(prefix + "Occurred after \"" + cwText.Substring(0, _cwCount) + "\"");
+#endif
 			}
 		}
 

@@ -101,6 +101,11 @@
 //						info to reflect that this is now a general purpose
 //						RSS/Morse robot. Fix up comments in several places.
 // 29-Sep-10	rbd		0.8.2 - Prevent recursion in Last-Chance error handler.
+// 14-May-14	rbd		1.8.2 - Add prefix $cw to Trace.WriteLine output so that
+//						DebugView can filter out the other noise (like MDaemon).
+//						Allow lines starting with # to be comment in lists. Add
+//						support for generic RSSFeeds and PeriodicMessages files
+//						and only read specifically named ones if they exist. 
 //-----------------------------------------------------------------------------
 //
 using System;
@@ -369,7 +374,7 @@ namespace com.dc3.cwcom
 		private void LogMessage(string msg)
 		{
 			if (s_serviceMode)
-				Trace.WriteLine("[" + _botName + "] " + msg);					// For DebugView when running as service
+				Trace.WriteLine("$cw [" + _botName + "] " + msg);					// For DebugView when running as service
 			else
 				Console.WriteLine("[" + _botName + "] " + msg);
 
@@ -729,32 +734,43 @@ namespace com.dc3.cwcom
 				// seen will again become eligible for sending. Station is used only in
 				// American mode, and is the 2-letter station ID (sine) of the sender.
 				//
-				string[] lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + _botName + "-RssFeeds.txt");
+				string fName = s_appPath + Path.DirectorySeparatorChar + _botName + "-RssFeeds.txt";
+				string[] lines;
+				if (File.Exists(fName))
+					lines = File.ReadAllLines(fName);
+				else
+					lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + "RssFeeds.txt");
 				for (int i = 0; i < lines.Length; i++)
 				{
-					if (lines[i].Trim() != "")
-					{
-						string[] bits = lines[i].Split(new char[] { '|' });
-						Feed F = new Feed();
-						F.Name = bits[0];
-						F.URL = bits[1];
-						if (bits.Length > 2)
-							F.TitleAge = Convert.ToInt32(bits[2]);
-						else
-							F.TitleAge = _titleAge;								// Default if age is not given
-						if (bits.Length > 3)
-							F.MessageClass = bits[3];
-						else
-							F.MessageClass = "";								// Default no message class
-						_rssFeeds.Add(F);
-					}
+					string line = lines[i].Trim();
+					if (line == "" || line.StartsWith("#")) continue;			// Allow # line start comment
+					
+					string[] bits = line.Split(new char[] { '|' });
+					Feed F = new Feed();
+					F.Name = bits[0];
+					F.URL = bits[1];
+					if (bits.Length > 2)
+						F.TitleAge = Convert.ToInt32(bits[2]);
+					else
+						F.TitleAge = _titleAge;									// Default if age is not given
+					if (bits.Length > 3)
+						F.MessageClass = bits[3];
+					else
+						F.MessageClass = "";									// Default no message class
+					_rssFeeds.Add(F);
 				}
 
-				lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + _botName + "-PeriodicMessages.txt");
+				fName = s_appPath + Path.DirectorySeparatorChar + _botName + "-PeriodicMessages.txt";
+				if (File.Exists(fName))
+					lines = File.ReadAllLines(fName);
+				else
+					lines = File.ReadAllLines(s_appPath + Path.DirectorySeparatorChar + "PeriodicMessages.txt");
 				for (int i = 0; i < lines.Length; i++)
 				{
-					if (lines[i].Trim() != "")
-						_periodicMessages.Add(lines[i].Trim());
+					string line = lines[i].Trim();
+					if (line == "" || line.StartsWith("#")) continue;			// Allow # line start comment
+
+					_periodicMessages.Add(line);
 				}
 				if (_periodicMessages.Count == 0)
 					_nextPeriodicMessage = -1;									// [sentinel] No periodic messages
@@ -965,7 +981,7 @@ namespace com.dc3.cwcom
 		private static void LogMessageS(string msg)
 		{
 			if (s_serviceMode)
-				Trace.WriteLine("[Main] " + msg);								// For DebugView when running as service
+				Trace.WriteLine("$cw [Main] " + msg);							// For DebugView when running as service
 			else
 				Console.WriteLine("[Main] " + msg);
 
@@ -1007,7 +1023,7 @@ namespace com.dc3.cwcom
 			for (int i = 0; i < lines.Length; i++)
 			{
 				string buf = lines[i].Trim();
-				if (buf == "") continue;
+				if (buf == "" || buf.StartsWith("#")) continue;
 				string[] bits = buf.Split(new char[] { '|' });
 				if (bits.Length < 6)
 				{
