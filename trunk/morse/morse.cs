@@ -970,6 +970,11 @@ namespace com.dc3.morse
 		///
 		public void CwCom(string Text, SendCode Sender)
 		{
+			Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
+			string prosign = "";
+			bool inProsign = false;
+			bool sendProsign = false;
+
 #if DEBUG
 			cwText = Text;
 #endif
@@ -981,11 +986,6 @@ namespace com.dc3.morse
 			//
 			try
 			{
-				Dictionary<char, string> dict = (_mode == CodeMode.International ? _iMorse : _aMorse);
-				string prosign = "";
-				bool inProsign = false;
-				bool sendProsign = false;
-
 				foreach (char c in Text.ToUpper())
 				{
 					string dotscii;
@@ -1094,12 +1094,23 @@ namespace com.dc3.morse
 			{
 #if DEBUG
 				string prefix = "$cw [morse] ";
-				Trace.WriteLine(prefix + "CwCom failed:");
-				Trace.WriteLine(ex);
+				Trace.WriteLine(prefix + "CwCom() failed:");
 				Trace.WriteLine(prefix + "Text input (length = " + cwText.Length + "):");
 				Trace.WriteLine(prefix + "[[" + cwText.Substring(0, 100) + "...]]");
 				Trace.WriteLine(prefix + "cwCount is " + _cwCount);
+				Trace.WriteLine(prefix + "prosign     = \"" + prosign + "\"");
+				Trace.WriteLine(prefix + "inProsign   = " + inProsign.ToString());
+				Trace.WriteLine(prefix + "sendProsign = " + sendProsign.ToString());
 				Trace.WriteLine(prefix + "Occurred after \"" + cwText.Substring(0, _cwCount) + "\"");
+				//
+				// Make sure the whole thing, including traceback, gets written.
+				// More useful for debug build which will have line numbers.
+				//
+				using (StringReader reader = new StringReader(ex.ToString()))
+				{
+					string line;
+					while ((line = reader.ReadLine()) != null) 	Trace.WriteLine(prefix + line);
+				}
 #endif
 			}
 		}
